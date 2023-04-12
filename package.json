@@ -1,0 +1,39 @@
+{
+  "name": "@koralabs/handle-svg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/koralabs/handle-svg.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/koralabs/handle-svg/issues"
+  },
+  "contributors": [
+    {
+      "name": "BigIrishLion"
+    }
+  ],
+  "homepage": "https://github.com/koralabs/handle-svg#readme",
+  "dependencies": {
+    "qrcode-svg": "^1.1.0",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@types/qrcode-svg": "^1.1.1"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ]
+}
