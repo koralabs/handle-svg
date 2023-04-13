@@ -1,12 +1,13 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "npm:publish": "yarn build && yarn publish"
   },
   "repository": {
     "type": "git",
@@ -30,7 +31,8 @@
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
-    "@types/qrcode-svg": "^1.1.1"
+    "@types/qrcode-svg": "^1.1.1",
+    "convert-svg-to-jpeg": "^0.6.4"
   },
   "files": [
     "bin",
