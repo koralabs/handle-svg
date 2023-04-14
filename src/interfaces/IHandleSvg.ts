@@ -5,4 +5,5 @@ export interface IHandleSvg {
     size: number;
     ratio: number;
     options: IHandleSvgOptions;
+    disableDollarSymbol?: boolean;
 }

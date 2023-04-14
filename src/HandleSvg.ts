@@ -79,36 +79,79 @@ export const pfpImage = ({
     }
 };
 
-export const fontBackground = ({
+export const textRibbon = ({
     size,
     ratio,
-    handleTextBgColorEnabled,
-    handleTextBgColor
+    textRibbonColorEnabled,
+    textRibbonColors,
+    textRibbonGradient,
+    textRibbonGradientEnabled
 }: {
     size: number;
     ratio: number;
-    handleTextBgColorEnabled: boolean;
-    handleTextBgColor: string;
+    textRibbonColorEnabled: boolean;
+    textRibbonColors: string[];
+    textRibbonGradient: string;
+    textRibbonGradientEnabled: boolean;
 }) => {
+    const getGradientStops = (colors: string[]) => {
+        const stops = [];
+        for (let i = 0; i < colors.length; i++) {
+            stops.push(
+                `<stop offset="${(i / (colors.length - 1)) * 100}%" style="stop-color:${colors[i]};stop-opacity:1" />`
+            );
+        }
+        return stops.join('');
+    };
+
     const height = size * 0.215;
-    return handleTextBgColorEnabled
-        ? `<rect x="0" y="${
-              size / 2 - ratio * 50
-          }" width="${size}" height="${height}" style="fill: ${handleTextBgColor}" />`
-        : undefined;
+
+    if (textRibbonColorEnabled && textRibbonColors.length > 0) {
+        // check if gradient is enabled
+        if (textRibbonGradientEnabled && textRibbonGradient !== 'none' && textRibbonColors.length > 1) {
+            return `
+            <svg>
+                <defs>
+                    ${
+                        textRibbonGradient.startsWith('linear')
+                            ? `<linearGradient id="grad1">${getGradientStops(textRibbonColors)}</linearGradient>`
+                            : `<radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">${getGradientStops(
+                                  textRibbonColors
+                              )}</radialGradient>`
+                    }
+                </defs>
+                <rect x="0" y="${size / 2 - ratio * 50}" width="${size}" height="${height}" style="fill: url(#grad1)" />
+            </svg>
+            `;
+        }
+
+        return `
+            <svg>
+                <rect x="0" y="${size / 2 - ratio * 50}" width="${size}" height="${height}" style="fill: ${
+            textRibbonColors[0]
+        }" />
+            </svg>
+        `;
+    }
+
+    return '';
 };
 
 export const backgroundBoarder = ({
     size,
+    ratio,
     backgroundBorderColorEnabled,
     backgroundBorderColor
 }: {
     size: number;
+    ratio: number;
     backgroundBorderColorEnabled: boolean;
     backgroundBorderColor: string;
 }) => {
     return backgroundBorderColorEnabled
-        ? `<rect width="${size}" height="${size}" fill="none" style="stroke-width: 10, stroke: ${backgroundBorderColor}" />`
+        ? `<rect width="${size}" height="${size}" fill="none" style="stroke-width: ${
+              (size / 512) * 10
+          }; stroke: ${backgroundBorderColor}" />`
         : null;
 };
 
@@ -122,16 +165,28 @@ export const handleName = ({
     size,
     ratio,
     handle,
-    handleTextShadowColorEnabled,
-    handleTextShadowColor
+    fontShadowColorEnabled,
+    fontShadowColor,
+    fontColor,
+    fontColorEnabled,
+    fontUrl
 }: {
     size: number;
     ratio: number;
     handle: string;
-    handleTextShadowColorEnabled: boolean;
-    handleTextShadowColor: string;
+    fontShadowColorEnabled: boolean;
+    fontShadowColor: string;
+    fontColor: string;
+    fontColorEnabled: boolean;
+    fontUrl: string;
 }) => {
-    return handleTextShadowColorEnabled
+    const font = fontUrl ? fontUrl : 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
+    const fontFamily = font.split('family=')[1].split('@')[0].replace(':wght', '').replace('+', ' ');
+
+    console.log('fontFamily', fontFamily);
+    console.log('font', font);
+
+    return fontShadowColorEnabled
         ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                 <defs>
                     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -139,41 +194,53 @@ export const handleName = ({
                         <feOffset dx="-4" dy="4" />
                     </filter>
                     <style type="text/css">
-                        @import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap');
+                        @import url('${font}');
                     </style>
                 </defs>
                 <text x="50%" y="50%" dominant-baseline="middle" font-size="${
                     ratio * 50
-                }" font-family="Ubuntu Mono" font-weight="400" text-anchor="middle" style="filter: url(#shadow), fill: ${handleTextShadowColor}">${handle}</text>
-                <text x="50%" y="50%" dominant-baseline="middle" fill="#fff" font-size="${
-                    ratio * 50
-                }" font-family="Ubuntu Mono, Noto Sans" font-weight="400" text-anchor="middle">${handle}</text>
+                }" font-family="${fontFamily}" font-weight="400" text-anchor="middle" style="filter: url(#shadow)">${handle}</text>
+                <text x="50%" y="50%" dominant-baseline="middle" fill="${
+                    fontColorEnabled && fontColor ? fontColor : '#fff'
+                }" font-size="${
+              ratio * 50
+          }" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
             </svg>`
         : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                 <defs>
                     <style type="text/css">
-                        @import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap');
+                        @import url('${font}');
                     </style>
                 </defs>
-                <text x="50%" y="50%" dominant-baseline="middle" fill="#fff" font-size="${
-                    ratio * 50
-                }" font-family="Ubuntu Mono" font-weight="400" text-anchor="middle">${handle}</text>
+                <text x="50%" y="50%" dominant-baseline="middle" fill="${
+                    fontColorEnabled && fontColor ? fontColor : '#fff'
+                }" font-size="${
+              ratio * 50
+          }" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
             </svg>`;
 };
 
 export const QRCodeSVG = ({
     handle,
-    qrColor,
-    qrColorEnabled,
+    qrBgColor,
+    qrBgColorEnabled,
     qrEnabled,
+    qrEyeColor,
+    qrEyeColorEnabled,
+    qrDotColor,
+    qrDotColorEnabled,
     ratio,
     size
 }: {
     size: number;
     ratio: number;
     handle: string;
-    qrColor: string;
-    qrColorEnabled: boolean;
+    qrBgColor: string;
+    qrBgColorEnabled: boolean;
+    qrEyeColor: string;
+    qrEyeColorEnabled: boolean;
+    qrDotColor: string;
+    qrDotColorEnabled: boolean;
     qrEnabled: boolean;
 }) => {
     if (qrEnabled) {
@@ -182,7 +249,7 @@ export const QRCodeSVG = ({
             padding: 3,
             width: size ? ratio * 105 : 512, // size is 0 on first load
             height: size ? ratio * 105 : 512, // size is 0 on first load
-            color: qrColorEnabled ? qrColor : '#000',
+            color: qrBgColorEnabled ? qrBgColor : '#000',
             background: '#ffffff',
             join: true,
             ecl: 'M'
@@ -267,12 +334,17 @@ export const socialsSvg = ({
         : undefined;
 };
 
-export const build = ({ handle, size, ratio, options }: IHandleSvg) => {
+export const build = ({ handle, size, ratio, options, disableDollarSymbol = false }: IHandleSvg) => {
     const {
-        handleTextShadowColor,
-        handleTextShadowColorEnabled,
-        handleTextBgColor,
-        handleTextBgColorEnabled,
+        fontShadowColor,
+        fontShadowColorEnabled,
+        textRibbonColors,
+        textRibbonColorEnabled,
+        textRibbonGradient,
+        textRibbonGradientEnabled,
+        fontColor,
+        fontColorEnabled,
+        fontUrl,
         pfpImageUrl,
         pfpImageUrlEnabled,
         pfpBorderColor,
@@ -284,8 +356,12 @@ export const build = ({ handle, size, ratio, options }: IHandleSvg) => {
         backgroundColor,
         backgroundColorEnabled,
         qrEnabled,
-        qrColor,
-        qrColorEnabled,
+        qrBgColor,
+        qrBgColorEnabled,
+        qrEyeColor,
+        qrEyeColorEnabled,
+        qrDotColor,
+        qrDotColorEnabled,
         socials,
         socialsEnabled
     } = options;
@@ -296,21 +372,44 @@ export const build = ({ handle, size, ratio, options }: IHandleSvg) => {
             ${defaultBackground(size)}
             ${backgroundImage({ size, backgroundImageUrl, backgroundImageUrlEnabled })}
             ${pfpImage({ size, ratio, pfpBorderColorEnabled, pfpBorderColor, pfpImageUrl, pfpImageUrlEnabled })}
-            ${fontBackground({
+            ${textRibbon({
                 size,
                 ratio,
-                handleTextBgColorEnabled,
-                handleTextBgColor
+                textRibbonColorEnabled,
+                textRibbonColors,
+                textRibbonGradient,
+                textRibbonGradientEnabled
             })}
             ${backgroundBoarder({
                 size,
+                ratio,
                 backgroundBorderColorEnabled,
                 backgroundBorderColor
             })}
             ${logoHandle(size)}
-            ${dollarSign({ size })}
-            ${handleName({ size, ratio, handle, handleTextShadowColorEnabled, handleTextShadowColor })}
-            ${QRCodeSVG({ size, ratio, handle, qrColor, qrColorEnabled, qrEnabled })}
+            ${disableDollarSymbol ? '' : dollarSign({ size })}
+            ${handleName({
+                size,
+                ratio,
+                handle,
+                fontShadowColorEnabled,
+                fontShadowColor,
+                fontColor,
+                fontColorEnabled,
+                fontUrl
+            })}
+            ${QRCodeSVG({
+                size,
+                ratio,
+                handle,
+                qrBgColor,
+                qrBgColorEnabled,
+                qrEyeColor,
+                qrEyeColorEnabled,
+                qrDotColor,
+                qrDotColorEnabled,
+                qrEnabled
+            })}
             ${socialsSvg({ handle, ratio, size, socials, socialsEnabled })}
         </svg>
     `;

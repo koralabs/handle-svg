@@ -1,8 +1,13 @@
 export interface IHandleSvgOptions {
-    handleTextShadowColor: string;
-    handleTextShadowColorEnabled: boolean;
-    handleTextBgColor: string;
-    handleTextBgColorEnabled: boolean;
+    fontShadowColor: string;
+    fontShadowColorEnabled: boolean;
+    textRibbonColors: string[];
+    textRibbonColorEnabled: boolean;
+    textRibbonGradient: string;
+    textRibbonGradientEnabled: boolean;
+    fontColor: string;
+    fontColorEnabled: boolean;
+    fontUrl: string;
     pfpImageUrl: string;
     pfpImageUrlEnabled: boolean;
     pfpBorderColor: string;
@@ -14,8 +19,12 @@ export interface IHandleSvgOptions {
     backgroundColor: string;
     backgroundColorEnabled: boolean;
     qrEnabled: boolean;
-    qrColor: string;
-    qrColorEnabled: boolean;
+    qrBgColor: string;
+    qrBgColorEnabled: boolean;
+    qrEyeColor: string;
+    qrEyeColorEnabled: boolean;
+    qrDotColor: string;
+    qrDotColorEnabled: boolean;
     socials: {
         key: string;
         value: any;
