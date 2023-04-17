@@ -183,9 +183,6 @@ export const handleName = ({
     const font = fontUrl ? fontUrl : 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
     const fontFamily = font.split('family=')[1].split('@')[0].replace(':wght', '').replace('+', ' ');
 
-    console.log('fontFamily', fontFamily);
-    console.log('font', font);
-
     return fontShadowColorEnabled
         ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                 <defs>
