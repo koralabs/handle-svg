@@ -82,14 +82,14 @@ export const pfpImage = ({
 export const textRibbon = ({
     size,
     ratio,
-    textRibbonColorEnabled,
+    textRibbonColorsEnabled,
     textRibbonColors,
     textRibbonGradient,
     textRibbonGradientEnabled
 }: {
     size: number;
     ratio: number;
-    textRibbonColorEnabled: boolean;
+    textRibbonColorsEnabled: boolean;
     textRibbonColors: string[];
     textRibbonGradient: string;
     textRibbonGradientEnabled: boolean;
@@ -106,7 +106,7 @@ export const textRibbon = ({
 
     const height = size * 0.215;
 
-    if (textRibbonColorEnabled && textRibbonColors.length > 0) {
+    if (textRibbonColorsEnabled && textRibbonColors.length > 0) {
         // check if gradient is enabled
         if (textRibbonGradientEnabled && textRibbonGradient !== 'none' && textRibbonColors.length > 1) {
             return `
@@ -339,7 +339,7 @@ export const build = ({ handle, size, ratio, options, disableDollarSymbol = fals
         fontShadowColor,
         fontShadowColorEnabled,
         textRibbonColors,
-        textRibbonColorEnabled,
+        textRibbonColorsEnabled,
         textRibbonGradient,
         textRibbonGradientEnabled,
         fontColor,
@@ -375,7 +375,7 @@ export const build = ({ handle, size, ratio, options, disableDollarSymbol = fals
             ${textRibbon({
                 size,
                 ratio,
-                textRibbonColorEnabled,
+                textRibbonColorsEnabled,
                 textRibbonColors,
                 textRibbonGradient,
                 textRibbonGradientEnabled

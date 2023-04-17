@@ -10,7 +10,7 @@ const options: IHandleSvgOptions = {
     fontColorEnabled: true,
     fontUrl: 'https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap',
     textRibbonColors: ['#b5342185', '#42184a'],
-    textRibbonColorEnabled: true,
+    textRibbonColorsEnabled: true,
     textRibbonGradient: 'linear-45',
     textRibbonGradientEnabled: true,
     pfpImageUrl: 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',

@@ -2,7 +2,7 @@ export interface IHandleSvgOptions {
     fontShadowColor: string;
     fontShadowColorEnabled: boolean;
     textRibbonColors: string[];
-    textRibbonColorEnabled: boolean;
+    textRibbonColorsEnabled: boolean;
     textRibbonGradient: string;
     textRibbonGradientEnabled: boolean;
     fontColor: string;
