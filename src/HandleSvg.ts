@@ -45,7 +45,9 @@ export const pfpImage = ({
     pfpBorderColorEnabled,
     pfpBorderColor,
     pfpImageUrl,
-    pfpImageUrlEnabled
+    pfpImageUrlEnabled,
+    pfpZoom,
+    pfpOffset
 }: {
     size: number;
     ratio: number;
@@ -53,28 +55,47 @@ export const pfpImage = ({
     pfpBorderColor: string;
     pfpImageUrl: string;
     pfpImageUrlEnabled: boolean;
+    pfpZoom?: number;
+    pfpOffset?: number[];
 }) => {
     {
         if (!pfpImageUrlEnabled) return '';
 
-        const pfpSize = size * 0.28125;
-        const dx = size / 2 - pfpSize / 2;
-        const dy = (size / 2 - ratio * 50) / 2 - pfpSize / 2;
+        const pfpCircleSize = size * 0.28125;
+        let pfpImageSize = parseInt(`${pfpCircleSize}`);
+
+        // add zoom if it exists
+        if (pfpZoom) {
+            pfpImageSize = pfpImageSize + pfpCircleSize * pfpZoom;
+        }
+
+        const dx = size / 2 - pfpCircleSize / 2;
+        const dy = (size / 2 - ratio * 50) / 2 - pfpCircleSize / 2;
+
+        let pfpImageX = parseInt(`${dx}`);
+        let pfpImageY = parseInt(`${dy}`);
+
+        if (pfpOffset) {
+            pfpImageX += pfpOffset[0] * ratio;
+            pfpImageY += pfpOffset[1] * ratio;
+        }
 
         return `<svg>
                 <defs>
                     <clipPath id="circle-path">
-                        <circle cx="${dx + pfpSize / 2}" cy="${dy + pfpSize / 2}" r="${pfpSize / 2}" />
+                        <circle cx="${dx + pfpCircleSize / 2}" cy="${dy + pfpCircleSize / 2}" r="${
+            pfpCircleSize / 2
+        }" />
                     </clipPath>
                 </defs>
                 ${
                     pfpBorderColorEnabled
-                        ? `<circle cx="${dx + pfpSize / 2}" cy="${dy + pfpSize / 2}" r="${pfpSize / 1.75}" fill="${
-                              pfpBorderColor ?? '#fff'
-                          }" />`
+                        ? `<circle cx="${dx + pfpCircleSize / 2}" cy="${dy + pfpCircleSize / 2}" r="${
+                              pfpCircleSize / 1.75
+                          }" fill="${pfpBorderColor ?? '#fff'}" />`
                         : ''
                 }
-                <image clip-path="url(#circle-path)" height="${pfpSize}" width="${pfpSize}" x="${dx}" y="${dy}" href="${pfpImageUrl}" />
+                <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${pfpImageUrl}" />
             </svg>`;
     }
 };
@@ -346,6 +367,8 @@ export const build = ({ handle, size, ratio, options, disableDollarSymbol = fals
         pfpImageUrlEnabled,
         pfpBorderColor,
         pfpBorderColorEnabled,
+        pfpZoom,
+        pfpOffset,
         backgroundImageUrl,
         backgroundImageUrlEnabled,
         backgroundBorderColor,
@@ -368,7 +391,16 @@ export const build = ({ handle, size, ratio, options, disableDollarSymbol = fals
             ${background({ size, backgroundColor })}
             ${defaultBackground(size)}
             ${backgroundImage({ size, backgroundImageUrl, backgroundImageUrlEnabled })}
-            ${pfpImage({ size, ratio, pfpBorderColorEnabled, pfpBorderColor, pfpImageUrl, pfpImageUrlEnabled })}
+            ${pfpImage({
+                size,
+                ratio,
+                pfpBorderColorEnabled,
+                pfpBorderColor,
+                pfpImageUrl,
+                pfpImageUrlEnabled,
+                pfpZoom,
+                pfpOffset
+            })}
             ${textRibbon({
                 size,
                 ratio,

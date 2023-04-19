@@ -12,6 +12,8 @@ export interface IHandleSvgOptions {
     pfpImageUrlEnabled: boolean;
     pfpBorderColor: string;
     pfpBorderColorEnabled: boolean;
+    pfpZoom?: number;
+    pfpOffset?: number[];
     backgroundImageUrl: string;
     backgroundImageUrlEnabled: boolean;
     backgroundBorderColor: string;

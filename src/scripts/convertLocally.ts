@@ -13,8 +13,10 @@ const options: IHandleSvgOptions = {
     textRibbonColorsEnabled: true,
     textRibbonGradient: 'radial',
     textRibbonGradientEnabled: true,
-    pfpImageUrl: 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',
+    pfpImageUrl: 'https://ipfs.io/ipfs/QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfpImageUrlEnabled: true,
+    pfpZoom: 0.86,
+    pfpOffset: [-56, -30],
     pfpBorderColor: '#202341',
     pfpBorderColorEnabled: true,
     backgroundImageUrl: 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',
@@ -35,24 +37,9 @@ const options: IHandleSvgOptions = {
 };
 
 (async () => {
-    const convertSvg = async ({
-        handle,
-        size,
-        outputFile,
-        options,
-        disableDollarSymbol = false
-    }: {
-        handle: string;
-        size: number;
-        outputFile: string;
-        options: IHandleSvgOptions;
-        disableDollarSymbol?: boolean;
-    }): Promise<Buffer> => {
-        const ratio = size / 512;
-        const svg = build({ handle, size, ratio, options, disableDollarSymbol });
-        console.log('SVG:', svg);
+    const convertSvg = async (svg: string): Promise<Buffer> => {
         const result = await convert(svg, {
-            output: outputFile,
+            output: 'doesnt_matter.jpg',
             width: size,
             height: size
         });
@@ -60,18 +47,47 @@ const options: IHandleSvgOptions = {
         return result;
     };
 
-    const result = await convertSvg({
+    const size = 1024;
+    const ratio = size / 512;
+
+    const input = {
         handle: 'bigirishlion',
-        size: 2048,
-        outputFile: 'testSVG-1.jpg',
+        size,
+        ratio,
         options,
         disableDollarSymbol: false
-    });
-    fs.writeFile('testSVG-1.jpg', result, (err: any) => {
+    };
+
+    const svg = build(input);
+
+    const result = await convertSvg(svg);
+
+    // write jpg
+    fs.writeFile('test_svg.jpg', result, (err: any) => {
         // throws an error, you could also catch it here
         if (err) throw err;
 
         // success case, the file was saved
-        console.log('SVG written!');
+        console.log('JPG written!');
+    });
+
+    const html = `
+    <html>
+        <head>
+            <title>Test</title>
+        </head>
+        <body style="margin: 0; padding: 0;">
+            ${svg}
+        </body>
+    </html>
+    `;
+
+    // write html file
+    fs.writeFile('test_handle.html', html, (err: any) => {
+        // throws an error, you could also catch it here
+        if (err) throw err;
+
+        // success case, the file was saved
+        console.log('HTML written!');
     });
 })();
