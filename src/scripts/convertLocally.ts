@@ -8,7 +8,7 @@ const options: IHandleSvgOptions = {
     fontShadowColorEnabled: true,
     fontColor: '#202341',
     fontColorEnabled: true,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=Tilt+Prism&display=swap',
+    fontUrl: 'Tilt Prism,https://fonts.googleapis.com/css2?family=Tilt+Prism&display=swap',
     textRibbonColors: ['#b5342185', '#42184a'],
     textRibbonColorsEnabled: true,
     textRibbonGradient: 'radial',
