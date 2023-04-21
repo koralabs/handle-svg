@@ -1,7 +1,7 @@
-const { convert } = require('convert-svg-to-jpeg');
 import * as fs from 'fs';
 import { IHandleSvgOptions } from '../interfaces';
 import { build } from '../HandleSvg';
+import { convert } from './convert';
 
 const options: IHandleSvgOptions = {
     fontShadowColor: '#475081',
@@ -13,13 +13,13 @@ const options: IHandleSvgOptions = {
     textRibbonColorsEnabled: true,
     textRibbonGradient: 'radial',
     textRibbonGradientEnabled: true,
-    pfpImageUrl: '', // 'https://ipfs.io/ipfs/QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
+    pfpImageUrl: 'https://ipfs.io/ipfs/QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfpImageUrlEnabled: true,
     pfpZoom: 0.86,
     pfpOffset: [-56, -30],
     pfpBorderColor: '#202341',
     pfpBorderColorEnabled: true,
-    backgroundImageUrl: '', // 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',
+    backgroundImageUrl: 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',
     backgroundImageUrlEnabled: true,
     backgroundBorderColor: '#797986',
     backgroundBorderColorEnabled: true,

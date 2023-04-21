@@ -1,6 +1,6 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -30,9 +30,10 @@
     "typescript": "^5.0.4"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "112",
     "@types/node": "^18.15.11",
     "@types/qrcode-svg": "^1.1.1",
-    "convert-svg-to-jpeg": "^0.6.4"
+    "puppeteer-core": "^19.10.1"
   },
   "files": [
     "bin",
