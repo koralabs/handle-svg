@@ -13,13 +13,13 @@ const options: IHandleSvgOptions = {
     textRibbonColorsEnabled: true,
     textRibbonGradient: 'radial',
     textRibbonGradientEnabled: true,
-    pfpImageUrl: 'https://ipfs.io/ipfs/QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
+    pfpImageUrl: '', // 'https://ipfs.io/ipfs/QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfpImageUrlEnabled: true,
     pfpZoom: 0.86,
     pfpOffset: [-56, -30],
     pfpBorderColor: '#202341',
     pfpBorderColorEnabled: true,
-    backgroundImageUrl: 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',
+    backgroundImageUrl: '', // 'https://live.staticflickr.com/6060/6999428845_38db1486d5_k.jpg',
     backgroundImageUrlEnabled: true,
     backgroundBorderColor: '#797986',
     backgroundBorderColorEnabled: true,
@@ -47,7 +47,7 @@ const options: IHandleSvgOptions = {
         return result;
     };
 
-    const size = 1024;
+    const size = 2048;
     const ratio = size / 512;
 
     const input = {

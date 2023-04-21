@@ -207,8 +207,6 @@ export const handleName = ({
             : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
     const [fontFamily, font] = f.split(',');
 
-    console.log(font, fontFamily);
-
     return fontShadowColorEnabled
         ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                 <defs>
