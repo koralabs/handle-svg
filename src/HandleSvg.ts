@@ -11,7 +11,7 @@ export const logoHandle = (size: number) => {
 };
 
 export const background = ({ size, backgroundColor }: { size: number; backgroundColor: string }) => {
-    return `<rect width="${size}" height="${size}" fill="${backgroundColor}" />`;
+    return `<rect width="${size}" height="${size}" fill="${backgroundColor || '#0d0f26ff'}" />`;
 };
 
 export const defaultBackground = (size: number) => {
@@ -64,10 +64,14 @@ export const pfpImage = ({
         const pfpCircleSize = size * 0.28125;
         let pfpImageSize = parseInt(`${pfpCircleSize}`);
 
+        console.log('pfpImageSize', pfpImageSize);
+
         // add zoom if it exists
         if (pfpZoom) {
             pfpImageSize = pfpImageSize + pfpCircleSize * pfpZoom;
         }
+
+        console.log('pfpImageSize', pfpImageSize);
 
         const dx = size / 2 - pfpCircleSize / 2;
         const dy = (size / 2 - ratio * 50) / 2 - pfpCircleSize / 2;
