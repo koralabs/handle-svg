@@ -1,7 +1,7 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IHandleSvgOptions } from './interfaces';
 
-export default class QRCodeStyling {
+export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; ratio: number; handle: string; disableDollarSymbol: boolean };
 
