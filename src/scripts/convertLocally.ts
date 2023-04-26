@@ -49,7 +49,7 @@ const options: IHandleSvgOptions = {
 
     const handleSvg = new HandleSvg(input);
 
-    const result = await convert(handleSvg, size, size);
+    const result = await convert(handle, handleSvg, size);
 
     // write jpg
     fs.writeFile('test_svg.jpg', result, (err: any) => {
@@ -69,7 +69,10 @@ const options: IHandleSvgOptions = {
         <body style="margin: 0; padding: 0;">
             ${handleSvg.build()}
         </body>
-            ${handleSvg.buildQrCodeScript()}
+        <script>
+            const qrCode = new QRCodeStyling(${JSON.stringify(handleSvg.buildQrCodeOptions())});
+            qrCode.append(document.getElementById("qr_code_${handle}"));
+        </script>
     </html>
     `;
 

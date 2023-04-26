@@ -290,40 +290,34 @@ export default class HandleSvg {
         `;
     }
 
-    buildQrCodeScript() {
+    buildQrCodeOptions(): any {
         const { size, ratio, handle } = this._params;
-        return `
-        <script>
-            const options = ${JSON.stringify(this._options)}
-            const size = ${size}
-            const ratio = ${ratio}
-            const [dotType, dotColor] = options.qrDot.split(",");
-            const [innerEyeType, innerEyeColor] = options.qrInnerEye.split(",");
-            const [outerEyeType, outerEyeColor] = options.qrOuterEye.split(",");
-            const qrCode = new QRCodeStyling({
-                width: size ? ratio * 105 : 512,
-                height: size ? ratio * 105 : 512,
-                type: "svg",
-                data: "http://handle.me/${handle}",
-                dotsOptions: {
-                    color: dotColor || "#000000",
-                    type: dotType
-                },
-                cornersSquareOptions: {
-                    color: outerEyeColor || "#000000",
-                    type: outerEyeType === 'rounded' ? 'extra-rounded' : outerEyeType
-                },
-                cornersDotOptions: {
-                    color: innerEyeColor || "#000000",
-                    type: innerEyeType
-                },
-                backgroundOptions: {
-                    color: options.qrBgColor || "#FFFFFF",
-                },
-            });
+        const { qrBgColor, qrDot, qrInnerEye, qrOuterEye } = this._options;
 
-            qrCode.append(document.getElementById("qr_code_${handle}"));
-        </script>
-        `;
+        const [dotType, dotColor] = qrDot.split(',');
+        const [innerEyeType, innerEyeColor] = qrInnerEye.split(',');
+        const [outerEyeType, outerEyeColor] = qrOuterEye.split(',');
+
+        return {
+            width: size ? ratio * 105 : 512,
+            height: size ? ratio * 105 : 512,
+            type: 'svg',
+            data: `http://handle.me/${handle}`,
+            dotsOptions: {
+                color: dotColor || '#000000',
+                type: dotType
+            },
+            cornersSquareOptions: {
+                color: outerEyeColor || '#000000',
+                type: outerEyeType === 'rounded' ? 'extra-rounded' : (outerEyeType as any)
+            },
+            cornersDotOptions: {
+                color: innerEyeColor || '#000000',
+                type: innerEyeType
+            },
+            backgroundOptions: {
+                color: qrBgColor || '#FFFFFF'
+            }
+        };
     }
 }
