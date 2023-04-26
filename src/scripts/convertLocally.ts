@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { IHandleSvgOptions } from '../interfaces';
+import { IHandleSvg, IHandleSvgOptions } from '../interfaces';
 import HandleSvg from '../HandleSvg';
 import { convert } from './convert';
 
@@ -35,21 +35,11 @@ const options: IHandleSvgOptions = {
 };
 
 (async () => {
-    const convertSvg = async (svg: string): Promise<Buffer> => {
-        const result = await convert(svg, {
-            output: 'doesnt_matter.jpg',
-            width: size,
-            height: size
-        });
-
-        return result;
-    };
-
     const size = 2048;
     const ratio = size / 512;
     const handle = 'bigirishlion';
 
-    const input = {
+    const input: IHandleSvg = {
         handle,
         size,
         ratio,
@@ -58,9 +48,8 @@ const options: IHandleSvgOptions = {
     };
 
     const handleSvg = new HandleSvg(input);
-    const svg = handleSvg.build();
 
-    const result = await convertSvg(svg);
+    const result = await convert(handleSvg, size, size);
 
     // write jpg
     fs.writeFile('test_svg.jpg', result, (err: any) => {
@@ -78,39 +67,9 @@ const options: IHandleSvgOptions = {
             <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
         </head>
         <body style="margin: 0; padding: 0;">
-            ${svg}
+            ${handleSvg.build()}
         </body>
-        <script>
-            const options = ${JSON.stringify(options)}
-            const size = ${size}
-            const ratio = ${ratio}
-            const [dotType, dotColor] = options.qrDot.split(",");
-            const [innerEyeType, innerEyeColor] = options.qrInnerEye.split(",");
-            const [outerEyeType, outerEyeColor] = options.qrOuterEye.split(",");
-            const qrCode = new QRCodeStyling({
-                width: size ? ratio * 105 : 512,
-                height: size ? ratio * 105 : 512,
-                type: "svg",
-                data: "http://handle.me/${handle}",
-                dotsOptions: {
-                    color: dotColor || "#000000",
-                    type: dotType
-                },
-                cornersSquareOptions: {
-                    color: outerEyeColor || "#000000",
-                    type: outerEyeType === 'rounded' ? 'extra-rounded' : outerEyeType
-                },
-                cornersDotOptions: {
-                    color: innerEyeColor || "#000000",
-                    type: innerEyeType
-                },
-                backgroundOptions: {
-                    color: options.qrBgColor || "#FFFFFF",
-                },
-            });
-    
-            qrCode.append(document.getElementById("qr_code_${handle}"));
-        </script>
+            ${handleSvg.buildQrCodeScript()}
     </html>
     `;
 
