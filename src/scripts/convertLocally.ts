@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { IHandleSvgOptions } from '../interfaces';
-import { build } from '../HandleSvg';
+import HandleSvg from '../HandleSvg';
 import { convert } from './convert';
 
 const options: IHandleSvgOptions = {
@@ -26,12 +26,10 @@ const options: IHandleSvgOptions = {
     backgroundColor: '#be4961',
     backgroundColorEnabled: true,
     qrEnabled: true,
-    qrBgColor: '#894480',
-    qrEyeColor: '',
-    qrEyeColorEnabled: false,
-    qrDotColor: '',
-    qrDotColorEnabled: false,
-    qrBgColorEnabled: true,
+    qrBgColor: '#00000000',
+    qrInnerEye: 'square,#42184a',
+    qrOuterEye: 'rounded,#b5342185',
+    qrDot: 'rounded,#42184a',
     socials: [{ key: 'discord', value: 'testing' }],
     socialsEnabled: true
 };
@@ -49,16 +47,18 @@ const options: IHandleSvgOptions = {
 
     const size = 2048;
     const ratio = size / 512;
+    const handle = 'bigirishlion';
 
     const input = {
-        handle: 'bigirishlion',
+        handle,
         size,
         ratio,
         options,
         disableDollarSymbol: false
     };
 
-    const svg = build(input);
+    const handleSvg = new HandleSvg(input);
+    const svg = handleSvg.build();
 
     const result = await convertSvg(svg);
 
@@ -74,11 +74,43 @@ const options: IHandleSvgOptions = {
     const html = `
     <html>
         <head>
-            <title>Test</title>
+            <title>${handle} SVG</title>
+            <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
         </head>
         <body style="margin: 0; padding: 0;">
             ${svg}
         </body>
+        <script>
+            const options = ${JSON.stringify(options)}
+            const size = ${size}
+            const ratio = ${ratio}
+            const [dotType, dotColor] = options.qrDot.split(",");
+            const [innerEyeType, innerEyeColor] = options.qrInnerEye.split(",");
+            const [outerEyeType, outerEyeColor] = options.qrOuterEye.split(",");
+            const qrCode = new QRCodeStyling({
+                width: size ? ratio * 105 : 512,
+                height: size ? ratio * 105 : 512,
+                type: "svg",
+                data: "http://handle.me/${handle}",
+                dotsOptions: {
+                    color: dotColor || "#000000",
+                    type: dotType
+                },
+                cornersSquareOptions: {
+                    color: outerEyeColor || "#000000",
+                    type: outerEyeType === 'rounded' ? 'extra-rounded' : outerEyeType
+                },
+                cornersDotOptions: {
+                    color: innerEyeColor || "#000000",
+                    type: innerEyeType
+                },
+                backgroundOptions: {
+                    color: options.qrBgColor || "#FFFFFF",
+                },
+            });
+    
+            qrCode.append(document.getElementById("qr_code_${handle}"));
+        </script>
     </html>
     `;
 

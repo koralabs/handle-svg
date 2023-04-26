@@ -22,11 +22,9 @@ export interface IHandleSvgOptions {
     backgroundColorEnabled: boolean;
     qrEnabled: boolean;
     qrBgColor: string;
-    qrBgColorEnabled: boolean;
-    qrEyeColor: string;
-    qrEyeColorEnabled: boolean;
-    qrDotColor: string;
-    qrDotColorEnabled: boolean;
+    qrInnerEye: string;
+    qrOuterEye: string;
+    qrDot: string;
     socials: {
         key: string;
         value: any;
