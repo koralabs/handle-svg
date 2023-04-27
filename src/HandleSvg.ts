@@ -153,10 +153,10 @@ export default class HandleSvg {
         const { size } = this._params;
         const { backgroundBorderColor, backgroundBorderColorEnabled } = this._options;
         return backgroundBorderColorEnabled
-            ? `<rect width="${size}" height="${size}" fill="none" style="stroke-width: ${
+            ? `<rect width="${size}" height="${size}" fill="none" stroke-width="${
                   (size / 512) * 10
-              }; stroke: ${backgroundBorderColor}" />`
-            : null;
+              }" stroke="${backgroundBorderColor}" />`
+            : '';
     };
 
     buildDollarSign = () => {
