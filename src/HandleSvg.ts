@@ -1,6 +1,8 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IHandleSvgOptions } from './interfaces';
 
+const IPFS_GATEWAY = 'https://ipfs.io';
+
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; ratio: number; handle: string; disableDollarSymbol: boolean };
@@ -49,7 +51,10 @@ export default class HandleSvg {
         const { size } = this._params;
         const { backgroundImageUrl, backgroundImageUrlEnabled } = this._options;
         return backgroundImageUrlEnabled
-            ? `<image href="${backgroundImageUrl}" height="${size}" width="${size}" />`
+            ? `<image href="${IPFS_GATEWAY}/${backgroundImageUrl.replace(
+                  ':/',
+                  ''
+              )}" height="${size}" width="${size}" />`
             : '';
     };
 
@@ -94,7 +99,10 @@ export default class HandleSvg {
                               }" fill="${pfpBorderColor ?? '#fff'}" />`
                             : ''
                     }
-                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${pfpImageUrl}" />
+                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${IPFS_GATEWAY}/${pfpImageUrl.replace(
+            ':/',
+            ''
+        )}" />
                 </svg>`;
     }
 
