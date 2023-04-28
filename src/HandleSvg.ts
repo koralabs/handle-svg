@@ -70,7 +70,9 @@ export default class HandleSvg {
 
         // add zoom if it exists
         if (pfpZoom) {
-            pfpImageSize = pfpImageSize + pfpCircleSize * pfpZoom;
+            if (pfpZoom < 1) {
+                pfpImageSize = pfpImageSize + pfpCircleSize * pfpZoom;
+            }
         }
 
         const dx = size / 2 - pfpCircleSize / 2;
@@ -80,8 +82,11 @@ export default class HandleSvg {
         let pfpImageY = parseInt(`${dy}`);
 
         if (pfpOffset) {
-            pfpImageX += pfpOffset[0] * ratio;
-            pfpImageY += pfpOffset[1] * ratio;
+            const [x, y] = pfpOffset;
+            if (x !== 0 && y !== 0) {
+                pfpImageX += x * ratio;
+                pfpImageY += y * ratio;
+            }
         }
 
         return `<svg>
