@@ -49,7 +49,7 @@ export default class HandleSvg {
     buildBackgroundImage = () => {
         const { size } = this._params;
         const { backgroundImageUrl, backgroundImageUrlEnabled } = this._options;
-        return backgroundImageUrlEnabled
+        return backgroundImageUrlEnabled && backgroundImageUrl
             ? `<image href="${IPFS_GATEWAY}/${backgroundImageUrl.replace(
                   ':/',
                   ''
@@ -62,7 +62,7 @@ export default class HandleSvg {
         const { pfpImageUrl, pfpImageUrlEnabled, pfpZoom, pfpOffset, pfpBorderColorEnabled, pfpBorderColor } =
             this._options;
 
-        if (!pfpImageUrlEnabled) return '';
+        if (!pfpImageUrlEnabled || !pfpImageUrl) return '';
 
         const pfpCircleSize = size * 0.28125;
         let pfpImageSize = parseInt(`${pfpCircleSize}`);
@@ -128,9 +128,14 @@ export default class HandleSvg {
             this._options;
         const height = size * 0.215;
 
-        if (textRibbonColorsEnabled && textRibbonColors.length > 0) {
+        if (textRibbonColorsEnabled && textRibbonColors && textRibbonColors.length > 0) {
             // check if gradient is enabled
-            if (textRibbonGradientEnabled && textRibbonGradient !== 'none' && textRibbonColors.length > 1) {
+            if (
+                textRibbonGradientEnabled &&
+                textRibbonGradient &&
+                textRibbonGradient !== 'none' &&
+                textRibbonColors.length > 1
+            ) {
                 return `
                 <svg>
                     <defs>
@@ -262,7 +267,7 @@ export default class HandleSvg {
     buildSocialsSvg() {
         const { size, ratio, handle } = this._params;
         const { socials, socialsEnabled } = this._options;
-        return socialsEnabled && socials.length > 0
+        return socialsEnabled && socials && socials.length > 0
             ? socials.map((social: any, index: number) => {
                   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                                 ${this.renderSocialIcon({
@@ -310,9 +315,9 @@ export default class HandleSvg {
 
         if (!qrEnabled) return undefined;
 
-        const [dotType, dotColor] = qrDot.split(',');
-        const [innerEyeType, innerEyeColor] = qrInnerEye.split(',');
-        const [outerEyeType, outerEyeColor] = qrOuterEye.split(',');
+        const [dotType, dotColor] = qrDot?.split(',') ?? ['square', '#000000'];
+        const [innerEyeType, innerEyeColor] = qrInnerEye?.split(',') ?? ['square', '#000000'];
+        const [outerEyeType, outerEyeColor] = qrOuterEye?.split(',') ?? ['square', '#000000'];
 
         return {
             width: size ? ratio * 105 : 512,
