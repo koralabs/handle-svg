@@ -25,15 +25,12 @@
     }
   ],
   "homepage": "https://github.com/koralabs/handle-svg#readme",
-  "dependencies": {
-    "qrcode-svg": "^1.1.0",
-    "typescript": "^5.0.4"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@sparticuz/chromium": "112",
     "@types/node": "^18.15.11",
-    "@types/qrcode-svg": "^1.1.1",
-    "puppeteer-core": "^19.10.1"
+    "puppeteer-core": "^19.10.1",
+    "typescript": "^5.0.4"
   },
   "files": [
     "bin",
