@@ -12,11 +12,11 @@ export const getRarityHex = (handle: string): string => {
         case 'Legendary':
             return '#f4900c';
         case 'Ultra Rare':
-            return '#aa8ed6';
+            return '#593292';
         case 'Rare':
             return '#55acee';
         case 'Common':
-            return '#78b159';
+            return '#0cd15b';
         default:
             return '#ffffff';
     }

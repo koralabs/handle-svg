@@ -30,4 +30,8 @@ export interface IHandleSvgOptions {
         value: any;
     }[];
     socialsEnabled?: boolean;
+    ogNumber?: number;
+    fontShadowHorzOffset?: number;
+    fontShadowVertOffset?: number;
+    fontShadowBlur?: number;
 }

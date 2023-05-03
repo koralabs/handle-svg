@@ -4,19 +4,19 @@ import HandleSvg from '../HandleSvg';
 import { convert } from './convert';
 
 const options: IHandleSvgOptions = {
-    fontShadowColor: '#475081',
+    fontShadowColor: '#cccccc',
     fontShadowColorEnabled: true,
     fontColor: '#ff6130',
     fontColorEnabled: true,
-    fontUrl: 'Tilt Prism,https://tinyurl.com/2an5pb5a',
-    textRibbonColors: ['#000000', '#12546294'],
+    fontUrl: '', //'Tilt Prism,https://tinyurl.com/2an5pb5a',
+    textRibbonColors: ['red', 'blue'],
     textRibbonColorsEnabled: true,
     textRibbonGradient: 'radial',
     textRibbonGradientEnabled: true,
     pfpImageUrl: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfpImageUrlEnabled: true,
-    pfpZoom: 1,
-    pfpOffset: [0, 0],
+    pfpZoom: 1.5,
+    pfpOffset: [-120, -50],
     pfpBorderColor: '#202341',
     pfpBorderColorEnabled: true,
     backgroundImageUrl: 'ipfs://QmSkgqaCapgw99Y2oAZ72tj9iGRb89DzM7kJPetvsj7NND',
@@ -30,19 +30,22 @@ const options: IHandleSvgOptions = {
     qrInnerEye: 'square,#f2f285',
     qrOuterEye: 'rounded,#f2f285',
     qrDot: 'rounded,#ff6130',
-    socials: [{ key: 'discord', value: 'testing' }],
-    socialsEnabled: true
+    socials: [
+        { key: 'discord', value: 'testing' },
+        { key: 'facebook', value: 'testing' },
+        { key: 'twitter', value: 'testing' }
+    ],
+    socialsEnabled: true,
+    ogNumber: 2438
 };
 
 (async () => {
-    const size = 2048;
-    const ratio = size / 512;
+    const size = 420;
     const handle = 'bigirishlion';
 
     const input: IHandleSvg = {
         handle,
         size,
-        ratio,
         options,
         disableDollarSymbol: false
     };
