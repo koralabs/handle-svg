@@ -1,7 +1,7 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
-import { IHandleSvgOptions } from './interfaces';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getRarityHex } from './utils';
+import { IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -34,8 +34,8 @@ export default class HandleSvg {
 
     buildBackground() {
         const { size } = this._params;
-        const { backgroundColor } = this._options;
-        return `<rect width="${size}" height="${size}" fill="${backgroundColor || '#0d0f26ff'}" />`;
+        const { bg_color } = this._options;
+        return `<rect width="${size}" height="${size}" fill="${bg_color || '#0d0f26ff'}" />`;
     }
 
     buildDefaultBackground() {
@@ -54,29 +54,25 @@ export default class HandleSvg {
 
     buildBackgroundImage = () => {
         const { size } = this._params;
-        const { backgroundImageUrl, backgroundImageUrlEnabled } = this._options;
-        return backgroundImageUrlEnabled && backgroundImageUrl
-            ? `<image href="${IPFS_GATEWAY}/${backgroundImageUrl.replace(
-                  ':/',
-                  ''
-              )}" height="${size}" width="${size}" />`
+        const { bg_image } = this._options;
+        return bg_image && bg_image !== ''
+            ? `<image href="${IPFS_GATEWAY}/${bg_image.replace(':/', '')}" height="${size}" width="${size}" />`
             : '';
     };
 
     buildPfpImage() {
         const { size } = this._params;
-        const { pfpImageUrl, pfpImageUrlEnabled, pfpZoom, pfpOffset, pfpBorderColorEnabled, pfpBorderColor } =
-            this._options;
+        const { pfp_image, pfp_zoom, pfp_offset, pfp_border_color } = this._options;
 
-        if (!pfpImageUrlEnabled || !pfpImageUrl) return '';
+        if (!pfp_image || pfp_image === '') return '';
 
         const pfpCircleSize = size * (576 / this._baseSize);
         let pfpImageSize = parseInt(`${pfpCircleSize}`);
 
         // add zoom if it exists
-        if (pfpZoom) {
-            if (pfpZoom > 1) {
-                pfpImageSize = pfpCircleSize * pfpZoom;
+        if (pfp_zoom) {
+            if (pfp_zoom > 1) {
+                pfpImageSize = pfpCircleSize * pfp_zoom;
             }
         }
 
@@ -89,8 +85,8 @@ export default class HandleSvg {
         let pfpImageX = parseInt(`${dx}`) - radius;
         let pfpImageY = parseInt(`${dy}`) - radius;
 
-        if (pfpOffset) {
-            const [x, y] = pfpOffset;
+        if (pfp_offset) {
+            const [x, y] = pfp_offset;
             pfpImageX += size * (x / this._baseSize);
             pfpImageY += size * (y / this._baseSize);
         }
@@ -102,13 +98,13 @@ export default class HandleSvg {
                         </clipPath>
                     </defs>
                     ${
-                        pfpBorderColorEnabled
+                        pfp_border_color && pfp_border_color !== ''
                             ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${
-                                  pfpBorderColor ?? '#fff'
+                                  pfp_border_color ?? '#fff'
                               }" />`
                             : ''
                     }
-                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${IPFS_GATEWAY}/${pfpImageUrl.replace(
+                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${IPFS_GATEWAY}/${pfp_image.replace(
             ':/',
             ''
         )}" />
@@ -125,29 +121,23 @@ export default class HandleSvg {
         };
 
         const { size } = this._params;
-        const { textRibbonColors, textRibbonColorsEnabled, textRibbonGradient, textRibbonGradientEnabled } =
-            this._options;
+        const { text_ribbon_colors, text_ribbon_gradient } = this._options;
         const height = size * (314 / this._baseSize);
         const x = 0;
         const y = size / 2 - height / 2;
 
-        if (textRibbonColorsEnabled && textRibbonColors && textRibbonColors.length > 0) {
+        if (text_ribbon_colors && text_ribbon_colors.length > 0) {
             // check if gradient is enabled
-            if (
-                textRibbonGradientEnabled &&
-                textRibbonGradient &&
-                textRibbonGradient !== 'none' &&
-                textRibbonColors.length > 1
-            ) {
+            if (text_ribbon_gradient && text_ribbon_gradient !== 'none' && text_ribbon_colors.length > 1) {
                 return `
                 <svg>
                     <defs>
                         ${
-                            textRibbonGradient.startsWith('linear')
+                            text_ribbon_gradient.startsWith('linear')
                                 ? `<linearGradient id="grad1" gradientTransform="rotate(${
-                                      textRibbonGradient.split('-')[1]
-                                  } 0.5 0.5)">${getGradientStops(textRibbonColors)}</linearGradient>`
-                                : `<radialGradient id="grad1">${getGradientStops(textRibbonColors)}</radialGradient>`
+                                      text_ribbon_gradient.split('-')[1]
+                                  } 0.5 0.5)">${getGradientStops(text_ribbon_colors)}</linearGradient>`
+                                : `<radialGradient id="grad1">${getGradientStops(text_ribbon_colors)}</radialGradient>`
                         }
                     </defs>
                     <rect x="${x}" y="${y}" width="${size}" height="${height}" style="fill: url(#grad1)" />
@@ -158,7 +148,7 @@ export default class HandleSvg {
             return `
                 <svg>
                     <rect x="0" y="${size / 2 - height / 2}" width="${size}" height="${height}" style="fill: ${
-                textRibbonColors[0]
+                text_ribbon_colors[0]
             }" />
                 </svg>
             `;
@@ -169,13 +159,13 @@ export default class HandleSvg {
 
     buildBackgroundBorder = () => {
         const { size } = this._params;
-        const { backgroundBorderColor, backgroundBorderColorEnabled } = this._options;
+        const { bg_border_color } = this._options;
         const strokeWidth = size * (30 / this._baseSize);
         const recSize = size - strokeWidth;
-        return backgroundBorderColorEnabled
+        return bg_border_color && bg_border_color !== ''
             ? `<rect x="${strokeWidth / 2}" y="${
                   strokeWidth / 2
-              }" width="${recSize}" height="${recSize}" fill="none" stroke-width="${strokeWidth}" stroke="${backgroundBorderColor}" />`
+              }" width="${recSize}" height="${recSize}" fill="none" stroke-width="${strokeWidth}" stroke="${bg_border_color}" />`
             : '';
     };
 
@@ -194,17 +184,17 @@ export default class HandleSvg {
 
     buildOG = () => {
         const { size, handle } = this._params;
-        const { fontUrl, ogNumber } = this._options;
+        const { font, og_number } = this._options;
 
-        if (!ogNumber) {
+        if (!og_number) {
             return '';
         }
 
         const f =
-            fontUrl && fontUrl !== ''
-                ? fontUrl
+            font && font !== ''
+                ? font
                 : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
-        const [fontFamily, font] = f.split(',');
+        const [fontFamily, fontLink] = f.split(',');
         const fontSize = size * (48 / this._baseSize);
         const dollarSignWidth = size * (300 / this._baseSize);
         const x = size - dollarSignWidth - this._margin;
@@ -212,7 +202,7 @@ export default class HandleSvg {
         return `<svg x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <style type="text/css">
-                @import url('${font}');
+                @import url('${fontLink}');
             </style>
         </defs>
         <text transform="translate(${dollarSignWidth / 2})"
@@ -221,42 +211,35 @@ export default class HandleSvg {
         fill="${getRarityHex(handle)}"
         font-size="${fontSize}"
         font-family="${fontFamily}"
-        font-weight="400">OG ${ogNumber}/${OG_TOTAL}</tspan></text>
+        font-weight="400">OG ${og_number}/${OG_TOTAL}</tspan></text>
     </svg>`;
     };
 
     buildHandleName() {
         const { size, handle } = this._params;
-        const {
-            fontColor,
-            fontColorEnabled,
-            fontShadowColor,
-            fontShadowColorEnabled,
-            fontUrl,
-            fontShadowHorzOffset = 8,
-            fontShadowVertOffset = 8,
-            fontShadowBlur = 8
-        } = this._options;
+        const { font_color, font_shadow_color, font, font_shadow_size = [] } = this._options;
+
+        const [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
 
         const f =
-            fontUrl && fontUrl !== ''
-                ? fontUrl
+            font && font !== ''
+                ? font
                 : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
-        const [fontFamily, font] = f.split(',');
+        const [fontFamily, fontLink] = f.split(',');
         const fontSize = size * (200 / this._baseSize);
         const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         const blur = size * (fontShadowBlur / this._baseSize);
 
-        return fontShadowColorEnabled
+        return font_shadow_color && font_shadow_color !== ''
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
                             @import url('${font}');
                         </style>
                     </defs>
-                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowColor};" x="50%" y="50%" dominant-baseline="central" fill="${
-                  fontColorEnabled && fontColor ? fontColor : '#fff'
+                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color};" x="50%" y="50%" dominant-baseline="central" fill="${
+                  font_color && font_color !== '' ? font_color : '#fff'
               }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
@@ -266,33 +249,33 @@ export default class HandleSvg {
                         </style>
                     </defs>
                     <text x="50%" y="50%" dominant-baseline="central" fill="${
-                        fontColorEnabled && fontColor ? fontColor : '#fff'
+                        font_color && font_color !== '' ? font_color : '#fff'
                     }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 
     buildQRCode = () => {
         const { size, handle } = this._params;
-        const { qrEnabled } = this._options;
+        const { qr_link } = this._options;
         const baseQRCodeSize = size * (420 / this._baseSize);
         const pos = size - baseQRCodeSize - this._margin;
-        if (qrEnabled) {
+        if (qr_link && qr_link !== '') {
             return `<svg id="qr_code_${handle}" x="${pos}" y="${pos}"></svg>`;
         }
 
         return '';
     };
 
-    renderSocialIcon({ social, socialHeight }: { social: string; socialHeight: number }) {
+    renderSocialIcon(socialUrl: string) {
         const x = 15;
         const { size } = this._params;
         const scale = (size / this._baseSize) * 4;
 
-        if (social === 'twitter') {
+        if (socialUrl.includes('twitter')) {
             return `<svg id="logoDiscord" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clipRule="evenodd">
                         <path transform="scale(${scale})" id="twitter_logo" fill="#fff" d="M12.01,2.71c0,.12,0,.24,0,.35,0,3.63-2.76,7.81-7.81,7.81h0c-1.49,0-2.95-.43-4.21-1.23,.22,.03,.44,.04,.65,.04,1.24,0,2.44-.41,3.41-1.18-1.17-.02-2.21-.79-2.57-1.91,.41,.08,.84,.06,1.24-.05-1.28-.26-2.2-1.38-2.2-2.69v-.03c.38,.21,.81,.33,1.25,.34C.57,3.36,.2,1.76,.93,.5c1.39,1.72,3.45,2.76,5.66,2.87-.22-.95,.08-1.95,.79-2.62,1.11-1.04,2.84-.99,3.88,.12,.61-.12,1.2-.35,1.74-.67-.2,.64-.63,1.18-1.21,1.52,.54-.06,1.08-.21,1.58-.43-.37,.55-.83,1.03-1.37,1.42Z" />
                     </svg>`;
-        } else if (social === 'facebook') {
+        } else if (socialUrl.includes('facebook')) {
             return `<svg id="logoDiscord" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clipRule="evenodd">
                         <path transform="scale(${
                             scale / 2
@@ -309,27 +292,24 @@ export default class HandleSvg {
 
     buildSocialsSvg() {
         const { size } = this._params;
-        const { socials, socialsEnabled, fontUrl } = this._options;
+        const { socials, font } = this._options;
         const f =
-            fontUrl && fontUrl !== ''
-                ? fontUrl
+            font && font !== ''
+                ? font
                 : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
-        const [fontFamily, font] = f.split(',');
+        const [fontFamily, fontLink] = f.split(',');
         const socialSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
         const socialSpacing = size * (80 / this._baseSize);
         const x = this._margin;
         const y = size - socialSize - this._margin;
-        return socialsEnabled && socials && socials.length > 0
-            ? socials.map((social: any, index: number) => {
+        return socials && socials.length > 0
+            ? socials.map((social: SocialItem, index: number) => {
                   return `<svg xmlns="http://www.w3.org/2000/svg" x="${x}" y="${y - index * socialSpacing}">
-                                ${this.renderSocialIcon({
-                                    social: social.key,
-                                    socialHeight: socialSize
-                                })}
+                                ${this.renderSocialIcon(social.url)}
                                 <defs>
                                     <style type="text/css">
-                                        @import url('${font}');
+                                        @import url('${fontLink}');
                                     </style>
                                 </defs>
                                 <text
@@ -340,7 +320,7 @@ export default class HandleSvg {
                                     font-family="${fontFamily}"
                                     font-weight="400"
                                 >
-                                    ${social.value}
+                                    ${social.display}
                                 </text>
                             </svg>`;
               })
@@ -370,13 +350,13 @@ export default class HandleSvg {
 
     buildQrCodeOptions(): any {
         const { size, handle } = this._params;
-        const { qrBgColor, qrDot, qrInnerEye, qrOuterEye, qrEnabled } = this._options;
+        const { qr_bg_color, qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
 
-        if (!qrEnabled) return undefined;
+        if (!qr_link || qr_link === '') return undefined;
 
-        const [dotType, dotColor] = qrDot?.split(',') ?? ['square', '#000000'];
-        const [innerEyeType, innerEyeColor] = qrInnerEye?.split(',') ?? ['square', '#000000'];
-        const [outerEyeType, outerEyeColor] = qrOuterEye?.split(',') ?? ['square', '#000000'];
+        const [dotType, dotColor] = qr_dot?.split(',') ?? ['square', '#000000'];
+        const [innerEyeType, innerEyeColor] = qr_inner_eye?.split(',') ?? ['square', '#000000'];
+        const [outerEyeType, outerEyeColor] = qr_outer_eye?.split(',') ?? ['square', '#000000'];
 
         const qrCodeSize = size * (430 / this._baseSize);
 
@@ -399,7 +379,7 @@ export default class HandleSvg {
                 type: innerEyeType
             },
             backgroundOptions: {
-                color: qrBgColor || '#FFFFFF'
+                color: qr_bg_color || '#FFFFFF'
             }
         };
     }

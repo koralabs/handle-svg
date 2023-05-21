@@ -25,7 +25,9 @@
     }
   ],
   "homepage": "https://github.com/koralabs/handle-svg#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@koralabs/handles-public-api-interfaces": "2.1.3"
+  },
   "devDependencies": {
     "@sparticuz/chromium": "112",
     "@types/node": "^18.15.11",

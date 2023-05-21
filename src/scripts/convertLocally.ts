@@ -1,46 +1,37 @@
 import * as fs from 'fs';
-import { IHandleSvg, IHandleSvgOptions } from '../interfaces';
+import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
 import { convert } from './convert';
+import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 
 const options: IHandleSvgOptions = {
-    fontShadowColor: '#cccccc',
-    fontShadowColorEnabled: true,
-    fontColor: '#ff6130',
-    fontColorEnabled: true,
-    fontUrl: '', //'Tilt Prism,https://tinyurl.com/2an5pb5a',
-    textRibbonColors: ['red', 'blue'],
-    textRibbonColorsEnabled: true,
-    textRibbonGradient: 'radial',
-    textRibbonGradientEnabled: true,
-    pfpImageUrl: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
-    pfpImageUrlEnabled: true,
-    pfpZoom: 1.5,
-    pfpOffset: [-120, -50],
-    pfpBorderColor: '#202341',
-    pfpBorderColorEnabled: true,
-    backgroundImageUrl: 'ipfs://QmSkgqaCapgw99Y2oAZ72tj9iGRb89DzM7kJPetvsj7NND',
-    backgroundImageUrlEnabled: true,
-    backgroundBorderColor: '#797986',
-    backgroundBorderColorEnabled: true,
-    backgroundColor: '#be4961',
-    backgroundColorEnabled: true,
-    qrEnabled: true,
-    qrBgColor: '#00000000',
-    qrInnerEye: 'square,#f2f285',
-    qrOuterEye: 'rounded,#f2f285',
-    qrDot: 'rounded,#ff6130',
+    font_shadow_color: '#cccccc',
+    font_color: '#ff6130',
+    font: 'Tilt Prism,https://tinyurl.com/2an5pb5a',
+    text_ribbon_colors: ['#000000', '#12546294'],
+    text_ribbon_gradient: 'radial',
+    pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
+    pfp_zoom: 1.5,
+    pfp_offset: [-120, -50],
+    pfp_border_color: '#202341',
+    bg_image: 'ipfs://QmSkgqaCapgw99Y2oAZ72tj9iGRb89DzM7kJPetvsj7NND',
+    bg_border_color: '#797986',
+    bg_color: '#be4961',
+    qr_link: 'https://handle.me/bigirishlion',
+    qr_bg_color: '#00000000',
+    qr_inner_eye: 'square,#f2f285',
+    qr_outer_eye: 'rounded,#f2f285',
+    qr_dot: 'rounded,#ff6130',
     socials: [
-        { key: 'discord', value: 'testing' },
-        { key: 'facebook', value: 'testing' },
-        { key: 'twitter', value: 'testing' }
+        { display: 'discord', url: 'https://discord.gg/testing' },
+        { display: 'facebook', url: 'https://facebook.com/testing' },
+        { display: 'twitter', url: 'https://twitter.com/testing' }
     ],
-    socialsEnabled: true,
-    ogNumber: 2438
+    og_number: 2438
 };
 
 (async () => {
-    const size = 420;
+    const size = 2048;
     const handle = 'bigirishlion';
 
     const input: IHandleSvg = {
