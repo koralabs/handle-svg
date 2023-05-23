@@ -1,7 +1,7 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getRarityHex } from './utils';
-import { IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
+import { getRarityHex, hexToColorHex } from './utils';
+import { HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -35,7 +35,9 @@ export default class HandleSvg {
     buildBackground() {
         const { size } = this._params;
         const { bg_color } = this._options;
-        return `<rect width="${size}" height="${size}" fill="${bg_color || '#0d0f26ff'}" />`;
+        return `<rect width="${size}" height="${size}" fill="${
+            bg_color && bg_color.startsWith('0x') ? hexToColorHex(bg_color) : '#0d0f26ff'
+        }" />`;
     }
 
     buildDefaultBackground() {
@@ -98,10 +100,10 @@ export default class HandleSvg {
                         </clipPath>
                     </defs>
                     ${
-                        pfp_border_color && pfp_border_color !== ''
-                            ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${
-                                  pfp_border_color ?? '#fff'
-                              }" />`
+                        pfp_border_color && pfp_border_color.startsWith('0x')
+                            ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${hexToColorHex(
+                                  pfp_border_color
+                              )}" />`
                             : ''
                     }
                     <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${IPFS_GATEWAY}/${pfp_image.replace(
@@ -112,10 +114,15 @@ export default class HandleSvg {
     }
 
     buildTextRibbon = () => {
-        const getGradientStops = (colors: string[]) => {
+        const getGradientStops = (colors: HexStringOrEmpty[]) => {
             const stops = [];
             for (let i = 0; i < colors.length; i++) {
-                stops.push(`<stop offset="${(i / (colors.length - 1)) * 100}%" stop-color="${colors[i]}" />`);
+                const color = colors[i];
+                if (color && color.startsWith('0x')) {
+                    stops.push(
+                        `<stop offset="${(i / (colors.length - 1)) * 100}%" stop-color="${hexToColorHex(color)}" />`
+                    );
+                }
             }
             return stops.join('');
         };
@@ -127,6 +134,7 @@ export default class HandleSvg {
         const y = size / 2 - height / 2;
 
         if (text_ribbon_colors && text_ribbon_colors.length > 0) {
+            const [firstColor] = text_ribbon_colors;
             // check if gradient is enabled
             if (text_ribbon_gradient && text_ribbon_gradient !== 'none' && text_ribbon_colors.length > 1) {
                 return `
@@ -148,7 +156,7 @@ export default class HandleSvg {
             return `
                 <svg>
                     <rect x="0" y="${size / 2 - height / 2}" width="${size}" height="${height}" style="fill: ${
-                text_ribbon_colors[0]
+                firstColor && firstColor.startsWith('0x') ? hexToColorHex(firstColor) : '#fff'
             }" />
                 </svg>
             `;
@@ -162,10 +170,12 @@ export default class HandleSvg {
         const { bg_border_color } = this._options;
         const strokeWidth = size * (30 / this._baseSize);
         const recSize = size - strokeWidth;
-        return bg_border_color && bg_border_color !== ''
+        return bg_border_color && bg_border_color.startsWith('0x')
             ? `<rect x="${strokeWidth / 2}" y="${
                   strokeWidth / 2
-              }" width="${recSize}" height="${recSize}" fill="none" stroke-width="${strokeWidth}" stroke="${bg_border_color}" />`
+              }" width="${recSize}" height="${recSize}" fill="none" stroke-width="${strokeWidth}" stroke="${hexToColorHex(
+                  bg_border_color
+              )}" />`
             : '';
     };
 
@@ -231,15 +241,18 @@ export default class HandleSvg {
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         const blur = size * (fontShadowBlur / this._baseSize);
 
-        return font_shadow_color && font_shadow_color !== ''
+        return font_shadow_color && font_shadow_color.startsWith('0x')
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
                             @import url('${font}');
                         </style>
                     </defs>
-                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color};" x="50%" y="50%" dominant-baseline="central" fill="${
-                  font_color && font_color !== '' ? font_color : '#fff'
+                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color.replace(
+                  '0x',
+                  '#'
+              )};" x="50%" y="50%" dominant-baseline="central" fill="${
+                  font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
               }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
@@ -249,7 +262,7 @@ export default class HandleSvg {
                         </style>
                     </defs>
                     <text x="50%" y="50%" dominant-baseline="central" fill="${
-                        font_color && font_color !== '' ? font_color : '#fff'
+                        font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
                     }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
@@ -379,7 +392,7 @@ export default class HandleSvg {
                 type: innerEyeType
             },
             backgroundOptions: {
-                color: qr_bg_color || '#FFFFFF'
+                color: qr_bg_color && qr_bg_color.startsWith('0x') ? hexToColorHex(qr_bg_color) : '#FFFFFF'
             }
         };
     }

@@ -1,3 +1,5 @@
+import { HexString } from '@koralabs/handles-public-api-interfaces';
+
 export const getRarityFromLength = (length: number): string => {
     if (1 === length) return 'Legendary';
     if (2 === length) return 'Ultra Rare';
@@ -21,3 +23,5 @@ export const getRarityHex = (handle: string): string => {
             return '#ffffff';
     }
 };
+
+export const hexToColorHex = (hex: HexString) => hex.replace('0x', '#');

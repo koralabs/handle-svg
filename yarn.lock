@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@koralabs/handles-public-api-interfaces@2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@koralabs/handles-public-api-interfaces/-/handles-public-api-interfaces-2.2.0.tgz#cfd4d2f271c806994d87e71d0944bdcc1c124bdb"
-  integrity sha512-UpGcLpy/UrPaJpBRNs0kdsmdFvwoMA3VGzyhbzAXH45DZjJ0kTbEd0cq3b9jpqgSs6bz++67/V3DH6vzjLm6gA==
+"@koralabs/handles-public-api-interfaces@2.3.1":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@koralabs/handles-public-api-interfaces/-/handles-public-api-interfaces-2.3.1.tgz#bc9297a620d846bdd7a3ff123249d679e26aacef"
+  integrity sha512-1u5Sk+Zgp24GPqSLRipsvg11yM6zzrgR3SDiFF2E2mCFaa4wmlFlpJqp7cyB0Zj7YDCATXB2lkL8oC6hqmiWaQ==
 
 "@puppeteer/browsers@0.5.0":
   version "0.5.0"
