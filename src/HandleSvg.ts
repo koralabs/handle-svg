@@ -272,7 +272,7 @@ export default class HandleSvg {
         const { qr_link } = this._options;
         const baseQRCodeSize = size * (420 / this._baseSize);
         const pos = size - baseQRCodeSize - this._margin;
-        if (qr_link && qr_link !== '') {
+        if (qr_link) {
             return `<svg id="qr_code_${handle}" x="${pos}" y="${pos}"></svg>`;
         }
 
@@ -365,7 +365,7 @@ export default class HandleSvg {
         const { size, handle } = this._params;
         const { qr_bg_color, qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
 
-        if (!qr_link || qr_link === '') return undefined;
+        if (!qr_link) return undefined;
 
         const [dotType, dotColor] = qr_dot?.split(',') ?? ['square', '#000000'];
         const [innerEyeType, innerEyeColor] = qr_inner_eye?.split(',') ?? ['square', '#000000'];
@@ -377,7 +377,7 @@ export default class HandleSvg {
             width: qrCodeSize,
             height: qrCodeSize,
             type: 'svg',
-            data: `http://handle.me/${handle}`,
+            data: qr_link,
             margin: 0,
             dotsOptions: {
                 color: dotColor || '#000000',
