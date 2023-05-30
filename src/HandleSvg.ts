@@ -245,7 +245,7 @@ export default class HandleSvg {
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
-                            @import url('${font}');
+                            @import url('${fontLink}');
                         </style>
                     </defs>
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color.replace(
@@ -258,7 +258,7 @@ export default class HandleSvg {
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
-                            @import url('${font}');
+                            @import url('${fontLink}');
                         </style>
                     </defs>
                     <text x="50%" y="50%" dominant-baseline="central" fill="${
