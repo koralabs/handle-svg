@@ -219,7 +219,11 @@ export default class HandleSvg {
         return `<svg x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <style type="text/css">
-                @import url('${fontLink}');
+                ${
+                    fontLink.endsWith('.woff')
+                        ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
+                        : `@import url('${fontLink}');`
+                }
             </style>
         </defs>
         <text transform="translate(${dollarSignWidth / 2})"
@@ -252,7 +256,11 @@ export default class HandleSvg {
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
-                            @import url('${fontLink}');
+                            ${
+                                fontLink.endsWith('.woff')
+                                    ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
+                                    : `@import url('${fontLink}');`
+                            }
                         </style>
                     </defs>
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color.replace(
@@ -265,7 +273,11 @@ export default class HandleSvg {
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
-                            @import url('${fontLink}');
+                            ${
+                                fontLink.endsWith('.woff')
+                                    ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
+                                    : `@import url('${fontLink}');`
+                            }
                         </style>
                     </defs>
                     <text x="50%" y="50%" dominant-baseline="central" fill="${
@@ -329,7 +341,11 @@ export default class HandleSvg {
                                 ${this.renderSocialIcon(social.url)}
                                 <defs>
                                     <style type="text/css">
-                                        @import url('${fontLink}');
+                                        ${
+                                            fontLink.endsWith('.woff')
+                                                ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
+                                                : `@import url('${fontLink}');`
+                                        }
                                     </style>
                                 </defs>
                                 <text
