@@ -57,9 +57,15 @@ export default class HandleSvg {
     buildBackgroundImage = () => {
         const { size } = this._params;
         const { bg_image } = this._options;
-        return bg_image && bg_image !== ''
-            ? `<image href="${IPFS_GATEWAY}/${bg_image.replace(':/', '')}" height="${size}" width="${size}" />`
-            : '';
+
+        if (bg_image && bg_image != '') {
+            const image = bg_image.startsWith('ipfs://')
+                ? `${IPFS_GATEWAY}/ipfs/${bg_image.replace('ipfs://', '')}`
+                : bg_image;
+            return `<image href="${image}" height="${size}" width="${size}" />`;
+        }
+
+        return '';
     };
 
     buildPfpImage() {
@@ -93,6 +99,10 @@ export default class HandleSvg {
             pfpImageY += size * (y / this._baseSize);
         }
 
+        const image = pfp_image.startsWith('ipfs://')
+            ? `${IPFS_GATEWAY}/ipfs/${pfp_image.replace('ipfs://', '')}`
+            : pfp_image;
+
         return `<svg>
                     <defs>
                         <clipPath id="circle-path">
@@ -106,10 +116,7 @@ export default class HandleSvg {
                               )}" />`
                             : ''
                     }
-                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${IPFS_GATEWAY}/${pfp_image.replace(
-            ':/',
-            ''
-        )}" />
+                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${image}" />
                 </svg>`;
     }
 
