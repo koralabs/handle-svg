@@ -213,6 +213,7 @@ export default class HandleSvg {
                 : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
         const [fontFamily, fontLink] = f.split(',');
         const fontSize = size * (48 / this._baseSize);
+        const fontWeight = '700';
         const dollarSignWidth = size * (300 / this._baseSize);
         const x = size - dollarSignWidth - this._margin;
         const y = size * (560 / this._baseSize);
@@ -232,7 +233,7 @@ export default class HandleSvg {
         fill="${getRarityHex(handle)}"
         font-size="${fontSize}"
         font-family="${fontFamily}"
-        font-weight="400">OG ${og_number}/${OG_TOTAL}</tspan></text>
+        font-weight="${fontWeight}">OG ${og_number}/${OG_TOTAL}</tspan></text>
     </svg>`;
     };
 
@@ -248,6 +249,7 @@ export default class HandleSvg {
                 : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
         const [fontFamily, fontLink] = f.split(',');
         const fontSize = size * (200 / this._baseSize);
+        const fontWeight = 700;
         const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         const blur = size * (fontShadowBlur / this._baseSize);
@@ -268,7 +270,7 @@ export default class HandleSvg {
                   '#'
               )};" x="50%" y="50%" dominant-baseline="central" fill="${
                   font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
-              }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
+              }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
@@ -282,7 +284,7 @@ export default class HandleSvg {
                     </defs>
                     <text x="50%" y="50%" dominant-baseline="central" fill="${
                         font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
-                    }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="400" text-anchor="middle">${handle}</text>
+                    }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 
@@ -332,6 +334,7 @@ export default class HandleSvg {
         const [fontFamily, fontLink] = f.split(',');
         const socialSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
+        const fontWeight = '700';
         const socialSpacing = size * (80 / this._baseSize);
         const x = this._margin;
         const y = size - socialSize - this._margin;
@@ -354,7 +357,7 @@ export default class HandleSvg {
                                     fill="#fff"
                                     font-size="${fontSize}"
                                     font-family="${fontFamily}"
-                                    font-weight="400"
+                                    font-weight="${fontWeight}"
                                 >
                                     ${social.display}
                                 </text>
