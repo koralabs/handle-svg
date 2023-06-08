@@ -25,3 +25,5 @@ export const getRarityHex = (handle: string): string => {
 };
 
 export const hexToColorHex = (hex: HexString) => hex.replace('0x', '#');
+
+export { getSocialIcon } from './getSocialIcon';

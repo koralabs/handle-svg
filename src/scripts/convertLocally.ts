@@ -5,34 +5,34 @@ import { convert } from './convert';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 
 const options: IHandleSvgOptions = {
-    font_shadow_color: '0xcccccc',
-    font_color: '0xff6130',
-    font: 'Tilt Prism,https://tinyurl.com/2an5pb5a',
+    font_shadow_color: '0x000000',
+    // font_color: '0xff6130',
+    // font: 'Tilt Prism,https://tinyurl.com/2an5pb5a',
     text_ribbon_colors: ['0x000000', '0x12546294'],
     text_ribbon_gradient: 'radial',
     pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
-    pfp_zoom: 1.5,
-    pfp_offset: [-120, -50],
-    pfp_border_color: '0x202341',
-    bg_image: 'ipfs://QmSkgqaCapgw99Y2oAZ72tj9iGRb89DzM7kJPetvsj7NND',
+    pfp_zoom: 175,
+    pfp_offset: [-210, -50],
+    pfp_border_color: '0x2023414d',
+    bg_image: 'ipfs://QmSkgqaCapgw99Y2oAZ72tj9iGRb89DzM7kJPetvsj7NND', // https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png
     bg_border_color: '0x797986',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
     qr_bg_color: '0x00000000',
-    qr_inner_eye: 'square,#f2f285',
-    qr_outer_eye: 'rounded,#f2f285',
-    qr_dot: 'rounded,#ff6130',
+    qr_inner_eye: 'square,#ffffff',
+    qr_outer_eye: 'rounded,#0cd15b',
+    qr_dot: 'rounded,#ffffff',
     socials: [
-        { display: 'discord', url: 'https://discord.gg/testing' },
-        { display: 'facebook', url: 'https://facebook.com/testing' },
-        { display: 'twitter', url: 'https://twitter.com/testing' }
+        { display: 'telegram', url: 'https://telegram.com/testing' },
+        { display: 'whatsapp', url: 'https://whatsapp.com/testing' },
+        { display: 'reddit', url: 'https://reddit.com/testing' }
     ],
     og_number: 2438
 };
 
 (async () => {
     const size = 2048;
-    const handle = 'bigirishlion';
+    const handle = 'personalization';
 
     const input: IHandleSvg = {
         handle,

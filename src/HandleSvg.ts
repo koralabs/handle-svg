@@ -2,6 +2,7 @@ import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getRarityHex, hexToColorHex } from './utils';
 import { HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
+import { getSocialIcon } from './utils/getSocialIcon';
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -74,18 +75,19 @@ export default class HandleSvg {
 
         if (!pfp_image || pfp_image === '') return '';
 
-        const pfpCircleSize = size * (576 / this._baseSize);
+        const basePfpCircleSize = pfp_border_color ? 576 : 636;
+        const pfpCircleSize = size * (basePfpCircleSize / this._baseSize);
         let pfpImageSize = parseInt(`${pfpCircleSize}`);
 
         // add zoom if it exists
         if (pfp_zoom) {
             if (pfp_zoom > 1) {
-                pfpImageSize = pfpCircleSize * pfp_zoom;
+                pfpImageSize = pfpCircleSize * (pfp_zoom / 100);
             }
         }
 
         const dx = size / 2;
-        const dy = size * (463 / this._baseSize);
+        const dy = size * (493 / this._baseSize);
         const radius = pfpCircleSize / 2;
 
         const strokeWidth = size * (30 / this._baseSize);
@@ -138,7 +140,9 @@ export default class HandleSvg {
         const { text_ribbon_colors, text_ribbon_gradient } = this._options;
         const height = size * (314 / this._baseSize);
         const x = 0;
-        const y = size / 2 - height / 2;
+
+        const yOffset = size * (9 / this._baseSize);
+        const y = size / 2 - height / 2 + yOffset;
 
         if (text_ribbon_colors && text_ribbon_colors.length > 0) {
             const [firstColor] = text_ribbon_colors;
@@ -301,32 +305,18 @@ export default class HandleSvg {
     };
 
     renderSocialIcon(socialUrl: string) {
-        const x = 15;
         const { size } = this._params;
-        const scale = (size / this._baseSize) * 4;
+        const { font_color } = this._options;
 
-        if (socialUrl.includes('twitter')) {
-            return `<svg id="logoDiscord" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clipRule="evenodd">
-                        <path transform="scale(${scale})" id="twitter_logo" fill="#fff" d="M12.01,2.71c0,.12,0,.24,0,.35,0,3.63-2.76,7.81-7.81,7.81h0c-1.49,0-2.95-.43-4.21-1.23,.22,.03,.44,.04,.65,.04,1.24,0,2.44-.41,3.41-1.18-1.17-.02-2.21-.79-2.57-1.91,.41,.08,.84,.06,1.24-.05-1.28-.26-2.2-1.38-2.2-2.69v-.03c.38,.21,.81,.33,1.25,.34C.57,3.36,.2,1.76,.93,.5c1.39,1.72,3.45,2.76,5.66,2.87-.22-.95,.08-1.95,.79-2.62,1.11-1.04,2.84-.99,3.88,.12,.61-.12,1.2-.35,1.74-.67-.2,.64-.63,1.18-1.21,1.52,.54-.06,1.08-.21,1.58-.43-.37,.55-.83,1.03-1.37,1.42Z" />
-                    </svg>`;
-        } else if (socialUrl.includes('facebook')) {
-            return `<svg id="logoDiscord" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clipRule="evenodd">
-                        <path transform="scale(${
-                            scale / 2
-                        })" id="facebook_logo" fill="#fff" d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" />
-                    </svg>`;
-        }
+        const scale = size * (3 / this._baseSize);
+        const fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff';
 
-        return `<svg id="logoDiscord" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clipRule="evenodd">
-                    <path transform="scale(${
-                        scale / 2
-                    })" id="discord_logo" fill="#fff" d="M19.54 0c1.356 0 2.46 1.104 2.46 2.472v21.528l-2.58-2.28-1.452-1.344-1.536-1.428.636 2.22h-13.608c-1.356 0-2.46-1.104-2.46-2.472v-16.224c0-1.368 1.104-2.472 2.46-2.472h16.08zm-4.632 15.672c2.652-.084 3.672-1.824 3.672-1.824 0-3.864-1.728-6.996-1.728-6.996-1.728-1.296-3.372-1.26-3.372-1.26l-.168.192c2.04.624 2.988 1.524 2.988 1.524-1.248-.684-2.472-1.02-3.612-1.152-.864-.096-1.692-.072-2.424.024l-.204.024c-.42.036-1.44.192-2.724.756-.444.204-.708.348-.708.348s.996-.948 3.156-1.572l-.12-.144s-1.644-.036-3.372 1.26c0 0-1.728 3.132-1.728 6.996 0 0 1.008 1.74 3.66 1.824 0 0 .444-.54.804-.996-1.524-.456-2.1-1.416-2.1-1.416l.336.204.048.036.047.027.014.006.047.027c.3.168.6.3.876.408.492.192 1.08.384 1.764.516.9.168 1.956.228 3.108.012.564-.096 1.14-.264 1.74-.516.42-.156.888-.384 1.38-.708 0 0-.6.984-2.172 1.428.36.456.792.972.792.972zm-5.58-5.604c-.684 0-1.224.6-1.224 1.332 0 .732.552 1.332 1.224 1.332.684 0 1.224-.6 1.224-1.332.012-.732-.54-1.332-1.224-1.332zm4.38 0c-.684 0-1.224.6-1.224 1.332 0 .732.552 1.332 1.224 1.332.684 0 1.224-.6 1.224-1.332 0-.732-.54-1.332-1.224-1.332z" />
-                </svg>`;
+        return getSocialIcon(socialUrl, scale, fontColor);
     }
 
     buildSocialsSvg() {
         const { size } = this._params;
-        const { socials, font } = this._options;
+        const { socials, font, font_color } = this._options;
         const f =
             font && font !== ''
                 ? font
@@ -335,6 +325,7 @@ export default class HandleSvg {
         const socialSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
         const fontWeight = '700';
+        const fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff';
         const socialSpacing = size * (80 / this._baseSize);
         const x = this._margin;
         const y = size - socialSize - this._margin;
@@ -354,7 +345,7 @@ export default class HandleSvg {
                                 <text
                                     x="${socialSize + socialSize / 3}"
                                     dominant-baseline="hanging"
-                                    fill="#fff"
+                                    fill="${fontColor}"
                                     font-size="${fontSize}"
                                     font-family="${fontFamily}"
                                     font-weight="${fontWeight}"
@@ -389,7 +380,7 @@ export default class HandleSvg {
 
     buildQrCodeOptions(): any {
         const { size, handle } = this._params;
-        const { qr_bg_color, qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
+        const { qr_bg_color, qr_dot, qr_inner_eye, qr_outer_eye, qr_link, qr_image } = this._options;
 
         if (!qr_link) return undefined;
 
@@ -403,6 +394,7 @@ export default class HandleSvg {
             width: qrCodeSize,
             height: qrCodeSize,
             type: 'svg',
+            image: qr_image,
             data: qr_link,
             margin: 0,
             dotsOptions: {
