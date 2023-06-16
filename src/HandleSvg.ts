@@ -389,12 +389,16 @@ export default class HandleSvg {
         const [outerEyeType, outerEyeColor] = qr_outer_eye?.split(',') ?? ['square', '#000000'];
 
         const qrCodeSize = size * (430 / this._baseSize);
+        const imageMargin = size * (8 / this._baseSize);
 
         return {
             width: qrCodeSize,
             height: qrCodeSize,
             type: 'svg',
             image: qr_image,
+            imageOptions: {
+                margin: imageMargin
+            },
             data: qr_link,
             margin: 0,
             dotsOptions: {

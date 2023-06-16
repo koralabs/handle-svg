@@ -18,6 +18,7 @@ const options: IHandleSvgOptions = {
     bg_border_color: '0x797986',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
+    // qr_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
     qr_bg_color: '0x00000000',
     qr_inner_eye: 'square,#ffffff',
     qr_outer_eye: 'rounded,#0cd15b',
