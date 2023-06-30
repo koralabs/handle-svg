@@ -1,6 +1,6 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getRarityHex, hexToColorHex } from './utils';
+import { getFontDetails, getRarityHex, hexToColorHex } from './utils';
 import { HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 export default class HandleSvg {
@@ -211,11 +211,8 @@ export default class HandleSvg {
             return '';
         }
 
-        const f =
-            font && font !== ''
-                ? font
-                : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
-        const [fontFamily, fontLink] = f.split(',');
+        const { fontFamily, fontCss } = getFontDetails(font);
+
         const fontSize = size * (48 / this._baseSize);
         const fontWeight = '700';
         const dollarSignWidth = size * (300 / this._baseSize);
@@ -224,11 +221,7 @@ export default class HandleSvg {
         return `<svg x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <style type="text/css">
-                ${
-                    fontLink.endsWith('.woff')
-                        ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
-                        : `@import url('${fontLink}');`
-                }
+                ${fontCss}
             </style>
         </defs>
         <text transform="translate(${dollarSignWidth / 2})"
@@ -247,11 +240,7 @@ export default class HandleSvg {
 
         const [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
 
-        const f =
-            font && font !== ''
-                ? font
-                : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
-        const [fontFamily, fontLink] = f.split(',');
+        const { fontFamily, fontCss } = getFontDetails(font);
         const fontSize = size * (200 / this._baseSize);
         const fontWeight = 700;
         const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
@@ -262,11 +251,7 @@ export default class HandleSvg {
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
-                            ${
-                                fontLink.endsWith('.woff')
-                                    ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
-                                    : `@import url('${fontLink}');`
-                            }
+                            ${fontCss}
                         </style>
                     </defs>
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color.replace(
@@ -279,11 +264,7 @@ export default class HandleSvg {
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
-                            ${
-                                fontLink.endsWith('.woff')
-                                    ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
-                                    : `@import url('${fontLink}');`
-                            }
+                            ${fontCss}
                         </style>
                     </defs>
                     <text x="50%" y="50%" dominant-baseline="central" fill="${
@@ -317,11 +298,7 @@ export default class HandleSvg {
     buildSocialsSvg() {
         const { size } = this._params;
         const { socials, font, font_color } = this._options;
-        const f =
-            font && font !== ''
-                ? font
-                : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
-        const [fontFamily, fontLink] = f.split(',');
+        const { fontFamily, fontCss } = getFontDetails(font);
         const socialSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
         const fontWeight = '700';
@@ -335,11 +312,7 @@ export default class HandleSvg {
                                 ${this.renderSocialIcon(social.url)}
                                 <defs>
                                     <style type="text/css">
-                                        ${
-                                            fontLink.endsWith('.woff')
-                                                ? `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('woff');}`
-                                                : `@import url('${fontLink}');`
-                                        }
+                                        ${fontCss}
                                     </style>
                                 </defs>
                                 <text

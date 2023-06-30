@@ -5,41 +5,43 @@ import { convert } from './convert';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 
 const options: IHandleSvgOptions = {
-    font_shadow_color: '0x000000',
+    font_shadow_color: '0x73000000',
     // font_color: '0xff6130',
-    // font: 'Tilt Prism,https://tinyurl.com/2an5pb5a',
-    text_ribbon_colors: ['0x000000', '0x12546294'],
+    font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
+    text_ribbon_colors: ['0xa699bc54', '0xa6000000', '0xa6ff8906'],
     text_ribbon_gradient: 'radial',
     pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
-    pfp_zoom: 175,
-    pfp_offset: [-210, -50],
-    pfp_border_color: '0x2023414d',
-    bg_image: 'ipfs://QmSkgqaCapgw99Y2oAZ72tj9iGRb89DzM7kJPetvsj7NND', // https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png
-    bg_border_color: '0x797986',
+    pfp_zoom: 120,
+    pfp_offset: [-124, -58],
+    pfp_border_color: '0x99bc54',
+    bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs', // https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png
+    bg_border_color: '0x99bc54',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
     // qr_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
-    qr_bg_color: '0x00000000',
-    qr_inner_eye: 'square,#ffffff',
-    qr_outer_eye: 'rounded,#0cd15b',
-    qr_dot: 'rounded,#ffffff',
+    qr_bg_color: '0xBA000000',
+    qr_inner_eye: 'square,#FFFFFF',
+    qr_outer_eye: 'square,#FFFFFF',
+    qr_dot: 'rounded,#8dff40',
     socials: [
         { display: 'telegram', url: 'https://telegram.com/testing' },
         { display: 'whatsapp', url: 'https://whatsapp.com/testing' },
         { display: 'reddit', url: 'https://reddit.com/testing' }
     ],
-    og_number: 2438
+    font_shadow_size: [-5, 7, 5]
+    // og_number: 2438
 };
 
 (async () => {
     const size = 2048;
-    const handle = 'personalization';
+    const handle = '0Oo1lijt2z5s8b';
+    // 0ctopus, 1nternet lnternet
 
     const input: IHandleSvg = {
         handle,
         size,
         options,
-        disableDollarSymbol: false
+        disableDollarSymbol: true
     };
 
     const handleSvg = new HandleSvg(input);
