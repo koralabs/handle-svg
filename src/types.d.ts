@@ -1,1 +1,1 @@
-declare module "convert-svg-to-jpeg";
+declare module 'convert-svg-to-jpeg';

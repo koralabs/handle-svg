@@ -1,8 +1,11 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getFontDetails, getRarityHex, hexToColorHex } from './utils';
+import { getFontDetails, getFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
 import { HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
+import opentype from 'opentype.js';
+import { decompress } from 'wawoff2';
+
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -234,21 +237,44 @@ export default class HandleSvg {
     </svg>`;
     };
 
-    buildHandleName() {
+    async buildHandleName() {
         const { size, handle } = this._params;
         const { font_color, font_shadow_color, font, font_shadow_size = [] } = this._options;
 
         const [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
 
-        const { fontFamily, fontCss } = getFontDetails(font);
-        const fontSize = size * (200 / this._baseSize);
+        let baseFontSize = getFontSize(handle);
+        let { fontFamily, fontCss, fontLink } = getFontDetails(font);
+        const fontSize = size * (baseFontSize / this._baseSize);
+
+        console.log('fontLink', fontLink);
+        // fontLink = 'https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc3CsTKlA.woff2';
+
+        const buffer: any = await fetch(fontLink).then((res) => res.arrayBuffer());
+
+        function toArrayBuffer(buffer: any) {
+            var ab = new ArrayBuffer(buffer.length);
+            var view = new Uint8Array(ab);
+            for (var i = 0; i < buffer.length; ++i) {
+                view[i] = buffer[i];
+            }
+            return ab;
+        }
+
+        // // decompress before parsing
+        const parsedFont = opentype.parse(buffer); // toArrayBuffer(decompress(buffer))
+
+        //const parsedFont = opentype.parse(toArrayBuffer(buffer));
+        const bb = parsedFont.getPath(handle, 0, 0, baseFontSize).getBoundingBox();
+        console.log(bb);
+        console.log(`Real height: ${bb.y2 - bb.y1}`);
         const fontWeight = 700;
         const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         const blur = size * (fontShadowBlur / this._baseSize);
 
         return font_shadow_color && font_shadow_color.startsWith('0x')
-            ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+            ? `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <style type="text/css">
                             ${fontCss}
@@ -261,7 +287,7 @@ export default class HandleSvg {
                   font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
               }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
-            : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <style type="text/css">
                             ${fontCss}
@@ -330,7 +356,7 @@ export default class HandleSvg {
             : undefined;
     }
 
-    build() {
+    async build() {
         const { size, disableDollarSymbol } = this._params;
 
         return `
@@ -344,7 +370,7 @@ export default class HandleSvg {
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
                 ${this.buildOG()}
-                ${this.buildHandleName()}
+                ${await this.buildHandleName()}
                 ${this.buildQRCode()}
                 ${this.buildSocialsSvg()}
             </svg>
