@@ -61,7 +61,7 @@ export default class HandleSvg {
 
         if (bg_image && bg_image != '') {
             const image = bg_image.startsWith('ipfs://')
-                ? `${IPFS_GATEWAY}/ipfs/${bg_image.replace('ipfs://', '')}`
+                ? `${IPFS_GATEWAY}/${bg_image.replace('ipfs://', '')}`
                 : bg_image;
             return `<image href="${image}" height="${size}" width="${size}" />`;
         }
@@ -102,7 +102,7 @@ export default class HandleSvg {
         }
 
         const image = pfp_image.startsWith('ipfs://')
-            ? `${IPFS_GATEWAY}/ipfs/${pfp_image.replace('ipfs://', '')}`
+            ? `${IPFS_GATEWAY}/${pfp_image.replace('ipfs://', '')}`
             : pfp_image;
 
         return `<svg>
