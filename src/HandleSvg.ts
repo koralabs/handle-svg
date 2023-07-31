@@ -1,14 +1,17 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getFontDetails, getRarityHex, hexToColorHex } from './utils';
-import { HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
+import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
+import { checkContrast } from './utils/checkContrast';
+
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
     private _baseMargin: number = 80;
     private _baseSize: number = 2048;
     private _margin: number;
+    private _defaultContrastColor: string = '#888888';
 
     constructor(inputs: IHandleSvg) {
         this._options = inputs.options;
@@ -22,13 +25,32 @@ export default class HandleSvg {
 
     buildLogoHandle() {
         const { size } = this._params;
+        const { bg_color, bg_image } = this._options;
         const x = this._margin;
         const y = this._margin;
         const scale = (size / this._baseSize) * 4;
+
+        let dollarFill = '#0cd15b';
+        let handleTextFill = '#ffffff';
+
+        if (!bg_image && bg_color) {
+            // verify handle text is visible
+            const validBgColor = checkContrast(hexToColorHex(bg_color), handleTextFill, 1.1);
+            if (!validBgColor) {
+                handleTextFill = this._defaultContrastColor;
+            }
+
+            // verify dollar sign is visible
+            const validDollarColor = checkContrast(hexToColorHex(bg_color), dollarFill, 1.05);
+            if (!validDollarColor) {
+                dollarFill = this._defaultContrastColor;
+            }
+        }
+
         return `
             <svg xmlns="http://www.w3.org/2000/svg" x="${x}" y="${y}">
-                <path transform="scale(${scale})" id="S" fill="#0cd15b" d="M3.48,1.16c0-.28,.21-.54,.64-.78,.43-.25,.99-.38,1.7-.38,.54,0,.89,.12,1.05,.36,.11,.17,.17,.33,.17,.47v.54c1.28,.14,2.16,.4,2.66,.76,.2,.14,.31,.28,.31,.42,0,.63-.14,1.3-.42,2.02-.27,.72-.54,1.08-.8,1.08-.05,0-.19-.05-.44-.16-.75-.35-1.37-.52-1.86-.52s-.82,.05-1,.14c-.17,.1-.25,.25-.25,.45,0,.19,.12,.34,.37,.45,.25,.11,.55,.2,.92,.29,.37,.07,.77,.2,1.2,.38,.44,.18,.85,.4,1.22,.65,.37,.25,.68,.63,.93,1.14,.25,.49,.37,1,.37,1.52s-.05,.95-.14,1.28c-.09,.34-.25,.69-.47,1.05-.21,.36-.55,.69-1,.98-.44,.28-.97,.48-1.59,.61v.29c0,.28-.21,.54-.64,.78-.43,.25-.99,.38-1.7,.38-.54,0-.89-.12-1.05-.36-.11-.17-.17-.33-.17-.47v-.54c-.73-.07-1.37-.19-1.92-.34-1.04-.3-1.56-.63-1.56-.98,0-.67,.09-1.37,.27-2.1,.18-.73,.4-1.1,.64-1.1,.05,0,.51,.16,1.41,.49s1.57,.49,2.02,.49,.75-.05,.88-.14c.14-.11,.2-.26,.2-.45s-.12-.36-.37-.49c-.25-.14-.56-.26-.93-.34-.37-.08-.78-.22-1.22-.4-.43-.18-.83-.39-1.2-.63-.37-.24-.68-.6-.93-1.07-.25-.47-.37-1.02-.37-1.64C.39,3.06,1.42,1.76,3.48,1.39v-.23Z" />
-                <path transform="scale(${scale})" id="handle" fill="#fff" d="M66.45,6.38c-.49,0-.91,.16-1.24,.48-.32,.32-.51,.82-.57,1.5h3.6c-.01-.58-.16-1.05-.45-1.42-.29-.38-.74-.57-1.35-.57Zm-.02-1.83c1.3,0,2.33,.37,3.09,1.12,.76,.74,1.14,1.79,1.14,3.16v1.24h-6.07c.02,.73,.24,1.3,.64,1.71,.41,.41,.98,.62,1.71,.62,.61,0,1.16-.06,1.66-.17,.49-.13,1.01-.32,1.53-.57v1.99c-.46,.23-.95,.4-1.47,.5-.51,.12-1.12,.17-1.85,.17-.94,0-1.78-.17-2.5-.52-.72-.36-1.29-.89-1.71-1.61-.41-.71-.62-1.61-.62-2.7s.18-2.02,.55-2.75c.38-.74,.9-1.29,1.57-1.66s1.44-.55,2.33-.55Zm-6.56,9.61h-2.57V1.02h2.57V14.16Zm-9.6-1.88c.71,0,1.21-.21,1.5-.62,.29-.43,.44-1.06,.45-1.9v-.28c0-.92-.14-1.63-.43-2.11-.28-.48-.79-.73-1.55-.73-.56,0-1.01,.25-1.33,.74-.32,.48-.48,1.19-.48,2.11s.16,1.62,.48,2.09c.32,.46,.78,.69,1.36,.69Zm-.9,2.06c-1.05,0-1.9-.41-2.57-1.23-.66-.83-.98-2.05-.98-3.65s.33-2.84,1-3.67,1.54-1.24,2.62-1.24c.68,0,1.24,.13,1.67,.4s.78,.59,1.03,.99h.09c-.03-.18-.07-.45-.12-.8-.05-.36-.07-.72-.07-1.09V1.02h2.57V14.16h-1.97l-.5-1.23h-.1c-.25,.39-.59,.73-1.02,1-.43,.27-.98,.4-1.66,.4Zm-8.97-9.79c1.01,0,1.82,.28,2.43,.83,.61,.54,.91,1.42,.91,2.63v6.15h-2.57v-5.51c0-.68-.12-1.19-.36-1.52-.24-.35-.63-.52-1.16-.52-.78,0-1.32,.27-1.6,.81-.29,.53-.43,1.3-.43,2.3v4.44h-2.57V4.72h1.97l.34,1.21h.14c.3-.48,.71-.84,1.22-1.05,.53-.22,1.09-.33,1.67-.33Zm-11.53,5.27c-.83,.02-1.4,.17-1.72,.45-.32,.28-.48,.64-.48,1.09,0,.39,.11,.67,.34,.85,.23,.16,.53,.24,.9,.24,.55,0,1.02-.16,1.4-.48,.38-.33,.57-.8,.57-1.4v-.78l-1,.03Zm-.36-5.29c1.26,0,2.23,.28,2.9,.83,.68,.54,1.02,1.38,1.02,2.51v6.29h-1.79l-.5-1.28h-.07c-.4,.51-.83,.88-1.28,1.11s-1.06,.35-1.85,.35c-.84,0-1.53-.24-2.09-.73-.55-.5-.83-1.25-.83-2.26s.35-1.74,1.05-2.21c.7-.48,1.75-.75,3.16-.8l1.64-.05v-.41c0-.5-.13-.86-.4-1.09-.25-.23-.61-.35-1.07-.35s-.91,.07-1.35,.21c-.44,.13-.87,.29-1.31,.48l-.84-1.75c.51-.27,1.06-.47,1.67-.62,.62-.15,1.26-.22,1.93-.22Zm-12.63-.83c0,.46-.02,.9-.05,1.33-.02,.43-.05,.73-.07,.9h.14c.3-.48,.68-.84,1.16-1.05,.47-.22,.99-.33,1.57-.33,1.02,0,1.84,.28,2.45,.83,.62,.54,.93,1.42,.93,2.63v6.15h-2.57v-5.51c0-1.36-.51-2.04-1.52-2.04-.77,0-1.3,.27-1.6,.81-.29,.53-.43,1.3-.43,2.3v4.44h-2.57V1.02h2.57V3.7Z" />
+                <path transform="scale(${scale})" id="S" fill="${dollarFill}" d="M3.48,1.16c0-.28,.21-.54,.64-.78,.43-.25,.99-.38,1.7-.38,.54,0,.89,.12,1.05,.36,.11,.17,.17,.33,.17,.47v.54c1.28,.14,2.16,.4,2.66,.76,.2,.14,.31,.28,.31,.42,0,.63-.14,1.3-.42,2.02-.27,.72-.54,1.08-.8,1.08-.05,0-.19-.05-.44-.16-.75-.35-1.37-.52-1.86-.52s-.82,.05-1,.14c-.17,.1-.25,.25-.25,.45,0,.19,.12,.34,.37,.45,.25,.11,.55,.2,.92,.29,.37,.07,.77,.2,1.2,.38,.44,.18,.85,.4,1.22,.65,.37,.25,.68,.63,.93,1.14,.25,.49,.37,1,.37,1.52s-.05,.95-.14,1.28c-.09,.34-.25,.69-.47,1.05-.21,.36-.55,.69-1,.98-.44,.28-.97,.48-1.59,.61v.29c0,.28-.21,.54-.64,.78-.43,.25-.99,.38-1.7,.38-.54,0-.89-.12-1.05-.36-.11-.17-.17-.33-.17-.47v-.54c-.73-.07-1.37-.19-1.92-.34-1.04-.3-1.56-.63-1.56-.98,0-.67,.09-1.37,.27-2.1,.18-.73,.4-1.1,.64-1.1,.05,0,.51,.16,1.41,.49s1.57,.49,2.02,.49,.75-.05,.88-.14c.14-.11,.2-.26,.2-.45s-.12-.36-.37-.49c-.25-.14-.56-.26-.93-.34-.37-.08-.78-.22-1.22-.4-.43-.18-.83-.39-1.2-.63-.37-.24-.68-.6-.93-1.07-.25-.47-.37-1.02-.37-1.64C.39,3.06,1.42,1.76,3.48,1.39v-.23Z" />
+                <path transform="scale(${scale})" id="handle" fill="${handleTextFill}" d="M66.45,6.38c-.49,0-.91,.16-1.24,.48-.32,.32-.51,.82-.57,1.5h3.6c-.01-.58-.16-1.05-.45-1.42-.29-.38-.74-.57-1.35-.57Zm-.02-1.83c1.3,0,2.33,.37,3.09,1.12,.76,.74,1.14,1.79,1.14,3.16v1.24h-6.07c.02,.73,.24,1.3,.64,1.71,.41,.41,.98,.62,1.71,.62,.61,0,1.16-.06,1.66-.17,.49-.13,1.01-.32,1.53-.57v1.99c-.46,.23-.95,.4-1.47,.5-.51,.12-1.12,.17-1.85,.17-.94,0-1.78-.17-2.5-.52-.72-.36-1.29-.89-1.71-1.61-.41-.71-.62-1.61-.62-2.7s.18-2.02,.55-2.75c.38-.74,.9-1.29,1.57-1.66s1.44-.55,2.33-.55Zm-6.56,9.61h-2.57V1.02h2.57V14.16Zm-9.6-1.88c.71,0,1.21-.21,1.5-.62,.29-.43,.44-1.06,.45-1.9v-.28c0-.92-.14-1.63-.43-2.11-.28-.48-.79-.73-1.55-.73-.56,0-1.01,.25-1.33,.74-.32,.48-.48,1.19-.48,2.11s.16,1.62,.48,2.09c.32,.46,.78,.69,1.36,.69Zm-.9,2.06c-1.05,0-1.9-.41-2.57-1.23-.66-.83-.98-2.05-.98-3.65s.33-2.84,1-3.67,1.54-1.24,2.62-1.24c.68,0,1.24,.13,1.67,.4s.78,.59,1.03,.99h.09c-.03-.18-.07-.45-.12-.8-.05-.36-.07-.72-.07-1.09V1.02h2.57V14.16h-1.97l-.5-1.23h-.1c-.25,.39-.59,.73-1.02,1-.43,.27-.98,.4-1.66,.4Zm-8.97-9.79c1.01,0,1.82,.28,2.43,.83,.61,.54,.91,1.42,.91,2.63v6.15h-2.57v-5.51c0-.68-.12-1.19-.36-1.52-.24-.35-.63-.52-1.16-.52-.78,0-1.32,.27-1.6,.81-.29,.53-.43,1.3-.43,2.3v4.44h-2.57V4.72h1.97l.34,1.21h.14c.3-.48,.71-.84,1.22-1.05,.53-.22,1.09-.33,1.67-.33Zm-11.53,5.27c-.83,.02-1.4,.17-1.72,.45-.32,.28-.48,.64-.48,1.09,0,.39,.11,.67,.34,.85,.23,.16,.53,.24,.9,.24,.55,0,1.02-.16,1.4-.48,.38-.33,.57-.8,.57-1.4v-.78l-1,.03Zm-.36-5.29c1.26,0,2.23,.28,2.9,.83,.68,.54,1.02,1.38,1.02,2.51v6.29h-1.79l-.5-1.28h-.07c-.4,.51-.83,.88-1.28,1.11s-1.06,.35-1.85,.35c-.84,0-1.53-.24-2.09-.73-.55-.5-.83-1.25-.83-2.26s.35-1.74,1.05-2.21c.7-.48,1.75-.75,3.16-.8l1.64-.05v-.41c0-.5-.13-.86-.4-1.09-.25-.23-.61-.35-1.07-.35s-.91,.07-1.35,.21c-.44,.13-.87,.29-1.31,.48l-.84-1.75c.51-.27,1.06-.47,1.67-.62,.62-.15,1.26-.22,1.93-.22Zm-12.63-.83c0,.46-.02,.9-.05,1.33-.02,.43-.05,.73-.07,.9h.14c.3-.48,.68-.84,1.16-1.05,.47-.22,.99-.33,1.57-.33,1.02,0,1.84,.28,2.45,.83,.62,.54,.93,1.42,.93,2.63v6.15h-2.57v-5.51c0-1.36-.51-2.04-1.52-2.04-.77,0-1.3,.27-1.6,.81-.29,.53-.43,1.3-.43,2.3v4.44h-2.57V1.02h2.57V3.7Z" />
             </svg>
         `;
     }
@@ -192,15 +214,25 @@ export default class HandleSvg {
 
     buildDollarSign = () => {
         const { size, handle } = this._params;
+        const { bg_image, bg_color } = this._options;
         const dollarSignWidth = size * (300 / this._baseSize);
         const x = size - dollarSignWidth - this._margin;
         const y = this._margin;
         const scale = (size / this._baseSize) * 4;
+
+        let dollarFill = getRarityHex(handle);
+
+        if (!bg_image && bg_color) {
+            // verify dollar sign is visible
+            const validDollarColor = checkContrast(hexToColorHex(bg_color), dollarFill, 1.1);
+            if (!validDollarColor) {
+                dollarFill = this._defaultContrastColor;
+            }
+        }
+
         return `<svg x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg">
-        <path fill="${getRarityHex(
-            handle
-        )}" transform="scale(${scale})" d="M25.02,8.1c0-1.94,1.55-3.75,4.64-5.44,3.09-1.77,7.16-2.66,12.21-2.66,3.91,0,6.43,.84,7.57,2.53,.81,1.18,1.22,2.28,1.22,3.29v3.79c9.2,1.01,15.58,2.78,19.16,5.31,1.46,1.01,2.2,1.98,2.2,2.91,0,4.39-1.02,9.11-3.05,14.17-1.95,5.06-3.87,7.59-5.74,7.59-.33,0-1.38-.38-3.17-1.14-5.37-2.45-9.85-3.67-13.43-3.67s-5.9,.34-7.2,1.01c-1.22,.67-1.83,1.73-1.83,3.16,0,1.35,.9,2.4,2.69,3.16,1.79,.76,3.99,1.43,6.59,2.02,2.69,.51,5.57,1.39,8.67,2.66,3.17,1.26,6.1,2.78,8.79,4.55,2.69,1.77,4.92,4.43,6.71,7.97,1.79,3.46,2.69,7,2.69,10.63s-.33,6.62-.98,8.98-1.79,4.81-3.42,7.34c-1.55,2.53-3.95,4.81-7.2,6.83-3.17,1.94-7,3.37-11.47,4.3v2.02c0,1.94-1.55,3.75-4.64,5.44-3.09,1.77-7.16,2.66-12.21,2.66-3.91,0-6.43-.84-7.57-2.53-.81-1.18-1.22-2.28-1.22-3.29v-3.79c-5.29-.51-9.89-1.31-13.79-2.4-7.49-2.11-11.23-4.39-11.23-6.83,0-4.72,.65-9.61,1.95-14.67,1.3-5.14,2.85-7.72,4.64-7.72,.33,0,3.7,1.14,10.13,3.42,6.43,2.28,11.27,3.42,14.53,3.42s5.37-.34,6.35-1.01c.98-.76,1.46-1.81,1.46-3.16s-.9-2.49-2.69-3.42c-1.79-1.01-4.03-1.81-6.71-2.4-2.69-.59-5.61-1.52-8.79-2.78-3.09-1.26-5.98-2.74-8.67-4.43-2.69-1.69-4.92-4.17-6.71-7.46-1.79-3.29-2.69-7.13-2.69-11.51,0-15.52,7.41-24.58,22.22-27.2v-1.64Z" />
-    </svg>`;
+                    <path fill="${dollarFill}" transform="scale(${scale})" d="M25.02,8.1c0-1.94,1.55-3.75,4.64-5.44,3.09-1.77,7.16-2.66,12.21-2.66,3.91,0,6.43,.84,7.57,2.53,.81,1.18,1.22,2.28,1.22,3.29v3.79c9.2,1.01,15.58,2.78,19.16,5.31,1.46,1.01,2.2,1.98,2.2,2.91,0,4.39-1.02,9.11-3.05,14.17-1.95,5.06-3.87,7.59-5.74,7.59-.33,0-1.38-.38-3.17-1.14-5.37-2.45-9.85-3.67-13.43-3.67s-5.9,.34-7.2,1.01c-1.22,.67-1.83,1.73-1.83,3.16,0,1.35,.9,2.4,2.69,3.16,1.79,.76,3.99,1.43,6.59,2.02,2.69,.51,5.57,1.39,8.67,2.66,3.17,1.26,6.1,2.78,8.79,4.55,2.69,1.77,4.92,4.43,6.71,7.97,1.79,3.46,2.69,7,2.69,10.63s-.33,6.62-.98,8.98-1.79,4.81-3.42,7.34c-1.55,2.53-3.95,4.81-7.2,6.83-3.17,1.94-7,3.37-11.47,4.3v2.02c0,1.94-1.55,3.75-4.64,5.44-3.09,1.77-7.16,2.66-12.21,2.66-3.91,0-6.43-.84-7.57-2.53-.81-1.18-1.22-2.28-1.22-3.29v-3.79c-5.29-.51-9.89-1.31-13.79-2.4-7.49-2.11-11.23-4.39-11.23-6.83,0-4.72,.65-9.61,1.95-14.67,1.3-5.14,2.85-7.72,4.64-7.72,.33,0,3.7,1.14,10.13,3.42,6.43,2.28,11.27,3.42,14.53,3.42s5.37-.34,6.35-1.01c.98-.76,1.46-1.81,1.46-3.16s-.9-2.49-2.69-3.42c-1.79-1.01-4.03-1.81-6.71-2.4-2.69-.59-5.61-1.52-8.79-2.78-3.09-1.26-5.98-2.74-8.67-4.43-2.69-1.69-4.92-4.17-6.71-7.46-1.79-3.29-2.69-7.13-2.69-11.51,0-15.52,7.41-24.58,22.22-27.2v-1.64Z" />
+                </svg>`;
     };
 
     buildOG = () => {
@@ -234,32 +266,62 @@ export default class HandleSvg {
     </svg>`;
     };
 
-    buildHandleName() {
+    buildHandleName(widthForShadow?: number) {
         const { size, handle } = this._params;
-        const { font_color, font_shadow_color, font, font_shadow_size = [] } = this._options;
-
-        const [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
+        let {
+            bg_color,
+            bg_image,
+            text_ribbon_colors,
+            font_color,
+            font_shadow_color,
+            font,
+            font_shadow_size = []
+        } = this._options;
 
         const { fontFamily, fontCss } = getFontDetails(font);
         const fontSize = size * (200 / this._baseSize);
         const fontWeight = 700;
-        const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
-        const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
-        const blur = size * (fontShadowBlur / this._baseSize);
 
-        return font_shadow_color && font_shadow_color.startsWith('0x')
+        // - font color (from creator default)
+        // - font shadow color
+        // - font shadow size blur needs to be above
+        // - background color
+        // - text ribbon
+
+        let fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+        let fontShadowFill = font_shadow_color;
+
+        if (!bg_image && text_ribbon_colors?.length === 1) {
+            const validTextRibbon = checkContrast(hexToColorHex(text_ribbon_colors[0] as HexString), fontFill);
+            if (!validTextRibbon) {
+                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                font_shadow_size = [0, 0, 8];
+            }
+        } else if (!bg_image && bg_color) {
+            const validBgColor = checkContrast(hexToColorHex(bg_color), fontFill);
+            if (!validBgColor) {
+                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                font_shadow_size = [0, 0, 8];
+            }
+        }
+
+        let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
+
+        const horizontalOffset = (widthForShadow ?? size) * (fontShadowHorzOffset / this._baseSize);
+        const verticalOffset = (widthForShadow ?? size) * (fontShadowVertOffset / this._baseSize);
+        let blur = (widthForShadow ?? size) * (fontShadowBlur / this._baseSize);
+
+        return fontShadowFill && fontShadowFill.startsWith('0x')
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
                         <style type="text/css">
                             ${fontCss}
                         </style>
                     </defs>
-                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${font_shadow_color.replace(
+                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="50%" y="50%" dominant-baseline="central" fill="${
-                  font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
-              }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )};" x="50%" y="50%" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
                     <defs>
@@ -267,9 +329,7 @@ export default class HandleSvg {
                             ${fontCss}
                         </style>
                     </defs>
-                    <text x="50%" y="50%" dominant-baseline="central" fill="${
-                        font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff'
-                    }" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+                    <text x="50%" y="50%" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 
@@ -287,25 +347,45 @@ export default class HandleSvg {
 
     renderSocialIcon(socialUrl: string) {
         const { size } = this._params;
-        const { font_color } = this._options;
+        const { font_color, bg_image, bg_color } = this._options;
 
         const scale = size * (3 / this._baseSize);
-        const fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff';
+        let fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+
+        if (!bg_image && bg_color) {
+            const validBgColor = checkContrast(hexToColorHex(bg_color), fontColor);
+            if (!validBgColor) {
+                fontColor = this._defaultContrastColor;
+            }
+        }
 
         return getSocialIcon(socialUrl, scale, fontColor);
     }
 
-    buildSocialsSvg() {
+    buildSocialsSvg(widthForShadow?: number) {
         const { size } = this._params;
-        const { socials, font, font_color } = this._options;
+        const { socials, font, font_color, bg_image, bg_color } = this._options;
         const { fontFamily, fontCss } = getFontDetails(font);
         const socialSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
         const fontWeight = '700';
-        const fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fff';
         const socialSpacing = size * (80 / this._baseSize);
         const x = this._margin;
         const y = size - socialSize - this._margin;
+
+        let fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+        let fontShadowFill: string | undefined;
+        let fontShadowSize: number[];
+
+        if (!bg_image && bg_color) {
+            const validBgColor = checkContrast(hexToColorHex(bg_color), fontColor);
+            if (!validBgColor) {
+                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                const blur = (widthForShadow ?? size) * (8 / this._baseSize);
+                fontShadowSize = [0, 0, blur];
+            }
+        }
+
         return socials && socials.length > 0
             ? socials.map((social: SocialItem, index: number) => {
                   return `<svg xmlns="http://www.w3.org/2000/svg" x="${x}" y="${y - index * socialSpacing}">
@@ -316,6 +396,13 @@ export default class HandleSvg {
                                     </style>
                                 </defs>
                                 <text
+                                    ${
+                                        fontShadowFill
+                                            ? `style="text-shadow: ${fontShadowSize[0]}px ${fontShadowSize[1]}px ${
+                                                  fontShadowSize[2]
+                                              }px ${fontShadowFill.replace('0x', '#')};"`
+                                            : ''
+                                    }
                                     x="${socialSize + socialSize / 3}"
                                     dominant-baseline="hanging"
                                     fill="${fontColor}"
