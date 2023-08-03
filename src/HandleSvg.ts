@@ -298,10 +298,8 @@ export default class HandleSvg {
             return ab;
         }
 
-        // // decompress before parsing
+        // decompress before parsing
         const parsedFont = opentype.parse(buffer); // toArrayBuffer(decompress(buffer))
-
-        // minus ribbon height - y2 - y1
 
         // const uIntArr = new Uint8Array(buffer);
 
@@ -342,30 +340,31 @@ export default class HandleSvg {
         const verticalOffset = (widthForShadow ?? size) * (fontShadowVertOffset / this._baseSize);
         let blur = (widthForShadow ?? size) * (fontShadowBlur / this._baseSize);
 
-        // viewBox="0 0 ${bb.x2 - bb.x1 + 200} ${300}"
         const midpoint = size / 2;
         const fontBaseline = size * (67 / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
         const y = midpoint + offset;
 
-        const fontMarginX = size * (220 / this._baseSize);
-        const fontMarginY = size * (80 / this._baseSize);
+        const fontMarginX = size * (200 / this._baseSize);
+        const fontMarginY = size * (70 / this._baseSize);
+        const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
-        const maxFontHeight = size - fontMarginY;
+        const maxFontHeight = ribbonHeight - fontMarginY;
 
-        const realFontHeightPercent = (bb.y2 - bb.y1) / maxFontHeight;
-        const realFontWidthPercent = (bb.x2 - bb.x1) / maxFontWidth;
-        let zoomPercent = (bb.x2 - bb.x1 - maxFontWidth) / maxFontWidth;
-        if (realFontHeightPercent > realFontWidthPercent) {
-            zoomPercent = (bb.y2 - bb.y1 - maxFontHeight) / maxFontHeight;
+        const realFontHeight = (bb.y2 - bb.y1);
+        const realFontWidth = (bb.x2 - bb.x1);
+        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth; 
+        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
         }
+        zoomPercent = 1 + zoomPercent;
 
         console.log('zoomPercent', zoomPercent);
 
-        const viewBoxWidth = size * zoomPercent;
-        const viewBoxHeight = size * zoomPercent;
+        const viewBoxWidth = size / zoomPercent;
+        const viewBoxHeight = size / zoomPercent;
 
-        const fitty = '50%';
+        const fifty = '50%';
         const viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
@@ -378,7 +377,7 @@ export default class HandleSvg {
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="${fitty}" y="${fitty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )};" x="${fifty}" y="${fifty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
                     <defs>
@@ -386,7 +385,7 @@ export default class HandleSvg {
                             ${fontCss}
                         </style>
                     </defs>
-                    <text x="${fitty}" y="${fitty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+                    <text x="${fifty}" y="${fifty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 

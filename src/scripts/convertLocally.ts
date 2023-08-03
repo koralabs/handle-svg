@@ -55,7 +55,9 @@ const options: IHandleSvgOptions = {
 
 (async () => {
     const size = 2048;
-    const handle = 'j'; //'0Oo1lijt2z5s8b';
+    //const handle = 'mmmmmmmmmmmmmmm';
+    //const handle = 'j';
+    const handle = '0Oo1lijt2z5s8b';
     // 0ctopus, 1nternet lnternet
 
     const input: IHandleSvg = {
