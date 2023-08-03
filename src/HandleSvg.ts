@@ -287,7 +287,9 @@ export default class HandleSvg {
         console.log('fontLink', fontLink);
         // fontLink = 'https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc3CsTKlA.woff2';
 
-        const buffer = await fetch(fontLink).then((res) => res.arrayBuffer());
+        const fontResponse = await fetch(fontLink).then((res) => res);
+        const buffer = await fontResponse.arrayBuffer();
+        const fontType = fontResponse.headers.get("Content-Type")
 
         function toArrayBuffer(buffer: any) {
             var ab = new ArrayBuffer(buffer.length);
@@ -298,14 +300,12 @@ export default class HandleSvg {
             return ab;
         }
 
-        // decompress before parsing
-        const parsedFont = opentype.parse(buffer); // toArrayBuffer(decompress(buffer))
-
-        // const uIntArr = new Uint8Array(buffer);
-
-        // const p = await decompress(uIntArr);
-        // const parsedFont = opentype.parse(toArrayBuffer(p));
-
+        let fontArrayBuffer = buffer;
+        if (fontType?.includes('woff2')) {
+            // decompress before parsing
+            fontArrayBuffer = toArrayBuffer(await decompress(new Uint8Array(buffer)));
+        }
+        const parsedFont = opentype.parse(fontArrayBuffer);
         const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
         console.log(bb);
         console.log(`Real height: ${bb.y2 - bb.y1}`);
@@ -341,9 +341,8 @@ export default class HandleSvg {
         let blur = (widthForShadow ?? size) * (fontShadowBlur / this._baseSize);
 
         const midpoint = size / 2;
-        const fontBaseline = size * (67 / this._baseSize) + midpoint;
+        const fontBaseline = size * (60 / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
-        const y = midpoint + offset;
 
         const fontMarginX = size * (200 / this._baseSize);
         const fontMarginY = size * (70 / this._baseSize);
