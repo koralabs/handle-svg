@@ -306,7 +306,7 @@ export default class HandleSvg {
         // const p = await decompress(uIntArr);
         // const parsedFont = opentype.parse(toArrayBuffer(p));
 
-        const bb = parsedFont.getPath(handle, 0, 0, baseFontSize).getBoundingBox();
+        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
         console.log(bb);
         console.log(`Real height: ${bb.y2 - bb.y1}`);
         const fontWeight = 700;
