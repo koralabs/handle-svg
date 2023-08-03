@@ -280,14 +280,14 @@ export default class HandleSvg {
             font_shadow_size = []
         } = this._options;
 
-        let baseFontSize = getFontSize(handle);
+        let baseFontSize = 200; //getFontSize(handle);
         let { fontFamily, fontCss, fontLink } = getFontDetails(font);
         const fontSize = size * (baseFontSize / this._baseSize);
 
         console.log('fontLink', fontLink);
         // fontLink = 'https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc3CsTKlA.woff2';
 
-        const buffer: any = await fetch(fontLink).then((res) => res.arrayBuffer());
+        const buffer = await fetch(fontLink).then((res) => res.arrayBuffer());
 
         function toArrayBuffer(buffer: any) {
             var ab = new ArrayBuffer(buffer.length);
@@ -301,7 +301,13 @@ export default class HandleSvg {
         // // decompress before parsing
         const parsedFont = opentype.parse(buffer); // toArrayBuffer(decompress(buffer))
 
-        //const parsedFont = opentype.parse(toArrayBuffer(buffer));
+        // minus ribbon height - y2 - y1
+
+        // const uIntArr = new Uint8Array(buffer);
+
+        // const p = await decompress(uIntArr);
+        // const parsedFont = opentype.parse(toArrayBuffer(p));
+
         const bb = parsedFont.getPath(handle, 0, 0, baseFontSize).getBoundingBox();
         console.log(bb);
         console.log(`Real height: ${bb.y2 - bb.y1}`);
@@ -336,8 +342,34 @@ export default class HandleSvg {
         const verticalOffset = (widthForShadow ?? size) * (fontShadowVertOffset / this._baseSize);
         let blur = (widthForShadow ?? size) * (fontShadowBlur / this._baseSize);
 
+        // viewBox="0 0 ${bb.x2 - bb.x1 + 200} ${300}"
+        const midpoint = size / 2;
+        const fontBaseline = size * (67 / this._baseSize) + midpoint;
+        const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
+        const y = midpoint + offset;
+
+        const fontMarginX = size * (220 / this._baseSize);
+        const fontMarginY = size * (80 / this._baseSize);
+        const maxFontWidth = size - fontMarginX;
+        const maxFontHeight = size - fontMarginY;
+
+        const realFontHeightPercent = (bb.y2 - bb.y1) / maxFontHeight;
+        const realFontWidthPercent = (bb.x2 - bb.x1) / maxFontWidth;
+        let zoomPercent = (bb.x2 - bb.x1 - maxFontWidth) / maxFontWidth;
+        if (realFontHeightPercent > realFontWidthPercent) {
+            zoomPercent = (bb.y2 - bb.y1 - maxFontHeight) / maxFontHeight;
+        }
+
+        console.log('zoomPercent', zoomPercent);
+
+        const viewBoxWidth = size * zoomPercent;
+        const viewBoxHeight = size * zoomPercent;
+
+        const fitty = '50%';
+        const viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
+
         return fontShadowFill && fontShadowFill.startsWith('0x')
-            ? `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
                     <defs>
                         <style type="text/css">
                             ${fontCss}
@@ -346,15 +378,15 @@ export default class HandleSvg {
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="50%" y="50%" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )};" x="${fitty}" y="${fitty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
-            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg">
+            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
                     <defs>
                         <style type="text/css">
                             ${fontCss}
                         </style>
                     </defs>
-                    <text x="50%" y="50%" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+                    <text x="${fitty}" y="${fitty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 

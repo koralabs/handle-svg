@@ -4,7 +4,7 @@ const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 
 export const convert = async (handle: string, handleSvg: HandleSvg, size: number): Promise<Buffer> => {
-    const svg = handleSvg.build();
+    const svg = await handleSvg.build();
     const width = size;
     const height = size;
 
