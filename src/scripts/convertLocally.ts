@@ -31,7 +31,7 @@ const options: IHandleSvgOptions = {
     bg_border_color: '0x99bc54',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
-    // qr_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
+    qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
     qr_bg_color: '0xBA000000',
     qr_inner_eye: 'square,#FFFFFF',
     qr_outer_eye: 'square,#FFFFFF',
@@ -68,38 +68,40 @@ const options: IHandleSvgOptions = {
 // };
 
 (async () => {
-    const size = 2048;
-    //const handle = 'mmw5j7h0gqklwmm';
-    // const handle = '1lnternetz';
-    // const handle = 'w00di';
-    const handle = '0o1lijt2z5s8b';
-    // 0ctopus, 1nternet lnternet
+    console.log('STARTED!');
+    try {
+        const size = 2048;
+        //const handle = 'mmw5j7h0gqklwmm';
+        // const handle = '1lnternetz';
+        // const handle = 'w00di';
+        const handle = '0o1lijt2z5s8b';
+        // 0ctopus, 1nternet lnternet
 
-    const input: IHandleSvg = {
-        handle,
-        disableDollarSymbol: true,
-        size,
-        options
-    };
+        const input: IHandleSvg = {
+            handle,
+            disableDollarSymbol: true,
+            size,
+            options
+        };
 
-    const handleSvg = new HandleSvg(input, decompress);
+        const handleSvg = new HandleSvg(input);
 
-    const result = await convert(handle, handleSvg, size, JSDOM, QRCodeStyling);
+        const result = await convert(handle, handleSvg, size, decompress, JSDOM, QRCodeStyling);
 
-    // write jpg
-    fs.writeFile('test_svg.jpg', result, (err: any) => {
-        // throws an error, you could also catch it here
-        if (err) throw err;
+        // write jpg
+        fs.writeFile('test_svg.jpg', result, (err: any) => {
+            // throws an error, you could also catch it here
+            if (err) throw err;
 
-        // success case, the file was saved
-        console.log('JPG written!');
-    });
+            // success case, the file was saved
+            console.log('JPG written!');
+        });
 
-    const svgString = await handleSvg.build(JSDOM, QRCodeStyling).catch((err) => {
-        console.error(err);
-    });
+        const svgString = await handleSvg.build(decompress, JSDOM, QRCodeStyling).catch((err) => {
+            console.error(err);
+        });
 
-    const html = `
+        const html = `
     <html>
         <head>
             <title>${handle} SVG</title>
@@ -120,12 +122,17 @@ const options: IHandleSvgOptions = {
     </html>
     `;
 
-    // write html file
-    fs.writeFile('test_handle.html', html, (err: any) => {
-        // throws an error, you could also catch it here
-        if (err) throw err;
+        // write html file
+        fs.writeFile('test_handle.html', html, (err: any) => {
+            // throws an error, you could also catch it here
+            if (err) throw err;
 
-        // success case, the file was saved
-        console.log('HTML written!');
-    });
+            // success case, the file was saved
+            console.log('HTML written!');
+        });
+    } catch (error) {
+        console.error('ERROR:', error);
+    }
+
+    console.log('IM DONE YO!');
 })();

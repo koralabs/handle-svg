@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "npm:publish": "yarn build && yarn publish",
-    "compile:local": "node lib/scripts/convertLocally.js"
+    "compile:local": "yarn build && node --experimental-vm-modules ./lib/scripts/convertLocally.js",
+    "convert": "ts-node ./src/scripts/convertLocally.ts"
   },
   "repository": {
     "type": "git",

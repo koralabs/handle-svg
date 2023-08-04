@@ -5,6 +5,7 @@ import opentype from 'opentype.js';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
+import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
@@ -14,9 +15,8 @@ export default class HandleSvg {
     private _qrCodeBaseSize: number = 430;
     private _margin: number;
     private _defaultContrastColor: string = '#888888';
-    private _decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>;
 
-    constructor(inputs: IHandleSvg, decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
+    constructor(inputs: IHandleSvg) {
         this._options = inputs.options;
         this._params = {
             size: inputs.size,
@@ -24,7 +24,6 @@ export default class HandleSvg {
             disableDollarSymbol: inputs.disableDollarSymbol ?? false
         };
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
-        this._decompress = decompress;
     }
 
     buildLogoHandle() {
@@ -270,13 +269,8 @@ export default class HandleSvg {
     </svg>`;
     };
 
-    async buildHandleName(renderedSize?: number) {
-        if (!this._decompress) {
-            throw new Error('decompress is required');
-        }
-
+    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
         let { size, handle } = this._params;
-        size = renderedSize ?? size;
 
         let {
             bg_color,
@@ -290,27 +284,18 @@ export default class HandleSvg {
 
         let baseFontSize = 200; //getFontSize(handle);
         let { fontFamily, fontCss, fontLink } = getFontDetails(font);
-        const fontSize = (renderedSize ?? size) * (baseFontSize / this._baseSize);
+        const fontSize = size * (baseFontSize / this._baseSize);
 
-        const fontResponse = await fetch(fontLink).then((res) => res);
-        const buffer = await fontResponse.arrayBuffer();
-        const fontType = fontResponse.headers.get('Content-Type');
-
-        function toArrayBuffer(buffer: any) {
-            var ab = new ArrayBuffer(buffer.length);
-            var view = new Uint8Array(ab);
-            for (var i = 0; i < buffer.length; ++i) {
-                view[i] = buffer[i];
-            }
-            return ab;
+        let parsedFont: any;
+        try {
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        } catch (error) {
+            ({ fontFamily, fontCss, fontLink } = getFontDetails());
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
         }
 
-        let fontArrayBuffer = buffer;
-        if (fontType?.includes('woff2')) {
-            // decompress before parsing
-            fontArrayBuffer = toArrayBuffer(await this._decompress(new Uint8Array(buffer)));
-        }
-        const parsedFont = opentype.parse(fontArrayBuffer);
         const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
         const fontWeight = 700;
 
@@ -339,12 +324,12 @@ export default class HandleSvg {
 
         let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
 
-        const horizontalOffset = (renderedSize ?? size) * (fontShadowHorzOffset / this._baseSize);
-        const verticalOffset = (renderedSize ?? size) * (fontShadowVertOffset / this._baseSize);
-        let blur = (renderedSize ?? size) * (fontShadowBlur / this._baseSize);
+        const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
+        const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
+        let blur = size * (fontShadowBlur / this._baseSize);
 
-        const midpoint = (renderedSize ?? size) / 2;
-        const fontBaseline = (renderedSize ?? size) * (60 / this._baseSize) + midpoint;
+        const midpoint = size / 2;
+        const fontBaseline = size * (60 / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
 
         const fontMarginX = size * (200 / this._baseSize);
@@ -389,7 +374,7 @@ export default class HandleSvg {
                 </svg>`;
     }
 
-    buildQRCode = (jsdom: any, QRCodeStyling: any) => {
+    buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
         const { handle } = this._params;
         const { qr_link, qr_bg_color } = this._options;
 
@@ -406,6 +391,16 @@ export default class HandleSvg {
         }
 
         const qrCode = new QRCodeStyling(options);
+
+        if (qrCode?._svgDrawingPromise) {
+            console.log('GOT HERE!');
+            try {
+                await qrCode?._svgDrawingPromise;
+            } catch (error) {
+                console.log('ERRORRRRR@!', error);
+            }
+            console.log('DONEEEE!');
+        }
 
         const eyeX = qrCode._svg?._element.children[3]?.attributes?.getNamedItem('x')?.value;
         const eyeY = qrCode._svg?._element.children[7]?.attributes?.getNamedItem('y')?.value;
@@ -504,7 +499,7 @@ export default class HandleSvg {
             : undefined;
     }
 
-    async build(jsdom: any, QRCodeStyling: any) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
@@ -518,8 +513,8 @@ export default class HandleSvg {
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
                 ${this.buildOG()}
-                ${await this.buildHandleName()}
-                ${this.buildQRCode(jsdom, QRCodeStyling)}
+                ${await this.buildHandleName(decompress)}
+                ${await this.buildQRCode(jsdom, QRCodeStyling)}
                 ${this.buildSocialsSvg()}
             </svg>
         `;
@@ -538,13 +533,16 @@ export default class HandleSvg {
         const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
         const imageMargin = size * (8 / this._baseSize);
 
+        console.log('qr_image', qr_image);
+
         return {
             width: qrCodeSize,
             height: qrCodeSize,
             type: 'svg',
             image: qr_image,
             imageOptions: {
-                margin: imageMargin
+                margin: imageMargin,
+                hideBackgroundDots: false
             },
             data: qr_link,
             margin: 0,

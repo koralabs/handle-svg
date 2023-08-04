@@ -7,10 +7,11 @@ export const convert = async (
     handle: string,
     handleSvg: HandleSvg,
     size: number,
+    decompress: any,
     jsDom: any,
     QRCodeStyling: any
 ): Promise<Buffer> => {
-    const svg = await handleSvg.build(jsDom, QRCodeStyling);
+    const svg = await handleSvg.build(decompress, jsDom, QRCodeStyling);
     const width = size;
     const height = size;
 
