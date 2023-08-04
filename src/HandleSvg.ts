@@ -312,7 +312,6 @@ export default class HandleSvg {
         }
         const parsedFont = opentype.parse(fontArrayBuffer);
         const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
-        console.log(bb);
         const fontWeight = 700;
 
         // - font color (from creator default)

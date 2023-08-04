@@ -19,8 +19,9 @@ const options: IHandleSvgOptions = {
     font_shadow_color: '0x73000000',
     // font_color: '0xff6130',
     // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
-    //font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
-    //font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
+    // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
+    // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
+    // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
     text_ribbon_colors: ['0x000000'],
     pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfp_zoom: 120,
@@ -69,9 +70,9 @@ const options: IHandleSvgOptions = {
 (async () => {
     const size = 2048;
     //const handle = 'mmw5j7h0gqklwmm';
-    const handle = 'lnternetz';
-    //const handle = 'j';
-    //const handle = '0Oo1lijt2z5s8b';
+    // const handle = '1lnternetz';
+    // const handle = 'w00di';
+    const handle = '0o1lijt2z5s8b';
     // 0ctopus, 1nternet lnternet
 
     const input: IHandleSvg = {
