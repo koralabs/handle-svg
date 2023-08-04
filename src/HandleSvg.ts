@@ -390,18 +390,8 @@ export default class HandleSvg {
             options.jsdom = jsdom;
         }
 
-        const qrCode = new QRCodeStyling(options);
+        const { qrCode, realQrHeight } = this.initQrCodeStyling<any>(QRCodeStyling, options);
 
-        // TODO: For some reason, the doesn't work in node
-        // if (qrCode?._svgDrawingPromise) {
-        //     await qrCode?._svgDrawingPromise;
-        // }
-
-        const eyeX = qrCode._svg?._element.children[3]?.attributes?.getNamedItem('x')?.value;
-        const eyeY = qrCode._svg?._element.children[7]?.attributes?.getNamedItem('y')?.value;
-        const eyeHeight = qrCode._svg?._element.children[7]?.attributes?.getNamedItem('height')?.value;
-
-        const realQrHeight = eyeY && eyeX && eyeHeight ? parseInt(eyeY) - parseInt(eyeX) + parseInt(eyeHeight) : 0;
         const { adjustedQRCodeSize, qrCodeMargin, svgQrPosition, svgViewBox } =
             this.buildQrCodeViewProperties(realQrHeight);
         if (qr_link) {
@@ -513,6 +503,25 @@ export default class HandleSvg {
                 ${this.buildSocialsSvg()}
             </svg>
         `;
+    }
+
+    initQrCodeStyling<T>(QRCodeStyling: any, options: any): { qrCode: T; realQrHeight: number } {
+        const qrCode = new QRCodeStyling(options);
+
+        // if (qrCode?._svgDrawingPromise) {
+        //     await qrCode._svgDrawingPromise;
+        // }
+
+        const eyeX = qrCode._svg?._element.children[3]?.attributes?.getNamedItem('x')?.value;
+        const eyeY = qrCode._svg?._element.children[7]?.attributes?.getNamedItem('y')?.value;
+        const eyeHeight = qrCode._svg?._element.children[7]?.attributes?.getNamedItem('height')?.value;
+
+        const realQrHeight = eyeY && eyeX && eyeHeight ? parseInt(eyeY) - parseInt(eyeX) + parseInt(eyeHeight) : 0;
+
+        return {
+            qrCode,
+            realQrHeight
+        };
     }
 
     buildQrCodeOptions(): any {
