@@ -392,15 +392,10 @@ export default class HandleSvg {
 
         const qrCode = new QRCodeStyling(options);
 
-        if (qrCode?._svgDrawingPromise) {
-            console.log('GOT HERE!');
-            try {
-                await qrCode?._svgDrawingPromise;
-            } catch (error) {
-                console.log('ERRORRRRR@!', error);
-            }
-            console.log('DONEEEE!');
-        }
+        // TODO: For some reason, the doesn't work in node
+        // if (qrCode?._svgDrawingPromise) {
+        //     await qrCode?._svgDrawingPromise;
+        // }
 
         const eyeX = qrCode._svg?._element.children[3]?.attributes?.getNamedItem('x')?.value;
         const eyeY = qrCode._svg?._element.children[7]?.attributes?.getNamedItem('y')?.value;
@@ -521,8 +516,11 @@ export default class HandleSvg {
     }
 
     buildQrCodeOptions(): any {
-        const { size, handle } = this._params;
-        const { qr_bg_color, qr_dot, qr_inner_eye, qr_outer_eye, qr_link, qr_image } = this._options;
+        const { size } = this._params;
+        const { qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
+
+        // Disable QR image for now until we can figure out how to fix it.
+        const qr_image = '';
 
         if (!qr_link) return undefined;
 
@@ -532,8 +530,6 @@ export default class HandleSvg {
 
         const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
         const imageMargin = size * (8 / this._baseSize);
-
-        console.log('qr_image', qr_image);
 
         return {
             width: qrCodeSize,

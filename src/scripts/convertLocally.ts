@@ -133,6 +133,4 @@ const options: IHandleSvgOptions = {
     } catch (error) {
         console.error('ERROR:', error);
     }
-
-    console.log('IM DONE YO!');
 })();
