@@ -1,13 +1,24 @@
 import * as fs from 'fs';
+import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
 import { convert } from './convert';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 
+import { JSDOM } from 'jsdom';
+
+import 'node-self';
+global.window = new JSDOM().window as any;
+global.self = global.window;
+global.document = global.window.document;
+global.XMLSerializer = global.window.XMLSerializer;
+
+import QRCodeStyling from 'qr-code-styling-node';
+
 const options: IHandleSvgOptions = {
     font_shadow_color: '0x73000000',
     // font_color: '0xff6130',
-    font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
+    // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
     //font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
     //font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
     text_ribbon_colors: ['0x000000'],
@@ -57,21 +68,22 @@ const options: IHandleSvgOptions = {
 
 (async () => {
     const size = 2048;
-    const handle = 'mmw5j7h0gqklwmm';
-    //const handle = 'mmmmmmmmmmmmmmm';
+    //const handle = 'mmw5j7h0gqklwmm';
+    const handle = 'lnternetz';
     //const handle = 'j';
     //const handle = '0Oo1lijt2z5s8b';
     // 0ctopus, 1nternet lnternet
 
     const input: IHandleSvg = {
         handle,
+        disableDollarSymbol: true,
         size,
         options
     };
 
-    const handleSvg = new HandleSvg(input);
+    const handleSvg = new HandleSvg(input, decompress);
 
-    const result = await convert(handle, handleSvg, size);
+    const result = await convert(handle, handleSvg, size, JSDOM, QRCodeStyling);
 
     // write jpg
     fs.writeFile('test_svg.jpg', result, (err: any) => {
@@ -82,7 +94,7 @@ const options: IHandleSvgOptions = {
         console.log('JPG written!');
     });
 
-    const svgString = await handleSvg.build().catch((err) => {
+    const svgString = await handleSvg.build(JSDOM, QRCodeStyling).catch((err) => {
         console.error(err);
     });
 
@@ -90,7 +102,6 @@ const options: IHandleSvgOptions = {
     <html>
         <head>
             <title>${handle} SVG</title>
-            <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
             <script type="text/javascript" src="https://unpkg.com/wawoff2@2.0.1/build/decompress_binding.js"></script>
         </head>
         <body style="margin: 0; padding: 0;">
@@ -105,17 +116,6 @@ const options: IHandleSvgOptions = {
         "></div>
             ${svgString}
         </body>
-        <script>
-            const qrCode = new QRCodeStyling(${JSON.stringify(handleSvg.buildQrCodeOptions())});
-            qrCode.append(document.getElementById("qr_code_${handle}"));
-
-            // setTimeout(() => {
-            //     const umm = document.getElementById("handle_name_${handle}");
-            //     const ummWidth = umm.getBBox().width;
-            //     umm.setAttribute('viewBox', '0 0 ' + (ummWidth + 200) + ' 2048' );
-            //     console.log('UMM_WIDTH', ummWidth);
-            // }, 100);
-        </script>
     </html>
     `;
 

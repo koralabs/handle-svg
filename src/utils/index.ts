@@ -46,7 +46,7 @@ export const getFontDetails = (font?: string) => {
     const f =
         font && font !== ''
             ? font
-            : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
+            : 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2';
     const [fontFamily, fontLink] = f.split(',');
     let fontCss = `@import url('${fontLink}');`;
 
