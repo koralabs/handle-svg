@@ -313,7 +313,6 @@ export default class HandleSvg {
         const parsedFont = opentype.parse(fontArrayBuffer);
         const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
         console.log(bb);
-        console.log(`Real height: ${bb.y2 - bb.y1}`);
         const fontWeight = 700;
 
         // - font color (from creator default)
@@ -363,12 +362,10 @@ export default class HandleSvg {
         }
         zoomPercent = 1 + zoomPercent;
 
-        console.log('zoomPercent', zoomPercent);
-
         const viewBoxWidth = size / zoomPercent;
         const viewBoxHeight = size / zoomPercent;
 
-        const fifty = '50%';
+        const half = '50%';
         const viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
@@ -381,7 +378,7 @@ export default class HandleSvg {
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="${fifty}" y="${fifty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )};" x="${half}" y="${half}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
                     <defs>
@@ -389,7 +386,7 @@ export default class HandleSvg {
                             ${fontCss}
                         </style>
                     </defs>
-                    <text x="${fifty}" y="${fifty}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+                    <text x="${half}" y="${half}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 
@@ -399,10 +396,7 @@ export default class HandleSvg {
 
         const options = this.buildQrCodeOptions();
 
-        console.log('DOMMMMMM', jsdom);
-
         if (jsdom) {
-            console.log('JSSSSSOMEOMEM');
             require('node-self');
             global.window = new jsdom().window as any;
             global.self = global.window;
