@@ -24,13 +24,29 @@ export const getRarityHex = (handle: string): string => {
     }
 };
 
+export const getFontSize = (handle: string): number => {
+    const rarity = getRarityFromLength(handle.length);
+    switch (rarity) {
+        case 'Legendary':
+            return 325;
+        case 'Ultra Rare':
+            return 300;
+        case 'Rare':
+            return 275;
+        case 'Common':
+            return 225;
+        default:
+            return 200;
+    }
+};
+
 export const hexToColorHex = (hex: HexString) => hex.replace('0x', '#');
 
 export const getFontDetails = (font?: string) => {
     const f =
         font && font !== ''
             ? font
-            : 'Ubuntu Mono,https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap';
+            : 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2';
     const [fontFamily, fontLink] = f.split(',');
     let fontCss = `@import url('${fontLink}');`;
 
@@ -54,7 +70,7 @@ export const getFontDetails = (font?: string) => {
         fontCss = `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('${format}');}`;
     }
 
-    return { fontFamily, fontCss };
+    return { fontFamily, fontCss, fontLink };
 };
 
 export { getSocialIcon } from './getSocialIcon';

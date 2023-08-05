@@ -3,8 +3,15 @@ import HandleSvg from '../HandleSvg';
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 
-export const convert = async (handle: string, handleSvg: HandleSvg, size: number): Promise<Buffer> => {
-    const svg = handleSvg.build();
+export const convert = async (
+    handle: string,
+    handleSvg: HandleSvg,
+    size: number,
+    decompress: any,
+    jsDom: any,
+    QRCodeStyling: any
+): Promise<Buffer> => {
+    const svg = await handleSvg.build(decompress, jsDom, QRCodeStyling);
     const width = size;
     const height = size;
 
@@ -25,13 +32,8 @@ export const convert = async (handle: string, handleSvg: HandleSvg, size: number
                 * { margin: 0; padding: 0; }
                 html { background-color: #FFF; }
             </style>
-            <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
         </head>
         <body>${svg}</body>
-        <script>
-            const qrCode = new QRCodeStyling(${JSON.stringify(handleSvg.buildQrCodeOptions())});
-            qrCode.append(document.getElementById("qr_code_${handle}"));
-        </script>
     </html>
     `;
 
