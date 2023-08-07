@@ -380,6 +380,10 @@ export default class HandleSvg {
 
         const options = this.buildQrCodeOptions();
 
+        if (!options) {
+            return '';
+        }
+
         if (jsdom) {
             require('node-self');
             global.window = new jsdom().window as any;
