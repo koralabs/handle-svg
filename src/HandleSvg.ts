@@ -338,8 +338,14 @@ export default class HandleSvg {
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
 
-        const realFontHeight = bb.y2 - bb.y1;
+        let realFontHeight = bb.y2 - bb.y1;
         const realFontWidth = bb.x2 - bb.x1;
+
+        const minimumFontHeight = size * (95 / this._baseSize);
+        if (handle.match(/^[._-]+$/) && realFontHeight < minimumFontHeight) {
+            realFontHeight = minimumFontHeight;
+        }
+
         let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
         if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
             zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
