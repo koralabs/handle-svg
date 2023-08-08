@@ -312,13 +312,13 @@ export default class HandleSvg {
             const validTextRibbon = checkContrast(hexToColorHex(text_ribbon_colors[0] as HexString), fontFill);
             if (!validTextRibbon) {
                 fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                font_shadow_size = [0, 0, 8];
+                font_shadow_size = [0, 0, 10];
             }
         } else if (!bg_image && bg_color) {
             const validBgColor = checkContrast(hexToColorHex(bg_color), fontFill);
             if (!validBgColor) {
                 fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                font_shadow_size = [0, 0, 8];
+                font_shadow_size = [0, 0, 10];
             }
         }
 
