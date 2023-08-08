@@ -24,19 +24,19 @@ export const getRarityHex = (handle: string): string => {
     }
 };
 
-export const getFontSize = (handle: string): number => {
+export const getMinimumFontSize = (handle: string): number => {
     const rarity = getRarityFromLength(handle.length);
     switch (rarity) {
         case 'Legendary':
-            return 325;
+            return 95;
         case 'Ultra Rare':
-            return 300;
+            return 95;
         case 'Rare':
-            return 275;
+            return 95;
         case 'Common':
-            return 225;
+            return 180;
         default:
-            return 200;
+            return 180;
     }
 };
 

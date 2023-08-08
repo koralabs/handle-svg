@@ -1,6 +1,6 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getFontDetails, getFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
+import { getFontDetails, getMinimumFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
 import opentype from 'opentype.js';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
@@ -341,8 +341,8 @@ export default class HandleSvg {
         let realFontHeight = bb.y2 - bb.y1;
         const realFontWidth = bb.x2 - bb.x1;
 
-        const minimumFontHeight = size * (95 / this._baseSize);
-        if (handle.match(/^[._-]+$/) && realFontHeight < minimumFontHeight) {
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+        if (realFontHeight < minimumFontHeight) {
             realFontHeight = minimumFontHeight;
         }
 
