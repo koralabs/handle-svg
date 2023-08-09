@@ -269,7 +269,10 @@ export default class HandleSvg {
     </svg>`;
     };
 
-    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
+    async buildHandleName(
+        decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>,
+        fontBaselineDefault: number = 80
+    ) {
         let { size, handle } = this._params;
 
         let {
@@ -329,7 +332,7 @@ export default class HandleSvg {
         let blur = size * (fontShadowBlur / this._baseSize);
 
         const midpoint = size / 2;
-        const fontBaseline = size * (72 / this._baseSize) + midpoint;
+        const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
 
         const fontMarginX = size * (200 / this._baseSize);
@@ -494,7 +497,7 @@ export default class HandleSvg {
             : undefined;
     }
 
-    async build(decompress: any, jsdom: any, QRCodeStyling: any) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any, fontBaselineDefault?: number) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
@@ -508,7 +511,7 @@ export default class HandleSvg {
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
                 ${this.buildOG()}
-                ${await this.buildHandleName(decompress)}
+                ${await this.buildHandleName(decompress, fontBaselineDefault)}
                 ${await this.buildQRCode(jsdom, QRCodeStyling)}
                 ${this.buildSocialsSvg()}
             </svg>
