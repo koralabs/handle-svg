@@ -1,7 +1,5 @@
 import HandleSvg from '../HandleSvg';
-
-const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
+import puppeteer from 'puppeteer';
 
 export const convert = async (
     handle: string,
@@ -17,8 +15,8 @@ export const convert = async (
 
     const browser = await puppeteer.launch({
         args: ['--font-render-hinting=none', '--disable-font-subpixel-positioning'],
-        executablePath: '/usr/bin/google-chrome',
-        headless: true,
+        executablePath: puppeteer.executablePath(),
+        headless: 'new',
         ignoreHTTPSErrors: true
     });
 
