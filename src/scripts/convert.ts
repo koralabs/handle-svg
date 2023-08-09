@@ -1,7 +1,5 @@
 import HandleSvg from '../HandleSvg';
-
-const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
+import puppeteer from 'puppeteer';
 
 export const convert = async (
     handle: string,
@@ -16,10 +14,9 @@ export const convert = async (
     const height = size;
 
     const browser = await puppeteer.launch({
-        args: undefined, // chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        args: ['--font-render-hinting=none', '--disable-font-subpixel-positioning'],
+        executablePath: puppeteer.executablePath(),
+        headless: 'new',
         ignoreHTTPSErrors: true
     });
 
