@@ -269,7 +269,10 @@ export default class HandleSvg {
     </svg>`;
     };
 
-    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
+    async buildHandleName(
+        decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>,
+        fontBaselineDefault: number = 80
+    ) {
         let { size, handle } = this._params;
 
         let {
@@ -329,11 +332,11 @@ export default class HandleSvg {
         let blur = size * (fontShadowBlur / this._baseSize);
 
         const midpoint = size / 2;
-        const fontBaseline = size * (60 / this._baseSize) + midpoint;
+        const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
 
         const fontMarginX = size * (200 / this._baseSize);
-        const fontMarginY = size * (this._baseMargin / this._baseSize);
+        const fontMarginY = size * (94 / this._baseSize);
         const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
@@ -368,7 +371,7 @@ export default class HandleSvg {
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="${half}" y="${half}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )};" x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
                     <defs>
@@ -376,7 +379,7 @@ export default class HandleSvg {
                             ${fontCss}
                         </style>
                     </defs>
-                    <text x="${half}" y="${half}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+                    <text x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 
@@ -494,7 +497,7 @@ export default class HandleSvg {
             : undefined;
     }
 
-    async build(decompress: any, jsdom: any, QRCodeStyling: any) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any, fontBaselineDefault?: number) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
@@ -508,7 +511,7 @@ export default class HandleSvg {
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
                 ${this.buildOG()}
-                ${await this.buildHandleName(decompress)}
+                ${await this.buildHandleName(decompress, fontBaselineDefault)}
                 ${await this.buildQRCode(jsdom, QRCodeStyling)}
                 ${this.buildSocialsSvg()}
             </svg>
