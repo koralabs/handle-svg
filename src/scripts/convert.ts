@@ -16,10 +16,9 @@ export const convert = async (
     const height = size;
 
     const browser = await puppeteer.launch({
-        args: undefined, // chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        args: ['--font-render-hinting=none', '--disable-font-subpixel-positioning'],
+        executablePath: '/usr/bin/google-chrome',
+        headless: true,
         ignoreHTTPSErrors: true
     });
 

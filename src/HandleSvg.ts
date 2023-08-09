@@ -329,7 +329,7 @@ export default class HandleSvg {
         let blur = size * (fontShadowBlur / this._baseSize);
 
         const midpoint = size / 2;
-        const fontBaseline = size * (60 / this._baseSize) + midpoint;
+        const fontBaseline = size * (80 / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
 
         const fontMarginX = size * (200 / this._baseSize);
@@ -368,7 +368,7 @@ export default class HandleSvg {
                     <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="${half}" y="${half}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )};" x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
             : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
                     <defs>
@@ -376,7 +376,7 @@ export default class HandleSvg {
                             ${fontCss}
                         </style>
                     </defs>
-                    <text x="${half}" y="${half}" dominant-baseline="central" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+                    <text x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`;
     }
 
