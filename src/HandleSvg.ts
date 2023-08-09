@@ -329,11 +329,11 @@ export default class HandleSvg {
         let blur = size * (fontShadowBlur / this._baseSize);
 
         const midpoint = size / 2;
-        const fontBaseline = size * (80 / this._baseSize) + midpoint;
+        const fontBaseline = size * (72 / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
 
         const fontMarginX = size * (200 / this._baseSize);
-        const fontMarginY = size * (this._baseMargin / this._baseSize);
+        const fontMarginY = size * (94 / this._baseSize);
         const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
