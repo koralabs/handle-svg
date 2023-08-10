@@ -26,6 +26,66 @@ export default class HandleSvg {
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
     }
 
+    async buildFontCalculations({
+        fontSize,
+        maxFontWidth,
+        maxFontHeight,
+        decompress,
+        fontBaselineDefault = 80
+    }: {
+        fontSize: number;
+        maxFontWidth: number;
+        maxFontHeight: number;
+        decompress: any;
+        fontBaselineDefault?: number;
+    }) {
+        const { size, handle } = this._params;
+        const { font } = this._options;
+
+        let { fontLink } = getFontDetails(font);
+
+        let parsedFont: any;
+        try {
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        } catch (error) {
+            ({ fontLink } = getFontDetails());
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        }
+
+        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
+        const midpoint = size / 2;
+        const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
+        const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
+
+        let realFontHeight = bb.y2 - bb.y1;
+        const realFontWidth = bb.x2 - bb.x1;
+
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+        if (realFontHeight < minimumFontHeight) {
+            realFontHeight = minimumFontHeight;
+        }
+
+        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
+        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+        }
+        zoomPercent = 1 + zoomPercent;
+
+        const viewBoxWidth = size / zoomPercent;
+        const viewBoxHeight = size / zoomPercent;
+
+        let viewBox = null;
+        if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
+            viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
+        }
+
+        return {
+            viewBox
+        };
+    }
+
     buildLogoHandle() {
         const { size } = this._params;
         const { bg_color, bg_image } = this._options;
@@ -247,26 +307,31 @@ export default class HandleSvg {
         }
 
         const { fontFamily, fontCss } = getFontDetails(font);
-
         const fontSize = size * (48 / this._baseSize);
+
         const fontWeight = '700';
-        const dollarSignWidth = size * (300 / this._baseSize);
-        const x = size - dollarSignWidth - this._margin;
-        const y = size * (560 / this._baseSize);
-        return `<svg x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <style type="text/css">
-                ${fontCss}
-            </style>
-        </defs>
-        <text transform="translate(${dollarSignWidth / 2})"
-        ><tspan dominant-baseline="hanging"
-        text-anchor="middle"
-        fill="${getRarityHex(handle)}"
-        font-size="${fontSize}"
-        font-family="${fontFamily}"
-        font-weight="${fontWeight}">OG ${og_number}/${OG_TOTAL}</tspan></text>
-    </svg>`;
+        const y = size * ((this._baseMargin + 30) / this._baseSize);
+
+        return `<svg xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <style type="text/css">
+                    ${fontCss}
+                </style>
+            </defs>
+            <text
+                x="50%" y="${y}"
+                text-anchor="middle"
+                alignment-baseline="mathematical" 
+                dominant-baseline="mathematical" 
+                text-rendering="geometricPrecision"
+                fill="${getRarityHex(handle)}"
+                font-size="${fontSize}"
+                font-family="${fontFamily}"
+                font-weight="${fontWeight}"
+            >
+                OG ${og_number}/${OG_TOTAL}
+            </text>
+        </svg>`;
     };
 
     async buildHandleName(
@@ -285,21 +350,23 @@ export default class HandleSvg {
             font_shadow_size = []
         } = this._options;
 
+        let { fontFamily, fontCss } = getFontDetails(font);
+
         let baseFontSize = 200; //getFontSize(handle);
-        let { fontFamily, fontCss, fontLink } = getFontDetails(font);
         const fontSize = size * (baseFontSize / this._baseSize);
 
-        let parsedFont: any;
-        try {
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        } catch (error) {
-            ({ fontFamily, fontCss, fontLink } = getFontDetails());
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        }
-
-        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
+        const fontMarginX = size * (200 / this._baseSize);
+        const fontMarginY = size * (94 / this._baseSize);
+        const ribbonHeight = size * (314 / this._baseSize);
+        const maxFontWidth = size - fontMarginX;
+        const maxFontHeight = ribbonHeight - fontMarginY;
+        const { viewBox } = await this.buildFontCalculations({
+            fontSize,
+            maxFontWidth,
+            maxFontHeight,
+            decompress,
+            fontBaselineDefault
+        });
         const fontWeight = 700;
 
         // - font color (from creator default)
@@ -310,59 +377,47 @@ export default class HandleSvg {
 
         let fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill = font_shadow_color;
+        let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
 
-        if (!bg_image && text_ribbon_colors?.length === 1) {
-            const validTextRibbon = checkContrast(hexToColorHex(text_ribbon_colors[0] as HexString), fontFill);
-            if (!validTextRibbon) {
-                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                font_shadow_size = [0, 0, 10];
+        if ((text_ribbon_colors?.length ?? 0) > 0) {
+            const ribbonColor = text_ribbon_colors?.[0] as HexString;
+            if (!checkContrast(hexToColorHex(ribbonColor), fontFill)) {
+                if (
+                    !(
+                        fontShadowBlur >= 10 &&
+                        fontShadowFill &&
+                        checkContrast(hexToColorHex(ribbonColor), hexToColorHex(fontShadowFill))
+                    )
+                ) {
+                    fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                    font_shadow_size = [0, 0, 10];
+                }
             }
         } else if (!bg_image && bg_color) {
-            const validBgColor = checkContrast(hexToColorHex(bg_color), fontFill);
-            if (!validBgColor) {
-                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                font_shadow_size = [0, 0, 10];
+            if (!checkContrast(hexToColorHex(bg_color), fontFill)) {
+                if (
+                    !(
+                        fontShadowBlur >= 10 &&
+                        fontShadowFill &&
+                        checkContrast(hexToColorHex(bg_color), hexToColorHex(fontShadowFill))
+                    )
+                ) {
+                    fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                    font_shadow_size = [0, 0, 10];
+                }
             }
         }
 
-        let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
+        [fontShadowHorzOffset, fontShadowVertOffset, fontShadowBlur] = font_shadow_size;
 
         const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         let blur = size * (fontShadowBlur / this._baseSize);
 
-        const midpoint = size / 2;
-        const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
-        const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
-
-        const fontMarginX = size * (200 / this._baseSize);
-        const fontMarginY = size * (94 / this._baseSize);
-        const ribbonHeight = size * (314 / this._baseSize);
-        const maxFontWidth = size - fontMarginX;
-        const maxFontHeight = ribbonHeight - fontMarginY;
-
-        let realFontHeight = bb.y2 - bb.y1;
-        const realFontWidth = bb.x2 - bb.x1;
-
-        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
-        if (realFontHeight < minimumFontHeight) {
-            realFontHeight = minimumFontHeight;
-        }
-
-        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
-        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
-            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
-        }
-        zoomPercent = 1 + zoomPercent;
-
-        const viewBoxWidth = size / zoomPercent;
-        const viewBoxHeight = size / zoomPercent;
-
         const half = '50%';
-        const viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
-            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
+            ? `<svg xmlns="http://www.w3.org/2000/svg" ${viewBox ? `viewBox="${viewBox}"` : ''}>
                     <defs>
                         <style type="text/css">
                             ${fontCss}
@@ -373,7 +428,9 @@ export default class HandleSvg {
                   '#'
               )};" x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
                 </svg>`
-            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
+            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" ${
+                  viewBox ? `viewBox="${viewBox}"` : ''
+              }>
                     <defs>
                         <style type="text/css">
                             ${fontCss}
@@ -407,6 +464,7 @@ export default class HandleSvg {
 
         const { adjustedQRCodeSize, qrCodeMargin, svgQrPosition, svgViewBox } =
             this.buildQrCodeViewProperties(realQrHeight);
+
         if (qr_link) {
             return `
                 <rect x="${svgQrPosition}" y="${svgQrPosition}" width="${adjustedQRCodeSize + qrCodeMargin}" height="${
@@ -425,7 +483,7 @@ export default class HandleSvg {
         return '';
     };
 
-    renderSocialIcon(socialUrl: string) {
+    renderSocialIcon(socialUrl: string, x: number, y: number) {
         const { size } = this._params;
         const { font_color, bg_image, bg_color } = this._options;
 
@@ -439,7 +497,7 @@ export default class HandleSvg {
             }
         }
 
-        return getSocialIcon(socialUrl, scale, fontColor);
+        return getSocialIcon({ social: socialUrl, scale, x, y, fill: fontColor });
     }
 
     buildSocialsSvg(widthForShadow?: number) {
@@ -468,8 +526,9 @@ export default class HandleSvg {
 
         return socials && socials.length > 0
             ? socials.map((social: SocialItem, index: number) => {
-                  return `<svg xmlns="http://www.w3.org/2000/svg" x="${x}" y="${y - index * socialSpacing}">
-                                ${this.renderSocialIcon(social.url)}
+                  const calculatedY = y - index * socialSpacing;
+                  return `<svg xmlns="http://www.w3.org/2000/svg">
+                                ${this.renderSocialIcon(social.url, x, calculatedY)}
                                 <defs>
                                     <style type="text/css">
                                         ${fontCss}
@@ -483,7 +542,8 @@ export default class HandleSvg {
                                               }px ${fontShadowFill.replace('0x', '#')};"`
                                             : ''
                                     }
-                                    x="${socialSize + socialSize / 3}"
+                                    x="${x + (socialSize + socialSize / 3)}"
+                                    y="${calculatedY}"
                                     dominant-baseline="hanging"
                                     fill="${fontColor}"
                                     font-size="${fontSize}"
@@ -595,7 +655,11 @@ export default class HandleSvg {
         const differencePercent = 1 + (adjustedQRCodeSize - realQrHeight) / realQrHeight;
         const position = (adjustedQRCodeSize - realQrHeight - qrCodeMargin) / 2 + qrCodeMargin;
         const zoom = size / differencePercent;
-        const svgViewBox = `${position} ${position} ${zoom} ${zoom}`;
+
+        let svgViewBox: string | undefined;
+        if (!isNaN(zoom)) {
+            svgViewBox = `${position} ${position} ${zoom} ${zoom}`;
+        }
 
         return {
             adjustedQRCodeSize,
