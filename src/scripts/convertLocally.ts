@@ -16,7 +16,7 @@ global.XMLSerializer = global.window.XMLSerializer;
 import QRCodeStyling from 'qr-code-styling-node';
 
 const options: IHandleSvgOptions = {
-    font_shadow_color: '0x73000000',
+    font_shadow_color: '0x8a1d7b',
     // font_color: '0xff6130',
     font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
     // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
@@ -78,7 +78,7 @@ const options: IHandleSvgOptions = {
         // const handle = '1lnternetz';
         // const handle = 'w00di';
         // const handle = '0o1lijt2z5s8b';
-        const handle = 'barbacoa';
+        const handle = 'mmmmmmmmmmmmmmm';
         // 0ctopus, 1nternet lnternet
 
         const input: IHandleSvg = {
@@ -120,6 +120,24 @@ const options: IHandleSvgOptions = {
             position: absolute;
             top: 1091px;
             left: 855px;
+        "></div>
+        <div style="
+            position: absolute;
+            width: 341px;
+            height: 1px;
+            background: red;
+            position: absolute;
+            top: 1024px;
+            left: 1024px;
+        "></div>
+        <div style="
+            position: absolute;
+            width: 1px;
+            height: 10px;
+            background: red;
+            position: absolute;
+            top: 1024px;
+            left: 1024px;
         "></div>
             ${svgString}
         </body>

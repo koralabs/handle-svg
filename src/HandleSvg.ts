@@ -40,11 +40,11 @@ export default class HandleSvg {
         fontBaselineDefault?: number;
     }) {
         const { size, handle } = this._params;
-        const { font } = this._options;
+        const { font, font_color } = this._options;
 
         let { fontLink } = getFontDetails(font);
 
-        let parsedFont: any;
+        let parsedFont: opentype.Font;
         try {
             const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
             parsedFont = opentype.parse(fontArrayBuffer);
@@ -54,10 +54,17 @@ export default class HandleSvg {
             parsedFont = opentype.parse(fontArrayBuffer);
         }
 
+        const path = parsedFont.getPath(handle, 0, 0, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+
+        const svg = path.toSVG(0);
+
         const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
         const midpoint = size / 2;
         const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
         const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
+
+        console.log('BBs', bb.x1, bb.y1, bb.x2, bb.y2);
 
         let realFontHeight = bb.y2 - bb.y1;
         const realFontWidth = bb.x2 - bb.x1;
@@ -82,7 +89,11 @@ export default class HandleSvg {
         }
 
         return {
-            viewBox
+            viewBox,
+            svg,
+            realFontWidth,
+            realFontHeight,
+            bottomY: bb.y2
         };
     }
 
@@ -360,14 +371,40 @@ export default class HandleSvg {
         const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
-        const { viewBox } = await this.buildFontCalculations({
-            fontSize,
-            maxFontWidth,
-            maxFontHeight,
-            decompress,
-            fontBaselineDefault
-        });
-        const fontWeight = 700;
+        // const { viewBox, svg, realFontWidth, realFontHeight, bottomY } = await this.buildFontCalculations({
+        //     fontSize,
+        //     maxFontWidth,
+        //     maxFontHeight,
+        //     decompress,
+        //     fontBaselineDefault
+        // });
+        // const fontWeight = 700;
+
+        let { fontLink } = getFontDetails(font);
+
+        let parsedFont: opentype.Font;
+        try {
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        } catch (error) {
+            ({ fontLink } = getFontDetails());
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        }
+
+        const path = parsedFont.getPath(handle, 0, 0, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+
+        const svg = path.toSVG(0);
+        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
+
+        console.log('BBs', bb.x1, bb.y1, bb.x2, bb.y2);
+
+        let realFontHeight = bb.y2 - bb.y1;
+        const realFontWidth = bb.x2 - bb.x1;
+
+        console.log('realFontHeight', realFontHeight);
+        console.log('realFontWidth', realFontWidth);
 
         // - font color (from creator default)
         // - font shadow color
@@ -414,29 +451,39 @@ export default class HandleSvg {
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         let blur = size * (fontShadowBlur / this._baseSize);
 
-        const half = '50%';
+        const x = size / 2 - (realFontWidth / 2 + bb.x1);
+        const y = size / 2 + (realFontHeight / 2 - bb.y2);
+
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+        if (realFontHeight < minimumFontHeight) {
+            realFontHeight = minimumFontHeight;
+        }
+
+        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
+        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+        }
+        zoomPercent = 1 + zoomPercent;
+
+        const viewBoxWidth = size / zoomPercent;
+        const viewBoxHeight = size / zoomPercent;
+
+        const viewBoxX = size / 2 - ((realFontWidth * zoomPercent) / 2 + bb.x1);
+
+        let viewBox = null;
+        if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
+            viewBox = `0  ${} ${viewBoxWidth} ${viewBoxHeight}`;
+        }
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
-            ? `<svg xmlns="http://www.w3.org/2000/svg" ${viewBox ? `viewBox="${viewBox}"` : ''}>
-                    <defs>
-                        <style type="text/css">
-                            ${fontCss}
-                        </style>
-                    </defs>
-                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
+            ? `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
                   '0x',
                   '#'
-              )};" x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
-                </svg>`
-            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" ${
-                  viewBox ? `viewBox="${viewBox}"` : ''
-              }>
-                    <defs>
-                        <style type="text/css">
-                            ${fontCss}
-                        </style>
-                    </defs>
-                    <text x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
+              )});" viewBox="${viewBox}">
+                        ${svg}
+                    </svg>`
+            : `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
+                    ${svg}
                 </svg>`;
     }
 
