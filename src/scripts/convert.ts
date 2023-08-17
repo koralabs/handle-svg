@@ -1,5 +1,4 @@
 import HandleSvg from '../HandleSvg';
-import render from 'svg-render';
 
 export const convert = async (
     handle: string,
@@ -13,7 +12,8 @@ export const convert = async (
     const width = size;
     const height = size;
 
-    const buffer = await render({ buffer: Buffer.from(svg), width, height });
+    //const buffer = await render({ buffer: Buffer.from(svg), width, height });
 
-    return buffer;
+    //return buffer;
+    return Buffer.from('')
 };
