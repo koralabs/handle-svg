@@ -1,4 +1,5 @@
 import HandleSvg from '../HandleSvg';
+import sharp from 'sharp';
 
 export const convert = async (
     handle: string,
@@ -13,7 +14,8 @@ export const convert = async (
     const height = size;
 
     //const buffer = await render({ buffer: Buffer.from(svg), width, height });
+    const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer(); //.toFile(`${handle}-pz.jpg`);
 
-    //return buffer;
-    return Buffer.from('')
+    return buffer;
+    //return Buffer.from('');
 };

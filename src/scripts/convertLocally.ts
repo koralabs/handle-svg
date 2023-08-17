@@ -16,7 +16,7 @@ global.XMLSerializer = global.window.XMLSerializer;
 import QRCodeStyling from 'qr-code-styling-node';
 
 const options: IHandleSvgOptions = {
-    font_shadow_color: '0x8a1d7b',
+    // font_shadow_color: '0x8a1d7b',
     // font_color: '0xff6130',
     font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
     // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
@@ -43,8 +43,8 @@ const options: IHandleSvgOptions = {
         { display: 'whatsapp', url: 'https://whatsapp.com/testing' },
         { display: 'reddit', url: 'https://reddit.com/testing' }
     ],
-    font_shadow_size: [-5, 7, 5]
-    // og_number: 2438
+    font_shadow_size: [-5, 7, 5],
+    og_number: 2438
 };
 
 // const options: IHandleSvgOptions = {

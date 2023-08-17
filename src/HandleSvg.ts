@@ -6,6 +6,7 @@ import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@kor
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
+import { getBase64Image } from './utils/getBase64Image';
 
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
@@ -151,7 +152,7 @@ export default class HandleSvg {
         `;
     }
 
-    buildBackgroundImage = () => {
+    buildBackgroundImage = async () => {
         const { size } = this._params;
         const { bg_image } = this._options;
 
@@ -159,7 +160,10 @@ export default class HandleSvg {
             const image = bg_image.startsWith('ipfs://')
                 ? `${IPFS_GATEWAY}/${bg_image.replace('ipfs://', '')}`
                 : bg_image;
-            return `<image href="${image}" height="${size}" width="${size}" />`;
+
+            const base64Image = await getBase64Image(image);
+
+            return `<image href="${base64Image}" height="${size}" width="${size}" />`;
         }
 
         return '';
@@ -201,14 +205,7 @@ export default class HandleSvg {
             ? `${IPFS_GATEWAY}/${pfp_image.replace('ipfs://', '')}`
             : pfp_image;
 
-        const getBase64 = async (fileUrl: string) => {
-            let response = await fetch(fileUrl);
-            console.log(response.headers);
-            let data = await response.arrayBuffer();
-            return Buffer.from(data).toString('base64');
-        };
-
-        const base64Image = await getBase64(image);
+        const base64Image = await getBase64Image(image);
 
         return `<svg>
                     <defs>
@@ -225,10 +222,10 @@ export default class HandleSvg {
                     }
                     <foreignObject>
                     <div xmlns="http://www.w3.org/1999/xhtml">
-                        <img src="data:image/png;base64,${base64Image}" />
+                        <img src="${base64Image}" />
                         </div>
                     </foreignObject>
-                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="data:image/png;base64,${base64Image}" />
+                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${base64Image}" />
                 </svg>`;
     }
 
@@ -409,7 +406,7 @@ export default class HandleSvg {
         const path = parsedFont.getPath(handle, 0, 0, fontSize);
         path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
 
-        const svg = path.toSVG(0);
+        const svg = path.toSVG(2);
         const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
 
         console.log('BBs', bb.x1, bb.y1, bb.x2, bb.y2);
@@ -479,28 +476,25 @@ export default class HandleSvg {
         }
         zoomPercent = 1 + zoomPercent;
 
-        console.log("ZUM", zoomPercent)
+        console.log('ZUM', zoomPercent);
 
         const viewBoxWidth = size / zoomPercent;
         const viewBoxHeight = size / zoomPercent;
 
-        const viewBoxX = size / 2 - ((realFontWidth / 2) * zoomPercent);
+        const viewBoxX = size / 2 - (realFontWidth / 2) * zoomPercent;
         //3558/(2048/3944.173)
-        const viewBoxY = (realFontHeight * zoomPercent);
+        const viewBoxY = realFontHeight * zoomPercent;
 
         let viewBox = null;
         if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
-            viewBox = `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`;
+            viewBox = `${viewBoxX} ${viewBoxY * -1} ${viewBoxWidth} ${viewBoxHeight}`;
         }
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
-            ? `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
-                  '0x',
-                  '#'
-              )});" viewBox="${viewBox}">
+            ? `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" >
                         ${svg}
                     </svg>`
-            : `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">
+            : `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" >
                     ${svg}
                 </svg>`;
     }
@@ -629,7 +623,7 @@ export default class HandleSvg {
             <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
                 ${this.buildBackground()}
                 ${this.buildDefaultBackground()}
-                ${this.buildBackgroundImage()}
+                ${await this.buildBackgroundImage()}
                 ${await this.buildPfpImage()}
                 ${this.buildTextRibbon()}
                 ${this.buildBackgroundBorder()}
