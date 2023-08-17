@@ -479,14 +479,18 @@ export default class HandleSvg {
         }
         zoomPercent = 1 + zoomPercent;
 
+        console.log("ZUM", zoomPercent)
+
         const viewBoxWidth = size / zoomPercent;
         const viewBoxHeight = size / zoomPercent;
 
-        const viewBoxX = size / 2 - ((realFontWidth * zoomPercent) / 2 + bb.x1);
+        const viewBoxX = size / 2 - ((realFontWidth / 2) * zoomPercent);
+        //3558/(2048/3944.173)
+        const viewBoxY = (realFontHeight * zoomPercent);
 
         let viewBox = null;
         if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
-            viewBox = `0  ${viewBoxX} ${viewBoxWidth} ${viewBoxHeight}`;
+            viewBox = `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`;
         }
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
