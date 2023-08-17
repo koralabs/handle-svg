@@ -165,7 +165,7 @@ export default class HandleSvg {
         return '';
     };
 
-    buildPfpImage() {
+    async buildPfpImage() {
         const { size } = this._params;
         const { pfp_image, pfp_zoom, pfp_offset, pfp_border_color } = this._options;
 
@@ -201,6 +201,15 @@ export default class HandleSvg {
             ? `${IPFS_GATEWAY}/${pfp_image.replace('ipfs://', '')}`
             : pfp_image;
 
+        const getBase64 = async (fileUrl: string) => {
+            let response = await fetch(fileUrl);
+            console.log(response.headers);
+            let data = await response.arrayBuffer();
+            return Buffer.from(data).toString('base64');
+        };
+
+        const base64Image = await getBase64(image);
+
         return `<svg>
                     <defs>
                         <clipPath id="circle-path">
@@ -214,7 +223,12 @@ export default class HandleSvg {
                               )}" />`
                             : ''
                     }
-                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${image}" />
+                    <foreignObject>
+                    <div xmlns="http://www.w3.org/1999/xhtml">
+                        <img src="data:image/png;base64,${base64Image}" />
+                        </div>
+                    </foreignObject>
+                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="data:image/png;base64,${base64Image}" />
                 </svg>`;
     }
 
@@ -472,7 +486,7 @@ export default class HandleSvg {
 
         let viewBox = null;
         if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
-            viewBox = `0  ${} ${viewBoxWidth} ${viewBoxHeight}`;
+            viewBox = `0  ${viewBoxX} ${viewBoxWidth} ${viewBoxHeight}`;
         }
 
         return fontShadowFill && fontShadowFill.startsWith('0x')
@@ -612,7 +626,7 @@ export default class HandleSvg {
                 ${this.buildBackground()}
                 ${this.buildDefaultBackground()}
                 ${this.buildBackgroundImage()}
-                ${this.buildPfpImage()}
+                ${await this.buildPfpImage()}
                 ${this.buildTextRibbon()}
                 ${this.buildBackgroundBorder()}
                 ${this.buildLogoHandle()}

@@ -93,7 +93,7 @@ const options: IHandleSvgOptions = {
         const result = await convert(handle, handleSvg, size, decompress, JSDOM, QRCodeStyling);
 
         // write jpg
-        fs.writeFile('test_svg.jpg', result, (err: any) => {
+        fs.writeFile('test_svg.png', result, (err: any) => {
             // throws an error, you could also catch it here
             if (err) throw err;
 
