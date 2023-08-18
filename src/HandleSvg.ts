@@ -1,7 +1,7 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getFontDetails, getMinimumFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
-import opentype from 'opentype.js';
+import opentype, { Glyph } from 'opentype.js';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
@@ -9,6 +9,7 @@ import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 import { getBase64Image } from './utils/getBase64Image';
 import { Image as CanvasImage } from 'canvas';
 
+const supportedChars = '1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð'
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -291,21 +292,39 @@ export default class HandleSvg {
         let { fontLink } = getFontDetails(font);
 
         let parsedFont: opentype.Font;
+        const ubuntuMono = opentype.parse(await getFontArrayBuffer(getFontDetails().fontLink, decompress));
         try {
             const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
             parsedFont = opentype.parse(fontArrayBuffer);
         } catch (error) {
-            ({ fontLink } = getFontDetails());
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
+            parsedFont = ubuntuMono
         }
-
-        console.log(parsedFont.glyphNames);
-        const p = parsedFont.getPath(text, 0, 0, fontSize);
+        const glyphs: Glyph[] = [parsedFont.glyphs.get(0)];
+        supportedChars.split('').forEach(char => {
+            if (parsedFont.charToGlyphIndex(char) == 0) {
+                console.log(`${char} not found. Adding `, ubuntuMono.charToGlyph(char))
+                glyphs.push(ubuntuMono.charToGlyph(char));
+            }
+            else {
+                glyphs.push(parsedFont.charToGlyph(char));
+            }
+        });
+        
+        const fixedFont = opentype.parse(new opentype.Font({
+            familyName: 'Custom',
+            styleName: 'Regular',
+            unitsPerEm: parsedFont.unitsPerEm,
+            ascender: parsedFont.ascender,
+            descender: parsedFont.descender,
+            glyphs: glyphs
+           }).toBuffer());
+        
+        const p = fixedFont.getPath(text, 0, 0, fontSize);
         const boundingBox = p.getBoundingBox();
         return {
-            parsedFont,
-            boundingBox
+            parsedFont: fixedFont,
+            boundingBox,
+            ubuntuMono
         };
     };
 
