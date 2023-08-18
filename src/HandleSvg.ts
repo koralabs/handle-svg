@@ -27,77 +27,6 @@ export default class HandleSvg {
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
     }
 
-    async buildFontCalculations({
-        fontSize,
-        maxFontWidth,
-        maxFontHeight,
-        decompress,
-        fontBaselineDefault = 80
-    }: {
-        fontSize: number;
-        maxFontWidth: number;
-        maxFontHeight: number;
-        decompress: any;
-        fontBaselineDefault?: number;
-    }) {
-        const { size, handle } = this._params;
-        const { font, font_color } = this._options;
-
-        let { fontLink } = getFontDetails(font);
-
-        let parsedFont: opentype.Font;
-        try {
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        } catch (error) {
-            ({ fontLink } = getFontDetails());
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        }
-
-        const path = parsedFont.getPath(handle, 0, 0, fontSize);
-        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
-
-        const svg = path.toSVG(0);
-
-        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
-        const midpoint = size / 2;
-        const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
-        const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
-
-        console.log('BBs', bb.x1, bb.y1, bb.x2, bb.y2);
-
-        let realFontHeight = bb.y2 - bb.y1;
-        const realFontWidth = bb.x2 - bb.x1;
-
-        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
-        if (realFontHeight < minimumFontHeight) {
-            realFontHeight = minimumFontHeight;
-        }
-
-        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
-        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
-            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
-        }
-        zoomPercent = 1 + zoomPercent;
-
-        const viewBoxWidth = size / zoomPercent;
-        const viewBoxHeight = size / zoomPercent;
-
-        let viewBox = null;
-        if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
-            viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
-        }
-
-        return {
-            viewBox,
-            svg,
-            realFontWidth,
-            realFontHeight,
-            bottomY: bb.y2
-        };
-    }
-
     buildLogoHandle() {
         const { size } = this._params;
         const { bg_color, bg_image } = this._options;
@@ -320,6 +249,28 @@ export default class HandleSvg {
                 </svg>`;
     };
 
+    loadParsedFont = async(font:string|undefined, decompress: any, text: string, fontSize: number) => {
+        // ****** LOAD AND PARSE THE FONT *******
+        let { fontLink } = getFontDetails(font);
+
+        let parsedFont: opentype.Font;
+        try {
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        } catch (error) {
+            ({ fontLink } = getFontDetails());
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        }
+
+        const p = parsedFont.getPath(text, 0, 0, fontSize);
+        const boundingBox = p.getBoundingBox();
+        return {
+            parsedFont,
+            boundingBox
+        }
+    }
+
     buildOG = async (decompress: any) => {
         const { size, handle } = this._params;
         const { font, og_number, font_color } = this._options;
@@ -334,21 +285,8 @@ export default class HandleSvg {
 
         const ogText = `OG ${og_number}/${OG_TOTAL}`;
 
-        // ****** LOAD AND PARSE THE FONT *******
-        let { fontLink } = getFontDetails(font);
+        const {parsedFont, boundingBox: bb} = await this.loadParsedFont(font, decompress, ogText, fontSize)
 
-        let parsedFont: opentype.Font;
-        try {
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        } catch (error) {
-            ({ fontLink } = getFontDetails());
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        }
-
-        const p = parsedFont.getPath(ogText, 0, 0, fontSize);
-        const bb = p.getBoundingBox();
         const realFontWidth = bb.x2 - bb.x1;
         const realFontHeight = bb.y2 - bb.y1;
 
@@ -388,18 +326,7 @@ export default class HandleSvg {
         const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
 
         // ****** LOAD AND PARSE THE FONT *******
-        let { fontLink } = getFontDetails(font);
-
-        let parsedFont: opentype.Font;
-        try {
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        } catch (error) {
-            ({ fontLink } = getFontDetails());
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        }
-
+        const {parsedFont, boundingBox: bb} = await this.loadParsedFont(font, decompress, handle, fontSize)
         const path = parsedFont.getPath(handle, 0, 0, fontSize);
         path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
 
@@ -446,7 +373,6 @@ export default class HandleSvg {
         let blur = size * (fontShadowBlur / this._baseSize);
 
         // ******* PLACEMENT AND ZOOM MATH *******
-        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
         let realFontHeight = bb.y2 - bb.y1;
         const realFontWidth = bb.x2 - bb.x1;
 
@@ -494,7 +420,7 @@ export default class HandleSvg {
         const { handle } = this._params;
         const { qr_link, qr_bg_color } = this._options;
 
-        const options = this.buildQrCodeOptions();
+        const options = await this.buildQrCodeOptions();
 
         if (!options) {
             return '';
@@ -553,13 +479,11 @@ export default class HandleSvg {
     async buildSocialsSvg(decompress: any) {
         const { size } = this._params;
         const { socials, font, font_color, bg_image, bg_color } = this._options;
-        const { fontFamily, fontCss } = getFontDetails(font);
-        const socialSize = size * (48 / this._baseSize);
+        const iconSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
-        const fontWeight = '700';
-        const socialSpacing = size * (80 / this._baseSize);
+        const socialLineHeight = size * (80 / this._baseSize);
         const x = this._margin;
-        const y = size - socialSize - this._margin;
+        const y = size- this._margin - iconSize ;
 
         let fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill: string | undefined;
@@ -582,53 +506,22 @@ export default class HandleSvg {
         for (let i = 0; i < socials.length; i++) {
             const social = socials[i];
 
-            // ****** GENERAL FONT SETTINGS *******
-            let baseFontSize = 48;
-            const fontSize = size * (baseFontSize / this._baseSize);
-
             // ****** LOAD AND PARSE THE FONT *******
-            let { fontLink } = getFontDetails(font);
-
-            let parsedFont: opentype.Font;
-            try {
-                const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-                parsedFont = opentype.parse(fontArrayBuffer);
-            } catch (error) {
-                ({ fontLink } = getFontDetails());
-                const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-                parsedFont = opentype.parse(fontArrayBuffer);
-            }
-
-            const p = parsedFont.getPath(social.display, 0, 0, fontSize);
-            const bb = p.getBoundingBox();
-            const realFontWidth = bb.x2 - bb.x1;
+            const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, social.display, fontSize);
             const realFontHeight = bb.y2 - bb.y1;
 
-            const x = size / 2 - realFontWidth / 2;
-            const y = this._margin + realFontHeight;
-
-            const path = parsedFont.getPath(social.display, x, y, fontSize);
+            const calculatedX = x + (iconSize + iconSize / 3);
+            const iconY = y - i * socialLineHeight
+            const heightDiff = realFontHeight - iconSize
+            const calculatedY = iconY + (realFontHeight - bb.y2) - (heightDiff / 2);
+            const path = parsedFont.getPath(social.display, calculatedX, calculatedY, fontSize);
             path.fill = fontColor;
 
             const svg = path.toSVG(2);
 
-            const calculatedY = y - i * socialSpacing;
-
-            // const umm = `${
-            //     fontShadowFill
-            //         ? `style="text-shadow: ${fontShadowSize[0]}px ${fontShadowSize[1]}px ${
-            //             fontShadowSize[2]
-            //         }px ${fontShadowFill.replace('0x', '#')};"`
-            //         : ''
-            // }`
-
             const socialSvg = `<svg xmlns="http://www.w3.org/2000/svg">
-                    ${this.renderSocialIcon(social.url, x, calculatedY)}
-                    <svg xmlns="http://www.w3.org/2000/svg" 
-                        x="${x + (socialSize + socialSize / 3)}"
-                        y="${calculatedY}">
-                        ${svg}
-                    </svg>
+                    ${this.renderSocialIcon(social.url, x, iconY)}
+                    <svg xmlns="http://www.w3.org/2000/svg">${svg}</svg>
                 </svg>`;
 
             socialStrings.push(socialSvg);
@@ -677,13 +570,14 @@ export default class HandleSvg {
         };
     }
 
-    buildQrCodeOptions(): any {
+    async buildQrCodeOptions(): Promise<any> {
         const { size } = this._params;
         const { qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
 
         // Disable QR image for now until we can figure out how to fix it.
+        //const qr_image = await getBase64Image('https://cdn4.iconfinder.com/data/icons/crypto-currency-and-coin-2/256/cardano_ada-512.png');
         const qr_image = '';
-
+        
         if (!qr_link) return undefined;
 
         const [dotType, dotColor] = qr_dot?.split(',') ?? ['square', '#000000'];

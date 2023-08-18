@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
-import { convert } from './convert';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 
 import { JSDOM } from 'jsdom';
@@ -20,11 +19,11 @@ const options: IHandleSvgOptions = {
     font_shadow_color: '0x8a1d7b',
     font_color: '0xff6130',
     // font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
-    // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
+    font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
     // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
     // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
     // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
-    font: 'Barlow Black,https://derp.link/barlow-black-italic-derp.woff',
+    // font: 'Barlow Black,https://derp.link/barlow-black-italic-derp.woff',
     text_ribbon_colors: ['0x000000'],
     pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfp_zoom: 120,
