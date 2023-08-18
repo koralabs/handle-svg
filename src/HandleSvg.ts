@@ -7,7 +7,7 @@ import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 import { getBase64Image } from './utils/getBase64Image';
-// import sharp from 'sharp';
+import { Image as CanvasImage } from 'canvas';
 
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
@@ -17,8 +17,10 @@ export default class HandleSvg {
     private _qrCodeBaseSize: number = 430;
     private _margin: number;
     private _defaultContrastColor: string = '#888888';
+    private _loadImage: CallableFunction | undefined;
+    private _https: any;
 
-    constructor(inputs: IHandleSvg) {
+    constructor(inputs: IHandleSvg, loadImage?: CallableFunction, https?: any) {
         this._options = inputs.options;
         this._params = {
             size: inputs.size,
@@ -26,6 +28,8 @@ export default class HandleSvg {
             disableDollarSymbol: inputs.disableDollarSymbol ?? false
         };
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
+        this._loadImage = loadImage;
+        this._https = https;
     }
 
     buildLogoHandle() {
@@ -104,12 +108,12 @@ export default class HandleSvg {
         return '';
     };
 
-    buildBackgroundImage = async (https: any) => {
+    buildBackgroundImage = async () => {
         const { bg_image } = this._options;
         const image = this._getIpfsImageUrl(bg_image);
 
         if (image) {
-            const base64Image = await getBase64Image(image, https);
+            const base64Image = await getBase64Image(image, this._https);
             return this._buildBackgroundImageHtmlString(base64Image);
         }
 
@@ -179,12 +183,12 @@ export default class HandleSvg {
         return '';
     };
 
-    async buildPfpImage(https: any) {
+    async buildPfpImage() {
         const { pfp_image } = this._options;
 
         const image = this._getIpfsImageUrl(pfp_image);
         if (image) {
-            const base64Image = await getBase64Image(image, https);
+            const base64Image = await getBase64Image(image, this._https);
             return this._buildPfpImageHtmlString(base64Image);
         }
 
@@ -296,6 +300,7 @@ export default class HandleSvg {
             parsedFont = opentype.parse(fontArrayBuffer);
         }
 
+        console.log(parsedFont.glyphNames);
         const p = parsedFont.getPath(text, 0, 0, fontSize);
         const boundingBox = p.getBoundingBox();
         return {
@@ -469,24 +474,24 @@ export default class HandleSvg {
             this.buildQrCodeViewProperties(realQrHeight);
 
         let qrImageSvg = '';
-        // if (qr_image) {
-        //     try {
-        //         const qrImageUri = await getBase64Image(qr_image)
-        //         const imageData = qrImageUri.split(';base64,').pop()
-        //         if (imageData){
-        //             const image = await sharp(Buffer.from(imageData, 'base64')).resize(qrImageMaxSize,qrImageMaxSize,{fit:'inside'}).toBuffer({resolveWithObject: true});
-        //             const width = image.info.width;
-        //             const height = image.info.height;
-        //             const x = (qrCodeSize / 2) - width / 2
-        //             const y = (qrCodeSize / 2) - height / 2
-        //             console.log(width, height)
-        //             qrImageSvg = `<image href="${qrImageUri}" height="${height}" width="${width}" x="${x}" y="${y}" />`;
-        //         }
-        //     }
-        //     catch {
-        //         // qr_image didn't load, don't do anything
-        //     }
-        // }
+        if (qr_image) {
+            try {
+                const qrImageUri = await getBase64Image(qr_image, this._https)
+                //const imageData = qrImageUri.split(';base64,').pop()
+                if (qrImageUri){
+                    const {width, height} = await this.resizeImageDimensions(qrImageUri, 80, 80);
+                    console.log(width, height)
+                    const x = (qrCodeSize / 2) - width / 2
+                    const y = (qrCodeSize / 2) - height / 2
+                    console.log(width, height)
+                    qrImageSvg = `<image href="${qrImageUri}" height="${height}" width="${width}" x="${x}" y="${y}" />`;
+                }
+            }
+            catch (error) {
+                console.log('Error processing qr_image', JSON.stringify(error));
+                // qr_image didn't load, don't do anything
+            }
+        }
 
         if (qr_link) {
             return `
@@ -505,6 +510,62 @@ export default class HandleSvg {
 
         return '';
     };
+
+    async resizeImageDimensions(imgDataUri: string, desiredWidth:number, desiredHeight:number): Promise<{width:number, height:number}> {
+        console.log('inside resizeImageDimensions')
+        const image: HTMLImageElement | CanvasImage = this._loadImage ? await this._loadImage(imgDataUri) : await this.loadImage(imgDataUri);
+        return new Promise((resolve, reject) => {
+            try {
+                // Get the image dimensions
+                let width = image.naturalWidth;
+                let height = image.naturalHeight;
+                const aspectRatio = width / height;
+                if (width > height) {
+                    width = desiredWidth;
+                    height = width / aspectRatio
+                }
+                else {
+                    height = desiredHeight;
+                    width = height * aspectRatio
+                }
+                console.log(`width x height = ${width} x ${height}`)
+                return resolve({width, height})
+            }
+            catch (error) {
+                console.log('wtf', error);
+                reject(error);
+            }
+        });
+    }
+
+    async loadImage(imgDataUri: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            try {
+                var image = new Image();
+                console.log('image set')
+                image.onload = () => {
+                    console.log('image.onload')
+                    try {
+                        return resolve(image);
+                    }
+                    catch (error: any) {
+                        console.log('ERROR1', JSON.stringify(error))
+                        return reject(error);
+                    }
+                };
+                image.onerror = (error) => {
+                    console.log('ERROR2', JSON.stringify(error))
+                    return reject(error);
+                }
+                image.src = imgDataUri;
+                return resolve(image);
+            }
+            catch (error: any) {
+                console.log('ERROR1', JSON.stringify(error))
+                return reject(error);
+            }
+        });
+    }
 
     renderSocialIcon(socialUrl: string, x: number, y: number) {
         const { size } = this._params;
@@ -582,15 +643,15 @@ export default class HandleSvg {
         return socialStrings.join('');
     }
 
-    async build(decompress: any, jsdom: any, QRCodeStyling: any, https: any) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
             <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
                 ${this.buildBackground()}
                 ${this.buildDefaultBackground()}
-                ${await this.buildBackgroundImage(https)}
-                ${await this.buildPfpImage(https)}
+                ${await this.buildBackgroundImage()}
+                ${await this.buildPfpImage()}
                 ${this.buildTextRibbon()}
                 ${this.buildBackgroundBorder()}
                 ${this.buildLogoHandle()}

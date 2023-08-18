@@ -4,6 +4,7 @@ import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
+import { loadImage } from 'canvas'
 
 import { JSDOM } from 'jsdom';
 
@@ -12,6 +13,7 @@ global.window = new JSDOM().window as any;
 global.self = global.window;
 global.document = global.window.document;
 global.XMLSerializer = global.window.XMLSerializer;
+global.Image = global.window.Image;
 
 import QRCodeStyling from 'qr-code-styling-node';
 import sharp from 'sharp';
@@ -90,8 +92,8 @@ const options: IHandleSvgOptions = {
             options
         };
 
-        const handleSvg = new HandleSvg(input);
-        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, https);
+        const handleSvg = new HandleSvg(input, loadImage, https);
+        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling);
         const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer();
 
         // write jpg
