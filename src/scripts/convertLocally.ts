@@ -43,7 +43,7 @@ const options: IHandleSvgOptions = {
     qr_outer_eye: 'square,#FFFFFF',
     qr_dot: 'rounded,#8dff40',
     socials: [
-        { display: 'telegram', url: 'https://telegram.com/testing' },
+        { display: '!@#$%^&*()bjm', url: 'https://telegram.com/testing' },
         { display: 'whatsapp', url: 'https://whatsapp.com/testing' },
         { display: 'reddit', url: 'https://reddit.com/testing' }
     ],
