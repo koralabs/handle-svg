@@ -300,7 +300,6 @@ export default class HandleSvg {
             parsedFont = opentype.parse(fontArrayBuffer);
         }
 
-        console.log(parsedFont.glyphNames);
         const p = parsedFont.getPath(text, 0, 0, fontSize);
         const boundingBox = p.getBoundingBox();
         return {
@@ -446,6 +445,21 @@ export default class HandleSvg {
         return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
     }
 
+    async buildQrImage(image?: string) {
+        const { size } = this._params;
+
+        if (image) {
+            const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
+            const desiredSize = size * (this._baseMargin / this._baseSize);
+            const { width, height } = await this.resizeImageDimensions(image, desiredSize, desiredSize);
+            const x = qrCodeSize / 2 - width / 2;
+            const y = qrCodeSize / 2 - height / 2;
+            return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${image}" />`;
+        }
+
+        return '';
+    }
+
     buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
         const { handle } = this._params;
         const { qr_link, qr_bg_color, qr_image } = this._options;
@@ -476,18 +490,12 @@ export default class HandleSvg {
         let qrImageSvg = '';
         if (qr_image) {
             try {
-                const qrImageUri = await getBase64Image(qr_image, this._https)
+                const qrImageUri = await getBase64Image(qr_image, this._https);
                 //const imageData = qrImageUri.split(';base64,').pop()
-                if (qrImageUri){
-                    const {width, height} = await this.resizeImageDimensions(qrImageUri, 80, 80);
-                    console.log(width, height)
-                    const x = (qrCodeSize / 2) - width / 2
-                    const y = (qrCodeSize / 2) - height / 2
-                    console.log(width, height)
-                    qrImageSvg = `<image href="${qrImageUri}" height="${height}" width="${width}" x="${x}" y="${y}" />`;
+                if (qrImageUri) {
+                    qrImageSvg = await this.buildQrImage(qrImageUri);
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.log('Error processing qr_image', JSON.stringify(error));
                 // qr_image didn't load, don't do anything
             }
@@ -511,28 +519,32 @@ export default class HandleSvg {
         return '';
     };
 
-    async resizeImageDimensions(imgDataUri: string, desiredWidth:number, desiredHeight:number): Promise<{width:number, height:number}> {
-        console.log('inside resizeImageDimensions')
-        const image: HTMLImageElement | CanvasImage = this._loadImage ? await this._loadImage(imgDataUri) : await this.loadImage(imgDataUri);
+    async resizeImageDimensions(
+        imgDataUri: string,
+        desiredWidth: number,
+        desiredHeight: number
+    ): Promise<{ width: number; height: number }> {
+        const image: HTMLImageElement | CanvasImage = this._loadImage
+            ? await this._loadImage(imgDataUri)
+            : await this.loadImage(imgDataUri);
         return new Promise((resolve, reject) => {
             try {
                 // Get the image dimensions
                 let width = image.naturalWidth;
                 let height = image.naturalHeight;
+
                 const aspectRatio = width / height;
                 if (width > height) {
                     width = desiredWidth;
-                    height = width / aspectRatio
-                }
-                else {
+                    height = width / aspectRatio;
+                } else {
                     height = desiredHeight;
-                    width = height * aspectRatio
+                    width = height * aspectRatio;
                 }
-                console.log(`width x height = ${width} x ${height}`)
-                return resolve({width, height})
-            }
-            catch (error) {
-                console.log('wtf', error);
+
+                return resolve({ width, height });
+            } catch (error) {
+                console.log('error resizing image', error);
                 reject(error);
             }
         });
@@ -541,27 +553,19 @@ export default class HandleSvg {
     async loadImage(imgDataUri: string): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
             try {
-                var image = new Image();
-                console.log('image set')
+                const image = new Image();
                 image.onload = () => {
-                    console.log('image.onload')
                     try {
                         return resolve(image);
-                    }
-                    catch (error: any) {
-                        console.log('ERROR1', JSON.stringify(error))
+                    } catch (error: any) {
                         return reject(error);
                     }
                 };
                 image.onerror = (error) => {
-                    console.log('ERROR2', JSON.stringify(error))
                     return reject(error);
-                }
+                };
                 image.src = imgDataUri;
-                return resolve(image);
-            }
-            catch (error: any) {
-                console.log('ERROR1', JSON.stringify(error))
+            } catch (error: any) {
                 return reject(error);
             }
         });

@@ -4,7 +4,7 @@ import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
-import { loadImage } from 'canvas'
+import { loadImage } from 'canvas';
 
 import { JSDOM } from 'jsdom';
 
