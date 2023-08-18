@@ -10,12 +10,6 @@ export const convert = async (
     QRCodeStyling: any
 ): Promise<Buffer> => {
     const svg = await handleSvg.build(decompress, jsDom, QRCodeStyling);
-    const width = size;
-    const height = size;
-
-    //const buffer = await render({ buffer: Buffer.from(svg), width, height });
-    const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer(); //.toFile(`${handle}-pz.jpg`);
-
+    const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer();
     return buffer;
-    //return Buffer.from('');
 };

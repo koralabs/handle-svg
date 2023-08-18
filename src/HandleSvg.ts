@@ -356,10 +356,7 @@ export default class HandleSvg {
         </svg>`;
     };
 
-    async buildHandleName(
-        decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>,
-        fontBaselineDefault: number = 80
-    ) {
+    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
         let { size, handle } = this._params;
 
         let {
@@ -372,9 +369,8 @@ export default class HandleSvg {
             font_shadow_size = []
         } = this._options;
 
-        let { fontFamily, fontCss } = getFontDetails(font);
-
-        let baseFontSize = 200; //getFontSize(handle);
+        // ****** GENERAL FONT SETTINGS *******
+        let baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
 
         const fontMarginX = size * (200 / this._baseSize);
@@ -382,15 +378,9 @@ export default class HandleSvg {
         const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
-        // const { viewBox, svg, realFontWidth, realFontHeight, bottomY } = await this.buildFontCalculations({
-        //     fontSize,
-        //     maxFontWidth,
-        //     maxFontHeight,
-        //     decompress,
-        //     fontBaselineDefault
-        // });
-        // const fontWeight = 700;
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
 
+        // ****** LOAD AND PARSE THE FONT *******
         let { fontLink } = getFontDetails(font);
 
         let parsedFont: opentype.Font;
@@ -407,22 +397,8 @@ export default class HandleSvg {
         path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
 
         const svg = path.toSVG(2);
-        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
 
-        console.log('BBs', bb.x1, bb.y1, bb.x2, bb.y2);
-
-        let realFontHeight = bb.y2 - bb.y1;
-        const realFontWidth = bb.x2 - bb.x1;
-
-        console.log('realFontHeight', realFontHeight);
-        console.log('realFontWidth', realFontWidth);
-
-        // - font color (from creator default)
-        // - font shadow color
-        // - font shadow size blur needs to be above
-        // - background color
-        // - text ribbon
-
+        // ****** SETUP USER/CREATOR SETTINGS *******
         let fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill = font_shadow_color;
         let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
@@ -462,12 +438,19 @@ export default class HandleSvg {
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         let blur = size * (fontShadowBlur / this._baseSize);
 
-        const x = size / 2 - (realFontWidth / 2 + bb.x1);
-        const y = size / 2 + (realFontHeight / 2 - bb.y2);
+        // ******* PLACEMENT AND ZOOM MATH *******
+        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
+        let realFontHeight = bb.y2 - bb.y1;
+        const realFontWidth = bb.x2 - bb.x1;
 
-        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+        console.log(`x1,y1=(${bb.x1}, ${bb.y1})`, `x2,y2=(${bb.x2}, ${bb.y2})`);
+        console.log('realFontHeight', realFontHeight);
+        console.log('realFontWidth', realFontWidth);
+
         if (realFontHeight < minimumFontHeight) {
+            // This is to keep really small characters from becoming ginormous
             realFontHeight = minimumFontHeight;
+            console.log('modified realFontHeight', realFontHeight);
         }
 
         let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
@@ -476,27 +459,25 @@ export default class HandleSvg {
         }
         zoomPercent = 1 + zoomPercent;
 
-        console.log('ZUM', zoomPercent);
-
+        console.log('zoomPercent', zoomPercent);
+        console.log('X before zoom', (size / 2) - ((realFontWidth / 2 + bb.x1)))
+        console.log('Y before zoom', (size / 2) - ((realFontHeight / 2 + bb.y2)))
         const viewBoxWidth = size / zoomPercent;
         const viewBoxHeight = size / zoomPercent;
 
-        const viewBoxX = size / 2 - (realFontWidth / 2) * zoomPercent;
-        //3558/(2048/3944.173)
-        const viewBoxY = realFontHeight * zoomPercent;
+        const x = (size / 2) - ((realFontWidth / 2 + bb.x1) * zoomPercent);
+        const y = (size / 2) - ((realFontHeight / 2 + bb.y2) * zoomPercent);
 
-        let viewBox = null;
-        if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
-            viewBox = `${viewBoxX} ${viewBoxY * -1} ${viewBoxWidth} ${viewBoxHeight}`;
+        const viewBoxX = 0;
+        const viewBoxY = (realFontHeight - ((realFontHeight-(bb.y2 - bb.y1)) / 2) / zoomPercent) * -1;
+
+        let viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
+
+        let shadowSvg = '';
+        if (fontShadowFill && fontShadowFill.startsWith('0x')){
+            shadowSvg = `style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace('0x','#')} );" `;
         }
-
-        return fontShadowFill && fontShadowFill.startsWith('0x')
-            ? `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" >
-                        ${svg}
-                    </svg>`
-            : `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" >
-                    ${svg}
-                </svg>`;
+        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
     }
 
     buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
@@ -630,7 +611,7 @@ export default class HandleSvg {
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
                 ${this.buildOG()}
-                ${await this.buildHandleName(decompress, fontBaselineDefault)}
+                ${await this.buildHandleName(decompress)}
                 ${await this.buildQRCode(jsdom, QRCodeStyling)}
                 ${this.buildSocialsSvg()}
             </svg>
