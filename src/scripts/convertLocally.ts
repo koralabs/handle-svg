@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import https from 'https';
 import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
@@ -90,7 +91,7 @@ const options: IHandleSvgOptions = {
         };
 
         const handleSvg = new HandleSvg(input);
-        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling);
+        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, https);
         const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer();
 
         // write jpg

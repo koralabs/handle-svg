@@ -1,17 +1,15 @@
-import https from 'https';
-
-export const getBase64Image = async (imageUrl: string): Promise<string> => {
+export const getBase64Image = async (imageUrl: string, https: any): Promise<string> => {
     return new Promise((resolve, reject) => {
         let data: Uint8Array = new Uint8Array();
-        const post_req = https.get(imageUrl, (res) => {
+        const post_req = https.get(imageUrl, (res: any) => {
             const contentType = res.headers['content-type'];
-            res.on('data', (chunk) => {
+            res.on('data', (chunk: any) => {
                 const tempData = new Uint8Array(data);
                 data = new Uint8Array(data.length + chunk.length);
                 data.set(tempData);
                 data.set(chunk, tempData.length);
             });
-            res.on('error', (err) => {
+            res.on('error', (err: any) => {
                 reject(err);
             });
             res.on('end', () => {
