@@ -7,6 +7,7 @@ import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 import { getBase64Image } from './utils/getBase64Image';
+import sharp from 'sharp';
 
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
@@ -418,7 +419,9 @@ export default class HandleSvg {
 
     buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
         const { handle } = this._params;
-        const { qr_link, qr_bg_color } = this._options;
+        const { qr_link, qr_bg_color, qr_image } = this._options;
+        const qrImageMaxSize = this._params.size * (80 / this._baseSize);
+        const qrCodeSize = this._params.size * (this._qrCodeBaseSize / this._baseSize);
 
         const options = await this.buildQrCodeOptions();
 
@@ -441,6 +444,26 @@ export default class HandleSvg {
         const { adjustedQRCodeSize, qrCodeMargin, svgQrPosition, svgViewBox } =
             this.buildQrCodeViewProperties(realQrHeight);
 
+        let qrImageSvg = '';
+        if (qr_image) {
+            try {
+                const qrImageUri = await getBase64Image(qr_image)
+                const imageData = qrImageUri.split(';base64,').pop()
+                if (imageData){
+                    const image = await sharp(Buffer.from(imageData, 'base64')).resize(qrImageMaxSize,qrImageMaxSize,{fit:'inside'}).toBuffer({resolveWithObject: true});
+                    const width = image.info.width;
+                    const height = image.info.height;
+                    const x = (qrCodeSize / 2) - width / 2
+                    const y = (qrCodeSize / 2) - height / 2
+                    console.log(width, height)
+                    qrImageSvg = `<image href="${qrImageUri}" height="${height}" width="${width}" x="${x}" y="${y}" />`;
+                }
+            }
+            catch {
+                // qr_image didn't load, don't do anything
+            }
+        }
+
         if (qr_link) {
             return `
                 <rect x="${svgQrPosition}" y="${svgQrPosition}" width="${adjustedQRCodeSize + qrCodeMargin}" height="${
@@ -452,7 +475,7 @@ export default class HandleSvg {
                 />
                 <svg id="qr_code_${handle}" x="${svgQrPosition + qrCodeMargin / 2}" y="${
                 svgQrPosition + qrCodeMargin / 2
-            }" viewBox="${svgViewBox}">${qrCode._svg?._element.outerHTML}</svg>
+            }" viewBox="${svgViewBox}">${qrCode._svg?._element.outerHTML}${qrImageSvg}</svg>
             `;
         }
 
@@ -574,10 +597,6 @@ export default class HandleSvg {
         const { size } = this._params;
         const { qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
 
-        // Disable QR image for now until we can figure out how to fix it.
-        //const qr_image = await getBase64Image('https://cdn4.iconfinder.com/data/icons/crypto-currency-and-coin-2/256/cardano_ada-512.png');
-        const qr_image = '';
-        
         if (!qr_link) return undefined;
 
         const [dotType, dotColor] = qr_dot?.split(',') ?? ['square', '#000000'];
@@ -585,17 +604,11 @@ export default class HandleSvg {
         const [outerEyeType, outerEyeColor] = qr_outer_eye?.split(',') ?? ['square', '#000000'];
 
         const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
-        const imageMargin = size * (8 / this._baseSize);
 
         return {
             width: qrCodeSize,
             height: qrCodeSize,
             type: 'svg',
-            image: qr_image,
-            imageOptions: {
-                margin: imageMargin,
-                hideBackgroundDots: false
-            },
             data: qr_link,
             margin: 0,
             dotsOptions: {
