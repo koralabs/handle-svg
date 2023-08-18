@@ -320,40 +320,47 @@ export default class HandleSvg {
                 </svg>`;
     };
 
-    buildOG = () => {
+    buildOG = async (decompress: any) => {
         const { size, handle } = this._params;
-        const { font, og_number } = this._options;
+        const { font, og_number, font_color } = this._options;
 
         if (!og_number) {
             return '';
         }
 
-        const { fontFamily, fontCss } = getFontDetails(font);
-        const fontSize = size * (48 / this._baseSize);
+        // ****** GENERAL FONT SETTINGS *******
+        let baseFontSize = 48;
+        const fontSize = size * (baseFontSize / this._baseSize);
 
-        const fontWeight = '700';
-        const y = size * ((this._baseMargin + 30) / this._baseSize);
+        const ogText = `OG ${og_number}/${OG_TOTAL}`;
 
-        return `<svg xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <style type="text/css">
-                    ${fontCss}
-                </style>
-            </defs>
-            <text
-                x="50%" y="${y}"
-                text-anchor="middle"
-                alignment-baseline="mathematical" 
-                dominant-baseline="mathematical" 
-                text-rendering="geometricPrecision"
-                fill="${getRarityHex(handle)}"
-                font-size="${fontSize}"
-                font-family="${fontFamily}"
-                font-weight="${fontWeight}"
-            >
-                OG ${og_number}/${OG_TOTAL}
-            </text>
-        </svg>`;
+        // ****** LOAD AND PARSE THE FONT *******
+        let { fontLink } = getFontDetails(font);
+
+        let parsedFont: opentype.Font;
+        try {
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        } catch (error) {
+            ({ fontLink } = getFontDetails());
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        }
+
+        const p = parsedFont.getPath(ogText, 0, 0, fontSize);
+        const bb = p.getBoundingBox();
+        const realFontWidth = bb.x2 - bb.x1;
+        const realFontHeight = bb.y2 - bb.y1;
+
+        const x = size / 2 - realFontWidth / 2;
+        const y = this._margin + realFontHeight;
+
+        const path = parsedFont.getPath(ogText, x, y, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : getRarityHex(handle);
+
+        const svg = path.toSVG(2);
+
+        return `<svg xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
     };
 
     async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
@@ -460,22 +467,25 @@ export default class HandleSvg {
         zoomPercent = 1 + zoomPercent;
 
         console.log('zoomPercent', zoomPercent);
-        console.log('X before zoom', (size / 2) - ((realFontWidth / 2 + bb.x1)))
-        console.log('Y before zoom', (size / 2) - ((realFontHeight / 2 + bb.y2)))
+        console.log('X before zoom', size / 2 - (realFontWidth / 2 + bb.x1));
+        console.log('Y before zoom', size / 2 - (realFontHeight / 2 + bb.y2));
         const viewBoxWidth = size / zoomPercent;
         const viewBoxHeight = size / zoomPercent;
 
-        const x = (size / 2) - ((realFontWidth / 2 + bb.x1) * zoomPercent);
-        const y = (size / 2) - ((realFontHeight / 2 + bb.y2) * zoomPercent);
+        const x = size / 2 - (realFontWidth / 2 + bb.x1) * zoomPercent;
+        const y = size / 2 - (realFontHeight / 2 + bb.y2) * zoomPercent;
 
         const viewBoxX = 0;
-        const viewBoxY = (realFontHeight - ((realFontHeight-(bb.y2 - bb.y1)) / 2) / zoomPercent) * -1;
+        const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / zoomPercent) * -1;
 
         let viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
 
         let shadowSvg = '';
-        if (fontShadowFill && fontShadowFill.startsWith('0x')){
-            shadowSvg = `style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace('0x','#')} );" `;
+        if (fontShadowFill && fontShadowFill.startsWith('0x')) {
+            shadowSvg = `style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
+                '0x',
+                '#'
+            )} );" `;
         }
         return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
     }
@@ -540,7 +550,7 @@ export default class HandleSvg {
         return getSocialIcon({ social: socialUrl, scale, x, y, fill: fontColor });
     }
 
-    buildSocialsSvg(widthForShadow?: number) {
+    async buildSocialsSvg(decompress: any) {
         const { size } = this._params;
         const { socials, font, font_color, bg_image, bg_color } = this._options;
         const { fontFamily, fontCss } = getFontDetails(font);
@@ -559,42 +569,72 @@ export default class HandleSvg {
             const validBgColor = checkContrast(hexToColorHex(bg_color), fontColor);
             if (!validBgColor) {
                 fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                const blur = (widthForShadow ?? size) * (8 / this._baseSize);
+                const blur = size * (8 / this._baseSize);
                 fontShadowSize = [0, 0, blur];
             }
         }
 
-        return socials && socials.length > 0
-            ? socials.map((social: SocialItem, index: number) => {
-                  const calculatedY = y - index * socialSpacing;
-                  return `<svg xmlns="http://www.w3.org/2000/svg">
-                                ${this.renderSocialIcon(social.url, x, calculatedY)}
-                                <defs>
-                                    <style type="text/css">
-                                        ${fontCss}
-                                    </style>
-                                </defs>
-                                <text
-                                    ${
-                                        fontShadowFill
-                                            ? `style="text-shadow: ${fontShadowSize[0]}px ${fontShadowSize[1]}px ${
-                                                  fontShadowSize[2]
-                                              }px ${fontShadowFill.replace('0x', '#')};"`
-                                            : ''
-                                    }
-                                    x="${x + (socialSize + socialSize / 3)}"
-                                    y="${calculatedY}"
-                                    dominant-baseline="hanging"
-                                    fill="${fontColor}"
-                                    font-size="${fontSize}"
-                                    font-family="${fontFamily}"
-                                    font-weight="${fontWeight}"
-                                >
-                                    ${social.display}
-                                </text>
-                            </svg>`;
-              })
-            : undefined;
+        if (!socials || socials.length === 0) {
+            return '';
+        }
+
+        const socialStrings: string[] = [];
+        for (let i = 0; i < socials.length; i++) {
+            const social = socials[i];
+
+            // ****** GENERAL FONT SETTINGS *******
+            let baseFontSize = 48;
+            const fontSize = size * (baseFontSize / this._baseSize);
+
+            // ****** LOAD AND PARSE THE FONT *******
+            let { fontLink } = getFontDetails(font);
+
+            let parsedFont: opentype.Font;
+            try {
+                const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+                parsedFont = opentype.parse(fontArrayBuffer);
+            } catch (error) {
+                ({ fontLink } = getFontDetails());
+                const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+                parsedFont = opentype.parse(fontArrayBuffer);
+            }
+
+            const p = parsedFont.getPath(social.display, 0, 0, fontSize);
+            const bb = p.getBoundingBox();
+            const realFontWidth = bb.x2 - bb.x1;
+            const realFontHeight = bb.y2 - bb.y1;
+
+            const x = size / 2 - realFontWidth / 2;
+            const y = this._margin + realFontHeight;
+
+            const path = parsedFont.getPath(social.display, x, y, fontSize);
+            path.fill = fontColor;
+
+            const svg = path.toSVG(2);
+
+            const calculatedY = y - i * socialSpacing;
+
+            // const umm = `${
+            //     fontShadowFill
+            //         ? `style="text-shadow: ${fontShadowSize[0]}px ${fontShadowSize[1]}px ${
+            //             fontShadowSize[2]
+            //         }px ${fontShadowFill.replace('0x', '#')};"`
+            //         : ''
+            // }`
+
+            const socialSvg = `<svg xmlns="http://www.w3.org/2000/svg">
+                    ${this.renderSocialIcon(social.url, x, calculatedY)}
+                    <svg xmlns="http://www.w3.org/2000/svg" 
+                        x="${x + (socialSize + socialSize / 3)}"
+                        y="${calculatedY}">
+                        ${svg}
+                    </svg>
+                </svg>`;
+
+            socialStrings.push(socialSvg);
+        }
+
+        return socialStrings.join('');
     }
 
     async build(decompress: any, jsdom: any, QRCodeStyling: any, fontBaselineDefault?: number) {
@@ -610,10 +650,10 @@ export default class HandleSvg {
                 ${this.buildBackgroundBorder()}
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
-                ${this.buildOG()}
+                ${await this.buildOG(decompress)}
                 ${await this.buildHandleName(decompress)}
                 ${await this.buildQRCode(jsdom, QRCodeStyling)}
-                ${this.buildSocialsSvg()}
+                ${await this.buildSocialsSvg(decompress)}
             </svg>
         `;
     }

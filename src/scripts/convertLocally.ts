@@ -17,8 +17,8 @@ import QRCodeStyling from 'qr-code-styling-node';
 import sharp from 'sharp';
 
 const options: IHandleSvgOptions = {
-    // font_shadow_color: '0x8a1d7b',
-    // font_color: '0xff6130',
+    font_shadow_color: '0x8a1d7b',
+    font_color: '0xff6130',
     // font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
     // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
     // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
