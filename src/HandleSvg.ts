@@ -10,7 +10,7 @@ import { getBase64Image } from './utils/getBase64Image';
 import { Image as CanvasImage } from 'canvas';
 
 const supportedChars =
-    '1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
+    ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -303,7 +303,6 @@ export default class HandleSvg {
         const glyphs: Glyph[] = [parsedFont.glyphs.get(0)];
         supportedChars.split('').forEach((char) => {
             if (parsedFont.charToGlyphIndex(char) == 0) {
-                console.log(`${char} not found. Adding `, ubuntuMono.charToGlyph(char));
                 glyphs.push(ubuntuMono.charToGlyph(char));
             } else {
                 glyphs.push(parsedFont.charToGlyph(char));

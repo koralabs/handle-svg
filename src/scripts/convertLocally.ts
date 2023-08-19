@@ -44,7 +44,7 @@ const options: IHandleSvgOptions = {
     qr_dot: 'rounded,#8dff40',
     socials: [
         { display: '!@#$%^&*()bjm', url: 'https://telegram.com/testing' },
-        { display: '-=_+[]{}\\|;\':"', url: 'https://whatsapp.com/testing' },
+        { display: '-=_+[]{}    \\	|;\':"', url: 'https://whatsapp.com/testing' },
         { display: ',./<>?6Me4G', url: 'https://reddit.com/testing' }
     ],
     font_shadow_size: [-5, 7, 5],
