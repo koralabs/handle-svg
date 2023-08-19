@@ -1,12 +1,16 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getFontDetails, getMinimumFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
-import opentype from 'opentype.js';
+import opentype, { Glyph } from 'opentype.js';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
+import { getBase64Image } from './utils/getBase64Image';
+import { Image as CanvasImage } from 'canvas';
 
+const supportedChars =
+    ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -15,8 +19,10 @@ export default class HandleSvg {
     private _qrCodeBaseSize: number = 430;
     private _margin: number;
     private _defaultContrastColor: string = '#888888';
+    private _loadImage: CallableFunction | undefined;
+    private _https: any;
 
-    constructor(inputs: IHandleSvg) {
+    constructor(inputs: IHandleSvg, loadImage?: CallableFunction, https?: any) {
         this._options = inputs.options;
         this._params = {
             size: inputs.size,
@@ -24,66 +30,8 @@ export default class HandleSvg {
             disableDollarSymbol: inputs.disableDollarSymbol ?? false
         };
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
-    }
-
-    async buildFontCalculations({
-        fontSize,
-        maxFontWidth,
-        maxFontHeight,
-        decompress,
-        fontBaselineDefault = 80
-    }: {
-        fontSize: number;
-        maxFontWidth: number;
-        maxFontHeight: number;
-        decompress: any;
-        fontBaselineDefault?: number;
-    }) {
-        const { size, handle } = this._params;
-        const { font } = this._options;
-
-        let { fontLink } = getFontDetails(font);
-
-        let parsedFont: any;
-        try {
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        } catch (error) {
-            ({ fontLink } = getFontDetails());
-            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
-            parsedFont = opentype.parse(fontArrayBuffer);
-        }
-
-        const bb = parsedFont.getPath(handle, 0, 0, fontSize).getBoundingBox();
-        const midpoint = size / 2;
-        const fontBaseline = size * (fontBaselineDefault / this._baseSize) + midpoint;
-        const offset = midpoint - (fontBaseline + bb.y2 - (bb.y2 - bb.y1) / 2);
-
-        let realFontHeight = bb.y2 - bb.y1;
-        const realFontWidth = bb.x2 - bb.x1;
-
-        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
-        if (realFontHeight < minimumFontHeight) {
-            realFontHeight = minimumFontHeight;
-        }
-
-        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
-        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
-            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
-        }
-        zoomPercent = 1 + zoomPercent;
-
-        const viewBoxWidth = size / zoomPercent;
-        const viewBoxHeight = size / zoomPercent;
-
-        let viewBox = null;
-        if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
-            viewBox = `0 ${offset * -1} ${viewBoxWidth} ${viewBoxHeight}`;
-        }
-
-        return {
-            viewBox
-        };
+        this._loadImage = loadImage;
+        this._https = https;
     }
 
     buildLogoHandle() {
@@ -140,25 +88,45 @@ export default class HandleSvg {
         `;
     }
 
-    buildBackgroundImage = () => {
-        const { size } = this._params;
-        const { bg_image } = this._options;
+    _getIpfsImageUrl = (image?: string) => {
+        if (image && image != '') {
+            return image.startsWith('ipfs://') ? `${IPFS_GATEWAY}/${image.replace('ipfs://', '')}` : image;
+        }
+        return null;
+    };
 
-        if (bg_image && bg_image != '') {
-            const image = bg_image.startsWith('ipfs://')
-                ? `${IPFS_GATEWAY}/${bg_image.replace('ipfs://', '')}`
-                : bg_image;
-            return `<image href="${image}" height="${size}" width="${size}" />`;
+    _buildBackgroundImageHtmlString = (image: string) => {
+        const { size } = this._params;
+        return `<image href="${image}" height="${size}" width="${size}" />`;
+    };
+
+    buildBackgroundImageSync = () => {
+        const { bg_image } = this._options;
+        const image = this._getIpfsImageUrl(bg_image);
+        if (image) {
+            return this._buildBackgroundImageHtmlString(image);
         }
 
         return '';
     };
 
-    buildPfpImage() {
+    buildBackgroundImage = async () => {
+        const { bg_image } = this._options;
+        const image = this._getIpfsImageUrl(bg_image);
+
+        if (image) {
+            const base64Image = await getBase64Image(image, this._https);
+            return this._buildBackgroundImageHtmlString(base64Image);
+        }
+
+        return '';
+    };
+
+    _buildPfpImageHtmlString = (image: string) => {
         const { size } = this._params;
         const { pfp_image, pfp_zoom, pfp_offset, pfp_border_color } = this._options;
 
-        if (!pfp_image || pfp_image === '') return '';
+        if (!pfp_image || pfp_image === '') return null;
 
         const basePfpCircleSize = pfp_border_color ? 576 : 636;
         const pfpCircleSize = size * (basePfpCircleSize / this._baseSize);
@@ -186,25 +154,47 @@ export default class HandleSvg {
             pfpImageY += size * (y / this._baseSize);
         }
 
-        const image = pfp_image.startsWith('ipfs://')
-            ? `${IPFS_GATEWAY}/${pfp_image.replace('ipfs://', '')}`
-            : pfp_image;
-
         return `<svg>
-                    <defs>
-                        <clipPath id="circle-path">
-                            <circle cx="${dx}" cy="${dy}" r="${radius}" />
-                        </clipPath>
-                    </defs>
-                    ${
-                        pfp_border_color && pfp_border_color.startsWith('0x')
-                            ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${hexToColorHex(
-                                  pfp_border_color
-                              )}" />`
-                            : ''
-                    }
-                    <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${image}" />
-                </svg>`;
+            <defs>
+                <clipPath id="circle-path">
+                    <circle cx="${dx}" cy="${dy}" r="${radius}" />
+                </clipPath>
+            </defs>
+            ${
+                pfp_border_color && pfp_border_color.startsWith('0x')
+                    ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${hexToColorHex(
+                          pfp_border_color
+                      )}" />`
+                    : ''
+            }
+            <foreignObject>
+            <div xmlns="http://www.w3.org/1999/xhtml">
+                <img src="${image}" />
+                </div>
+            </foreignObject>
+            <image clip-path="url(#circle-path)" height="${pfpImageSize}" width="${pfpImageSize}" x="${pfpImageX}" y="${pfpImageY}" href="${image}" />
+        </svg>`;
+    };
+
+    buildPfpImageSync = () => {
+        const { pfp_image } = this._options;
+        const image = this._getIpfsImageUrl(pfp_image);
+        if (image) {
+            return this._buildPfpImageHtmlString(image);
+        }
+        return '';
+    };
+
+    async buildPfpImage() {
+        const { pfp_image } = this._options;
+
+        const image = this._getIpfsImageUrl(pfp_image);
+        if (image) {
+            const base64Image = await getBase64Image(image, this._https);
+            return this._buildPfpImageHtmlString(base64Image);
+        }
+
+        return '';
     }
 
     buildTextRibbon = () => {
@@ -298,46 +288,78 @@ export default class HandleSvg {
                 </svg>`;
     };
 
-    buildOG = () => {
+    loadParsedFont = async (font: string | undefined, decompress: any, text: string, fontSize: number) => {
+        // ****** LOAD AND PARSE THE FONT *******
+        let { fontLink } = getFontDetails(font);
+
+        let parsedFont: opentype.Font;
+        const ubuntuMono = opentype.parse(await getFontArrayBuffer(getFontDetails().fontLink, decompress));
+        try {
+            const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
+            parsedFont = opentype.parse(fontArrayBuffer);
+        } catch (error) {
+            parsedFont = ubuntuMono;
+        }
+        const glyphs: Glyph[] = [parsedFont.glyphs.get(0)];
+        supportedChars.split('').forEach((char) => {
+            if (parsedFont.charToGlyphIndex(char) == 0) {
+                glyphs.push(ubuntuMono.charToGlyph(char));
+            } else {
+                glyphs.push(parsedFont.charToGlyph(char));
+            }
+        });
+
+        const fixedFont = opentype.parse(
+            new opentype.Font({
+                familyName: 'Custom',
+                styleName: 'Regular',
+                unitsPerEm: parsedFont.unitsPerEm,
+                ascender: parsedFont.ascender,
+                descender: parsedFont.descender,
+                glyphs: glyphs
+            }).toArrayBuffer()
+        );
+
+        const p = fixedFont.getPath(text, 0, 0, fontSize);
+        const boundingBox = p.getBoundingBox();
+        return {
+            parsedFont: fixedFont,
+            boundingBox,
+            ubuntuMono
+        };
+    };
+
+    buildOG = async (decompress: any) => {
         const { size, handle } = this._params;
-        const { font, og_number } = this._options;
+        const { font, og_number, font_color } = this._options;
 
         if (!og_number) {
             return '';
         }
 
-        const { fontFamily, fontCss } = getFontDetails(font);
-        const fontSize = size * (48 / this._baseSize);
+        // ****** GENERAL FONT SETTINGS *******
+        let baseFontSize = 48;
+        const fontSize = size * (baseFontSize / this._baseSize);
 
-        const fontWeight = '700';
-        const y = size * ((this._baseMargin + 30) / this._baseSize);
+        const ogText = `OG ${og_number}/${OG_TOTAL}`;
 
-        return `<svg xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <style type="text/css">
-                    ${fontCss}
-                </style>
-            </defs>
-            <text
-                x="50%" y="${y}"
-                text-anchor="middle"
-                alignment-baseline="mathematical" 
-                dominant-baseline="mathematical" 
-                text-rendering="geometricPrecision"
-                fill="${getRarityHex(handle)}"
-                font-size="${fontSize}"
-                font-family="${fontFamily}"
-                font-weight="${fontWeight}"
-            >
-                OG ${og_number}/${OG_TOTAL}
-            </text>
-        </svg>`;
+        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, ogText, fontSize);
+
+        const realFontWidth = bb.x2 - bb.x1;
+        const realFontHeight = bb.y2 - bb.y1;
+
+        const x = size / 2 - realFontWidth / 2;
+        const y = this._margin + realFontHeight;
+
+        const path = parsedFont.getPath(ogText, x, y, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : getRarityHex(handle);
+
+        const svg = path.toSVG(2);
+
+        return `<svg xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
     };
 
-    async buildHandleName(
-        decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>,
-        fontBaselineDefault: number = 80
-    ) {
+    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
         let { size, handle } = this._params;
 
         let {
@@ -350,9 +372,8 @@ export default class HandleSvg {
             font_shadow_size = []
         } = this._options;
 
-        let { fontFamily, fontCss } = getFontDetails(font);
-
-        let baseFontSize = 200; //getFontSize(handle);
+        // ****** GENERAL FONT SETTINGS *******
+        let baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
 
         const fontMarginX = size * (200 / this._baseSize);
@@ -360,21 +381,16 @@ export default class HandleSvg {
         const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
-        const { viewBox } = await this.buildFontCalculations({
-            fontSize,
-            maxFontWidth,
-            maxFontHeight,
-            decompress,
-            fontBaselineDefault
-        });
-        const fontWeight = 700;
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
 
-        // - font color (from creator default)
-        // - font shadow color
-        // - font shadow size blur needs to be above
-        // - background color
-        // - text ribbon
+        // ****** LOAD AND PARSE THE FONT *******
+        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize);
+        const path = parsedFont.getPath(handle, 0, 0, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
 
+        const svg = path.toSVG(2);
+
+        // ****** SETUP USER/CREATOR SETTINGS *******
         let fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill = font_shadow_color;
         let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
@@ -414,35 +430,62 @@ export default class HandleSvg {
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
         let blur = size * (fontShadowBlur / this._baseSize);
 
-        const half = '50%';
+        // ******* PLACEMENT AND ZOOM MATH *******
+        let realFontHeight = bb.y2 - bb.y1;
+        const realFontWidth = bb.x2 - bb.x1;
 
-        return fontShadowFill && fontShadowFill.startsWith('0x')
-            ? `<svg xmlns="http://www.w3.org/2000/svg" ${viewBox ? `viewBox="${viewBox}"` : ''}>
-                    <defs>
-                        <style type="text/css">
-                            ${fontCss}
-                        </style>
-                    </defs>
-                    <text style="text-shadow: ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
-                  '0x',
-                  '#'
-              )};" x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
-                </svg>`
-            : `<svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" ${
-                  viewBox ? `viewBox="${viewBox}"` : ''
-              }>
-                    <defs>
-                        <style type="text/css">
-                            ${fontCss}
-                        </style>
-                    </defs>
-                    <text x="${half}" y="${half}" alignment-baseline="mathematical" dominant-baseline="mathematical" text-rendering="geometricPrecision" fill="${fontFill}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="middle">${handle}</text>
-                </svg>`;
+        if (realFontHeight < minimumFontHeight) {
+            // This is to keep really small characters from becoming ginormous
+            realFontHeight = minimumFontHeight;
+        }
+
+        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
+        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+        }
+        zoomPercent = 1 + zoomPercent;
+
+        const viewBoxWidth = size / zoomPercent;
+        const viewBoxHeight = size / zoomPercent;
+
+        const x = size / 2 - (realFontWidth / 2 + bb.x1) * zoomPercent;
+        const y = size / 2 - (realFontHeight / 2 + bb.y2) * zoomPercent;
+
+        const viewBoxX = 0;
+        const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / zoomPercent) * -1;
+
+        let viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
+
+        let shadowSvg = '';
+        if (fontShadowFill && fontShadowFill.startsWith('0x')) {
+            shadowSvg = `style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
+                '0x',
+                '#'
+            )} );" `;
+        }
+        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
+    }
+
+    async buildQrImage(image?: string) {
+        const { size } = this._params;
+
+        if (image) {
+            const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
+            const desiredSize = size * (this._baseMargin / this._baseSize);
+            const { width, height } = await this.resizeImageDimensions(image, desiredSize, desiredSize);
+            const x = qrCodeSize / 2 - width / 2;
+            const y = qrCodeSize / 2 - height / 2;
+            return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${image}" />`;
+        }
+
+        return '';
     }
 
     buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
         const { handle } = this._params;
-        const { qr_link, qr_bg_color } = this._options;
+        const { qr_link, qr_bg_color, qr_image } = this._options;
+        const qrImageMaxSize = this._params.size * (80 / this._baseSize);
+        const qrCodeSize = this._params.size * (this._qrCodeBaseSize / this._baseSize);
 
         const options = this.buildQrCodeOptions();
 
@@ -465,6 +508,20 @@ export default class HandleSvg {
         const { adjustedQRCodeSize, qrCodeMargin, svgQrPosition, svgViewBox } =
             this.buildQrCodeViewProperties(realQrHeight);
 
+        let qrImageSvg = '';
+        if (qr_image) {
+            try {
+                const qrImageUri = await getBase64Image(qr_image, this._https);
+                //const imageData = qrImageUri.split(';base64,').pop()
+                if (qrImageUri) {
+                    qrImageSvg = await this.buildQrImage(qrImageUri);
+                }
+            } catch (error) {
+                console.log('Error processing qr_image', JSON.stringify(error));
+                // qr_image didn't load, don't do anything
+            }
+        }
+
         if (qr_link) {
             return `
                 <rect x="${svgQrPosition}" y="${svgQrPosition}" width="${adjustedQRCodeSize + qrCodeMargin}" height="${
@@ -476,12 +533,64 @@ export default class HandleSvg {
                 />
                 <svg id="qr_code_${handle}" x="${svgQrPosition + qrCodeMargin / 2}" y="${
                 svgQrPosition + qrCodeMargin / 2
-            }" viewBox="${svgViewBox}">${qrCode._svg?._element.outerHTML}</svg>
+            }" viewBox="${svgViewBox}">${qrCode._svg?._element.outerHTML}${qrImageSvg}</svg>
             `;
         }
 
         return '';
     };
+
+    async resizeImageDimensions(
+        imgDataUri: string,
+        desiredWidth: number,
+        desiredHeight: number
+    ): Promise<{ width: number; height: number }> {
+        const image: HTMLImageElement | CanvasImage = this._loadImage
+            ? await this._loadImage(imgDataUri)
+            : await this.loadImage(imgDataUri);
+        return new Promise((resolve, reject) => {
+            try {
+                // Get the image dimensions
+                let width = image.naturalWidth;
+                let height = image.naturalHeight;
+
+                const aspectRatio = width / height;
+                if (width > height) {
+                    width = desiredWidth;
+                    height = width / aspectRatio;
+                } else {
+                    height = desiredHeight;
+                    width = height * aspectRatio;
+                }
+
+                return resolve({ width, height });
+            } catch (error) {
+                console.log('error resizing image', error);
+                reject(error);
+            }
+        });
+    }
+
+    async loadImage(imgDataUri: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            try {
+                const image = new Image();
+                image.onload = () => {
+                    try {
+                        return resolve(image);
+                    } catch (error: any) {
+                        return reject(error);
+                    }
+                };
+                image.onerror = (error) => {
+                    return reject(error);
+                };
+                image.src = imgDataUri;
+            } catch (error: any) {
+                return reject(error);
+            }
+        });
+    }
 
     renderSocialIcon(socialUrl: string, x: number, y: number) {
         const { size } = this._params;
@@ -500,16 +609,14 @@ export default class HandleSvg {
         return getSocialIcon({ social: socialUrl, scale, x, y, fill: fontColor });
     }
 
-    buildSocialsSvg(widthForShadow?: number) {
+    async buildSocialsSvg(decompress: any) {
         const { size } = this._params;
         const { socials, font, font_color, bg_image, bg_color } = this._options;
-        const { fontFamily, fontCss } = getFontDetails(font);
-        const socialSize = size * (48 / this._baseSize);
+        const iconSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
-        const fontWeight = '700';
-        const socialSpacing = size * (80 / this._baseSize);
+        const socialLineHeight = size * (80 / this._baseSize);
         const x = this._margin;
-        const y = size - socialSize - this._margin;
+        const y = size - this._margin - iconSize;
 
         let fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill: string | undefined;
@@ -519,61 +626,65 @@ export default class HandleSvg {
             const validBgColor = checkContrast(hexToColorHex(bg_color), fontColor);
             if (!validBgColor) {
                 fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                const blur = (widthForShadow ?? size) * (8 / this._baseSize);
+                const blur = size * (8 / this._baseSize);
                 fontShadowSize = [0, 0, blur];
             }
         }
 
-        return socials && socials.length > 0
-            ? socials.map((social: SocialItem, index: number) => {
-                  const calculatedY = y - index * socialSpacing;
-                  return `<svg xmlns="http://www.w3.org/2000/svg">
-                                ${this.renderSocialIcon(social.url, x, calculatedY)}
-                                <defs>
-                                    <style type="text/css">
-                                        ${fontCss}
-                                    </style>
-                                </defs>
-                                <text
-                                    ${
-                                        fontShadowFill
-                                            ? `style="text-shadow: ${fontShadowSize[0]}px ${fontShadowSize[1]}px ${
-                                                  fontShadowSize[2]
-                                              }px ${fontShadowFill.replace('0x', '#')};"`
-                                            : ''
-                                    }
-                                    x="${x + (socialSize + socialSize / 3)}"
-                                    y="${calculatedY}"
-                                    dominant-baseline="hanging"
-                                    fill="${fontColor}"
-                                    font-size="${fontSize}"
-                                    font-family="${fontFamily}"
-                                    font-weight="${fontWeight}"
-                                >
-                                    ${social.display}
-                                </text>
-                            </svg>`;
-              })
-            : undefined;
+        if (!socials || socials.length === 0) {
+            return '';
+        }
+
+        const socialStrings: string[] = [];
+        for (let i = 0; i < socials.length; i++) {
+            const social = socials[i];
+
+            // ****** LOAD AND PARSE THE FONT *******
+            const { parsedFont, boundingBox: bb } = await this.loadParsedFont(
+                font,
+                decompress,
+                social.display,
+                fontSize
+            );
+            const realFontHeight = bb.y2 - bb.y1;
+
+            const calculatedX = x + (iconSize + iconSize / 3);
+            const iconY = y - i * socialLineHeight;
+            const heightDiff = realFontHeight - iconSize;
+            const calculatedY = iconY + (realFontHeight - bb.y2) - heightDiff / 2;
+            const path = parsedFont.getPath(social.display, calculatedX, calculatedY, fontSize);
+            path.fill = fontColor;
+
+            const svg = path.toSVG(2);
+
+            const socialSvg = `<svg xmlns="http://www.w3.org/2000/svg">
+                    ${this.renderSocialIcon(social.url, x, iconY)}
+                    <svg xmlns="http://www.w3.org/2000/svg">${svg}</svg>
+                </svg>`;
+
+            socialStrings.push(socialSvg);
+        }
+
+        return socialStrings.join('');
     }
 
-    async build(decompress: any, jsdom: any, QRCodeStyling: any, fontBaselineDefault?: number) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
             <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
                 ${this.buildBackground()}
                 ${this.buildDefaultBackground()}
-                ${this.buildBackgroundImage()}
-                ${this.buildPfpImage()}
+                ${await this.buildBackgroundImage()}
+                ${await this.buildPfpImage()}
                 ${this.buildTextRibbon()}
                 ${this.buildBackgroundBorder()}
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
-                ${this.buildOG()}
-                ${await this.buildHandleName(decompress, fontBaselineDefault)}
+                ${await this.buildOG(decompress)}
+                ${await this.buildHandleName(decompress)}
                 ${await this.buildQRCode(jsdom, QRCodeStyling)}
-                ${this.buildSocialsSvg()}
+                ${await this.buildSocialsSvg(decompress)}
             </svg>
         `;
     }
@@ -601,9 +712,6 @@ export default class HandleSvg {
         const { size } = this._params;
         const { qr_dot, qr_inner_eye, qr_outer_eye, qr_link } = this._options;
 
-        // Disable QR image for now until we can figure out how to fix it.
-        const qr_image = '';
-
         if (!qr_link) return undefined;
 
         const [dotType, dotColor] = qr_dot?.split(',') ?? ['square', '#000000'];
@@ -611,17 +719,11 @@ export default class HandleSvg {
         const [outerEyeType, outerEyeColor] = qr_outer_eye?.split(',') ?? ['square', '#000000'];
 
         const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
-        const imageMargin = size * (8 / this._baseSize);
 
         return {
             width: qrCodeSize,
             height: qrCodeSize,
             type: 'svg',
-            image: qr_image,
-            imageOptions: {
-                margin: imageMargin,
-                hideBackgroundDots: false
-            },
             data: qr_link,
             margin: 0,
             dotsOptions: {
