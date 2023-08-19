@@ -317,7 +317,7 @@ export default class HandleSvg {
                 ascender: parsedFont.ascender,
                 descender: parsedFont.descender,
                 glyphs: glyphs
-            }).toBuffer()
+            }).toArrayBuffer()
         );
 
         const p = fixedFont.getPath(text, 0, 0, fontSize);
