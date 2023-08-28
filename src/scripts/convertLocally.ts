@@ -19,33 +19,40 @@ import QRCodeStyling from 'qr-code-styling-node';
 import sharp from 'sharp';
 
 const options: IHandleSvgOptions = {
-    font_shadow_color: '0x8a1d7b',
+    font_shadow_color: '0x000000',
     font_color: '0xffffff',
-    font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
+    // font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
     // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
     // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
     // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
     // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
     // font: 'Barlow Black,https://derp.link/barlow-black-italic-derp.woff',
-    text_ribbon_colors: ['0x000000'],
-    pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
-    pfp_zoom: 120,
-    pfp_offset: [-124, -58],
-    pfp_border_color: '0x99bc54',
-    bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs', // https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png
-    bg_border_color: '0x99bc54',
+    text_ribbon_colors: ['0x15445466'],
+    //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
+    pfp_image: 'ipfs://QmVPvsT64csMcfKVLoAxwuriRy4ntoWNKjsprSyVktn4Pq',
+    pfp_zoom: 150,
+    pfp_offset: [-135, 0],
+    pfp_border_color: '0x3992b011',
+    // bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs', 
+    // bg_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
+    bg_image: 'ipfs://QmZVHttsnrzqjN9BWKcp7b8vvnwDLgwWowv7FtT48Qnoe1',
+    bg_border_color: '0x797985',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
-    qr_image: 'https://cdn4.iconfinder.com/data/icons/crypto-currency-and-coin-2/256/cardano_ada-512.png',
+    // qr_image: 'https://cdn4.iconfinder.com/data/icons/crypto-currency-and-coin-2/256/cardano_ada-512.png',
+    qr_image: 'https://koralabs-public.s3.amazonaws.com/marketing/dollar.png',
     //qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
     qr_bg_color: '0xBA000000',
     qr_inner_eye: 'square,#FFFFFF',
-    qr_outer_eye: 'square,#FFFFFF',
-    qr_dot: 'rounded,#8dff40',
+    qr_outer_eye: 'rounded,#0cd25b99',
+    qr_dot: 'rounded,#FFFFFF',
     socials: [
-        { display: '!@#$%^&*()bjm', url: 'https://telegram.com/testing' },
-        { display: '-=_+[]{}    \\	|;\':"', url: 'https://whatsapp.com/testing' },
-        { display: ',./<>?6Me4G', url: 'https://reddit.com/testing' }
+        // { display: '!@#$%^&*()bjm', url: 'https://telegram.com/testing' },
+        // { display: '-=_+[]{}    \\	|;\':"', url: 'https://whatsapp.com/testing' },
+        // { display: ',./<>?6Me4G', url: 'https://reddit.com/testing' }
+        { display: '@personalized.handles', url: 'https://twitter.com/personalized' },
+        { display: 'personazlize-this', url: 'https://facebook.com/personalized' },
+        { display: '@$personalized', url: 'https://discord.gg/personalized' }
     ],
     font_shadow_size: [-5, 7, 5],
     og_number: 2438
@@ -82,12 +89,13 @@ const options: IHandleSvgOptions = {
         // const handle = '1lnternetz';
         // const handle = 'w00di';
         // const handle = '0o1lijt2z5s8b';
-        const handle = 'b_.-mj';
+        // const handle = 'b_.-mj';
+        const handle = 'personalization';
         // 0ctopus, 1nternet lnternet
 
         const input: IHandleSvg = {
             handle,
-            disableDollarSymbol: true,
+            disableDollarSymbol: false,
             size,
             options
         };
