@@ -1,4 +1,5 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
+import { xml2json, json2xml } from 'xml-js';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getFontDetails, getMinimumFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
 import opentype, { Glyph } from 'opentype.js';
@@ -115,7 +116,8 @@ export default class HandleSvg {
         const image = this._getIpfsImageUrl(bg_image);
 
         if (image) {
-            const base64Image = await getBase64Image(image, this._https);
+            const { contentType, base64 } = await getBase64Image(image, this._https);
+            const base64Image = `data:${contentType};base64,${base64}`;
             return this._buildBackgroundImageHtmlString(base64Image);
         }
 
@@ -190,7 +192,8 @@ export default class HandleSvg {
 
         const image = this._getIpfsImageUrl(pfp_image);
         if (image) {
-            const base64Image = await getBase64Image(image, this._https);
+            const { contentType, base64 } = await getBase64Image(image, this._https);
+            const base64Image = `data:${contentType};base64,${base64}`;
             return this._buildPfpImageHtmlString(base64Image);
         }
 
@@ -466,19 +469,38 @@ export default class HandleSvg {
         return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
     }
 
-    async buildQrImage(image?: string) {
+    async buildQrImage(qrImageUri?: string, contentType?: string) {
         const { size } = this._params;
 
-        if (image) {
-            const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
-            const desiredSize = size * (this._baseMargin / this._baseSize);
-            const { width, height } = await this.resizeImageDimensions(image, desiredSize, desiredSize);
-            const x = qrCodeSize / 2 - width / 2;
-            const y = qrCodeSize / 2 - height / 2;
-            return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${image}" />`;
+        if (!qrImageUri) {
+            return '';
         }
 
-        return '';
+        const image = contentType ? `data:${contentType};base64,${qrImageUri}` : qrImageUri;
+
+        const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
+        const desiredSize = size * (this._baseMargin / this._baseSize);
+        const { width, height } = await this.resizeImageDimensions(image, desiredSize, desiredSize);
+        const x = qrCodeSize / 2 - width / 2;
+        const y = qrCodeSize / 2 - height / 2;
+
+        // check if contentType is svg
+        if (contentType === 'image/svg+xml') {
+            // if so, convert base64 back to string and return svg
+            const svg = Buffer.from(qrImageUri, 'base64').toString('utf-8');
+            const svgObjString = xml2json(svg, { compact: true, spaces: 4 });
+            const svgObj = JSON.parse(svgObjString);
+            svgObj.svg._attributes.width = `${width}`;
+            svgObj.svg._attributes.height = `${height}`;
+            svgObj.svg._attributes.x = `${x}`;
+            svgObj.svg._attributes.y = `${y}`;
+
+            const svgString = json2xml(svgObj, { compact: true, spaces: 4 });
+
+            return svgString;
+        }
+
+        return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${image}" />`;
     }
 
     buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
@@ -512,9 +534,9 @@ export default class HandleSvg {
         if (qr_image) {
             try {
                 const qrImageUri = await getBase64Image(qr_image, this._https);
-                //const imageData = qrImageUri.split(';base64,').pop()
                 if (qrImageUri) {
-                    qrImageSvg = await this.buildQrImage(qrImageUri);
+                    const { contentType, base64 } = qrImageUri;
+                    qrImageSvg = await this.buildQrImage(base64, contentType);
                 }
             } catch (error) {
                 console.log('Error processing qr_image', JSON.stringify(error));

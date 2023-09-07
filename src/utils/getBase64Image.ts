@@ -1,4 +1,7 @@
-export const getBase64Image = async (imageUrl: string, https: any): Promise<string> => {
+export const getBase64Image = async (
+    imageUrl: string,
+    https: any
+): Promise<{ contentType: string; base64: string }> => {
     return new Promise((resolve, reject) => {
         let data: Uint8Array = new Uint8Array();
         const post_req = https.get(imageUrl, (res: any) => {
@@ -13,7 +16,7 @@ export const getBase64Image = async (imageUrl: string, https: any): Promise<stri
                 reject(err);
             });
             res.on('end', () => {
-                resolve(`data:${contentType};base64,${Buffer.from(data).toString('base64')}`);
+                resolve({ contentType, base64: Buffer.from(data).toString('base64') });
             });
         });
         post_req.end();

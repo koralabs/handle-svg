@@ -36,7 +36,7 @@ const options: IHandleSvgOptions = {
     bg_border_color: '0x99bc54',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
-    qr_image: 'https://cdn4.iconfinder.com/data/icons/crypto-currency-and-coin-2/256/cardano_ada-512.png',
+    qr_image: 'https://derp.link/derp-icon.svg',
     //qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
     qr_bg_color: '0xBA000000',
     qr_inner_eye: 'square,#FFFFFF',
