@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import https from 'https';
+import { xml2json, json2xml } from 'xml-js';
 import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import HandleSvg from '../HandleSvg';
@@ -26,7 +27,7 @@ const options: IHandleSvgOptions = {
     // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
     // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
     // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
-    // font: 'Barlow Black,https://derp.link/barlow-black-italic-derp.woff',
+    font: 'Barlow Black,https://derp.link/barlow-black-italic-derp.woff',
     text_ribbon_colors: ['0x15445466'],
     //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     pfp_image: 'ipfs://QmVPvsT64csMcfKVLoAxwuriRy4ntoWNKjsprSyVktn4Pq',
@@ -89,7 +90,7 @@ const options: IHandleSvgOptions = {
         // const handle = 'w00di';
         // const handle = '0o1lijt2z5s8b';
         // const handle = 'b_.-mj';
-        const handle = 'personalization';
+        const handle = '0o1lijt2z5s8b@0o1lijt2z5s8b';
         // 0ctopus, 1nternet lnternet
 
         const input: IHandleSvg = {
@@ -100,7 +101,7 @@ const options: IHandleSvgOptions = {
         };
 
         const handleSvg = new HandleSvg(input, loadImage, https);
-        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling);
+        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, xml2json, json2xml);
         const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer();
 
         // write jpg
