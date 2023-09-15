@@ -1,9 +1,8 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
-// import { xml2json, json2xml } from 'xml-js';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getFontDetails, getMinimumFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
+import { getFontDetails, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
 import opentype, { Glyph } from 'opentype.js';
-import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
+import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
