@@ -1,14 +1,12 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
-import { xml2json, json2xml } from 'xml-js';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getFontDetails, getMinimumFontSize, getRarityFromLength, getRarityHex, hexToColorHex } from './utils';
+import { getFontDetails, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
 import opentype, { Glyph } from 'opentype.js';
-import { HexString, HexStringOrEmpty, IHandleSvgOptions, SocialItem } from '@koralabs/handles-public-api-interfaces';
+import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 import { getBase64Image } from './utils/getBase64Image';
-import { Image as CanvasImage } from 'canvas';
 
 const supportedChars =
     ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
@@ -469,7 +467,7 @@ export default class HandleSvg {
         return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
     }
 
-    async buildQrImage(qrImageUri?: string, contentType?: string) {
+    async buildQrImage(qrImageUri?: string, contentType?: string, xml2json?: any, json2xml?: any) {
         const { size } = this._params;
 
         if (!qrImageUri) {
@@ -485,7 +483,7 @@ export default class HandleSvg {
         const y = qrCodeSize / 2 - height / 2;
 
         // check if contentType is svg
-        if (contentType === 'image/svg+xml') {
+        if (contentType === 'image/svg+xml' && xml2json && json2xml) {
             // if so, convert base64 back to string and return svg
             const svg = Buffer.from(qrImageUri, 'base64').toString('utf-8');
             const svgObjString = xml2json(svg, { compact: true, spaces: 4 });
@@ -503,7 +501,7 @@ export default class HandleSvg {
         return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${image}" />`;
     }
 
-    buildQRCode = async (jsdom: any, QRCodeStyling: any) => {
+    buildQRCode = async (jsdom: any, QRCodeStyling: any, xml2json?: any, json2xml?: any) => {
         const { handle } = this._params;
         const { qr_link, qr_bg_color, qr_image } = this._options;
         const qrImageMaxSize = this._params.size * (80 / this._baseSize);
@@ -536,7 +534,7 @@ export default class HandleSvg {
                 const qrImageUri = await getBase64Image(qr_image, this._https);
                 if (qrImageUri) {
                     const { contentType, base64 } = qrImageUri;
-                    qrImageSvg = await this.buildQrImage(base64, contentType);
+                    qrImageSvg = await this.buildQrImage(base64, contentType, xml2json, json2xml);
                 }
             } catch (error) {
                 console.log('Error processing qr_image', JSON.stringify(error));
@@ -567,7 +565,7 @@ export default class HandleSvg {
         desiredWidth: number,
         desiredHeight: number
     ): Promise<{ width: number; height: number }> {
-        const image: HTMLImageElement | CanvasImage = this._loadImage
+        const image: HTMLImageElement | any = this._loadImage
             ? await this._loadImage(imgDataUri)
             : await this.loadImage(imgDataUri);
         return new Promise((resolve, reject) => {
@@ -690,7 +688,7 @@ export default class HandleSvg {
         return socialStrings.join('');
     }
 
-    async build(decompress: any, jsdom: any, QRCodeStyling: any) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any, xml2json?: any, json2xml?: any) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
@@ -705,7 +703,7 @@ export default class HandleSvg {
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
                 ${await this.buildOG(decompress)}
                 ${await this.buildHandleName(decompress)}
-                ${await this.buildQRCode(jsdom, QRCodeStyling)}
+                ${await this.buildQRCode(jsdom, QRCodeStyling, xml2json, json2xml)}
                 ${await this.buildSocialsSvg(decompress)}
             </svg>
         `;
