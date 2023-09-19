@@ -3,6 +3,7 @@ import https from 'https';
 import { xml2json, json2xml } from 'xml-js';
 import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
+import opentype from 'opentype.js';
 import HandleSvg from '../HandleSvg';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { loadImage } from 'canvas';
@@ -90,7 +91,7 @@ const options: IHandleSvgOptions = {
         // const handle = 'w00di';
         // const handle = '0o1lijt2z5s8b';
         // const handle = 'b_.-mj';
-        const handle = '0o1lijt2z5s8b@0o1lijt2z5s8b';
+        const handle = '0o1lijt2z5s8@0o1lijt2z5s8';
         // 0ctopus, 1nternet lnternet
 
         const input: IHandleSvg = {
@@ -101,7 +102,7 @@ const options: IHandleSvgOptions = {
         };
 
         const handleSvg = new HandleSvg(input, loadImage, https);
-        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, xml2json, json2xml);
+        const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, opentype, xml2json, json2xml);
         const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer();
 
         // write jpg

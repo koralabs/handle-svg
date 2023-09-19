@@ -1,7 +1,6 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
 import { getFontDetails, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
-import opentype, { Glyph } from 'opentype.js';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
@@ -289,11 +288,17 @@ export default class HandleSvg {
                 </svg>`;
     };
 
-    loadParsedFont = async (font: string | undefined, decompress: any, text: string, fontSize: number) => {
+    loadParsedFont = async (
+        font: string | undefined,
+        decompress: any,
+        text: string,
+        fontSize: number,
+        opentype?: any
+    ) => {
         // ****** LOAD AND PARSE THE FONT *******
         let { fontLink } = getFontDetails(font);
 
-        let parsedFont: opentype.Font;
+        let parsedFont: any;
         const ubuntuMono = opentype.parse(await getFontArrayBuffer(getFontDetails().fontLink, decompress));
         try {
             const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
@@ -301,7 +306,7 @@ export default class HandleSvg {
         } catch (error) {
             parsedFont = ubuntuMono;
         }
-        const glyphs: Glyph[] = [parsedFont.glyphs.get(0)];
+        const glyphs = [parsedFont.glyphs.get(0)];
         supportedChars.split('').forEach((char) => {
             if (parsedFont.charToGlyphIndex(char) == 0) {
                 glyphs.push(ubuntuMono.charToGlyph(char));
@@ -330,7 +335,7 @@ export default class HandleSvg {
         };
     };
 
-    buildOG = async (decompress: any) => {
+    buildOG = async (decompress: any, opentype: any) => {
         const { size, handle } = this._params;
         const { font, og_number, font_color } = this._options;
 
@@ -344,7 +349,7 @@ export default class HandleSvg {
 
         const ogText = `OG ${og_number}/${OG_TOTAL}`;
 
-        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, ogText, fontSize);
+        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, ogText, fontSize, opentype);
 
         const realFontWidth = bb.x2 - bb.x1;
         const realFontHeight = bb.y2 - bb.y1;
@@ -360,7 +365,7 @@ export default class HandleSvg {
         return `<svg xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
     };
 
-    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>) {
+    async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>, opentype: any) {
         let { size, handle } = this._params;
 
         let {
@@ -385,7 +390,7 @@ export default class HandleSvg {
         const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
 
         // ****** LOAD AND PARSE THE FONT *******
-        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize);
+        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize, opentype);
         const path = parsedFont.getPath(handle, 0, 0, fontSize);
         path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
 
@@ -514,7 +519,6 @@ export default class HandleSvg {
         }
 
         if (jsdom) {
-            require('node-self');
             global.window = new jsdom().window as any;
             global.self = global.window;
             global.document = global.window.document;
@@ -629,7 +633,7 @@ export default class HandleSvg {
         return getSocialIcon({ social: socialUrl, scale, x, y, fill: fontColor });
     }
 
-    async buildSocialsSvg(decompress: any) {
+    async buildSocialsSvg(decompress: any, opentype: any) {
         const { size } = this._params;
         const { socials, font, font_color, bg_image, bg_color } = this._options;
         const iconSize = size * (48 / this._baseSize);
@@ -664,7 +668,8 @@ export default class HandleSvg {
                 font,
                 decompress,
                 social.display,
-                fontSize
+                fontSize,
+                opentype
             );
             const realFontHeight = bb.y2 - bb.y1;
 
@@ -688,7 +693,7 @@ export default class HandleSvg {
         return socialStrings.join('');
     }
 
-    async build(decompress: any, jsdom: any, QRCodeStyling: any, xml2json?: any, json2xml?: any) {
+    async build(decompress: any, jsdom: any, QRCodeStyling: any, opentype: any, xml2json?: any, json2xml?: any) {
         const { size, disableDollarSymbol } = this._params;
 
         return `
@@ -701,10 +706,10 @@ export default class HandleSvg {
                 ${this.buildBackgroundBorder()}
                 ${this.buildLogoHandle()}
                 ${disableDollarSymbol ? '' : this.buildDollarSign()}
-                ${await this.buildOG(decompress)}
-                ${await this.buildHandleName(decompress)}
+                ${await this.buildOG(decompress, opentype)}
+                ${await this.buildHandleName(decompress, opentype)}
                 ${await this.buildQRCode(jsdom, QRCodeStyling, xml2json, json2xml)}
-                ${await this.buildSocialsSvg(decompress)}
+                ${await this.buildSocialsSvg(decompress, opentype)}
             </svg>
         `;
     }
