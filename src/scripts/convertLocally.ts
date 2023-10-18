@@ -6,7 +6,6 @@ import { IHandleSvg } from '../interfaces';
 import opentype from 'opentype.js';
 import HandleSvg from '../HandleSvg';
 import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
-import { loadImage } from 'canvas';
 
 import { JSDOM } from 'jsdom';
 
@@ -41,8 +40,9 @@ const options: IHandleSvgOptions = {
     bg_border_color: '0x797985',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
-    qr_image: 'https://derp.link/derp-icon.svg',
+    //qr_image: 'https://derp.link/derp-icon.svg',
     //qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
+    qr_image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/FedEx_Ground.svg/2560px-FedEx_Ground.svg.png',
     qr_bg_color: '0xBA000000',
     qr_inner_eye: 'square,#FFFFFF',
     qr_outer_eye: 'rounded,#0cd25b99',
@@ -101,7 +101,7 @@ const options: IHandleSvgOptions = {
             options
         };
 
-        const handleSvg = new HandleSvg(input, loadImage, https);
+        const handleSvg = new HandleSvg(input, https);
         const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, opentype, xml2json, json2xml);
         const buffer = await sharp(Buffer.from(svg)).jpeg().toBuffer();
 
