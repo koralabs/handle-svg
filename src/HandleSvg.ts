@@ -296,10 +296,10 @@ export default class HandleSvg {
         opentype?: any
     ) => {
         // ****** LOAD AND PARSE THE FONT *******
-        let { fontLink } = getFontDetails(font);
+        let fontLink = getFontDetails(font);
 
         let parsedFont: any;
-        const ubuntuMono = opentype.parse(await getFontArrayBuffer(getFontDetails().fontLink, decompress));
+        const ubuntuMono = opentype.parse(await getFontArrayBuffer(getFontDetails(), decompress));
         try {
             const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
             parsedFont = opentype.parse(fontArrayBuffer);
