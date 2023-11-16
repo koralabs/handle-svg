@@ -44,9 +44,13 @@ export const hexToColorHex = (hex: HexString) => hex.replace('0x', '#');
 
 export const getFontDetails = (font?: string) => {
     const defaultFontLink = 'https://fonts.gstatic.com/s/ubuntumono/v15/KFO-CneDtsqEr0keqCMhbC-BL9H1tY0.woff2';
-    const match = font?.match(/(woff|eot|woff2|ttf|svg)$/g);
 
-    if (!font || font === '' || !match) {
+    if (!font || font === '') {
+        return defaultFontLink;
+    }
+
+    const match = font.match(/(woff|eot|woff2|ttf|svg)$/g);
+    if (!match) {
         return defaultFontLink;
     }
 
@@ -54,6 +58,7 @@ export const getFontDetails = (font?: string) => {
         const [_, fontLink] = font.split(',');
         return fontLink;
     }
+
     return font;
 };
 
