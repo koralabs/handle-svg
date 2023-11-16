@@ -17,10 +17,9 @@ export default class HandleSvg {
     private _qrCodeBaseSize: number = 430;
     private _margin: number;
     private _defaultContrastColor: string = '#888888';
-    private _loadImage: CallableFunction | undefined;
     private _https: any;
 
-    constructor(inputs: IHandleSvg, loadImage?: CallableFunction, https?: any) {
+    constructor(inputs: IHandleSvg, https?: any) {
         this._options = inputs.options;
         this._params = {
             size: inputs.size,
@@ -28,7 +27,6 @@ export default class HandleSvg {
             disableDollarSymbol: inputs.disableDollarSymbol ?? false
         };
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
-        this._loadImage = loadImage;
         this._https = https;
     }
 
@@ -480,12 +478,9 @@ export default class HandleSvg {
         }
 
         const image = contentType ? `data:${contentType};base64,${qrImageUri}` : qrImageUri;
-
-        const qrCodeSize = size * (this._qrCodeBaseSize / this._baseSize);
         const desiredSize = size * (this._baseMargin / this._baseSize);
-        const { width, height } = await this.resizeImageDimensions(image, desiredSize, desiredSize);
-        const x = qrCodeSize / 2 - width / 2;
-        const y = qrCodeSize / 2 - height / 2;
+        const x = "8.16%";
+        const y = "8.16%";
 
         // check if contentType is svg
         if (contentType === 'image/svg+xml' && xml2json && json2xml) {
@@ -493,8 +488,8 @@ export default class HandleSvg {
             const svg = Buffer.from(qrImageUri, 'base64').toString('utf-8');
             const svgObjString = xml2json(svg, { compact: true, spaces: 4 });
             const svgObj = JSON.parse(svgObjString);
-            svgObj.svg._attributes.width = `${width}`;
-            svgObj.svg._attributes.height = `${height}`;
+            svgObj.svg._attributes.width = `${desiredSize}`;
+            svgObj.svg._attributes.height = `${desiredSize}`;
             svgObj.svg._attributes.x = `${x}`;
             svgObj.svg._attributes.y = `${y}`;
 
@@ -502,8 +497,7 @@ export default class HandleSvg {
 
             return svgString;
         }
-
-        return `<image x="${x}" y="${y}" width="${width}" height="${height}" href="${image}" />`;
+        return `<image x="8.16%" y="8.16%"  width="${desiredSize}" height="${desiredSize}" href="${image}" preserveAspectRatio="xMidYMid"></image>`;
     }
 
     buildQRCode = async (jsdom: any, QRCodeStyling: any, xml2json?: any, json2xml?: any) => {
@@ -563,58 +557,6 @@ export default class HandleSvg {
 
         return '';
     };
-
-    async resizeImageDimensions(
-        imgDataUri: string,
-        desiredWidth: number,
-        desiredHeight: number
-    ): Promise<{ width: number; height: number }> {
-        const image: HTMLImageElement | any = this._loadImage
-            ? await this._loadImage(imgDataUri)
-            : await this.loadImage(imgDataUri);
-        return new Promise((resolve, reject) => {
-            try {
-                // Get the image dimensions
-                let width = image.naturalWidth;
-                let height = image.naturalHeight;
-
-                const aspectRatio = width / height;
-                if (width > height) {
-                    width = desiredWidth;
-                    height = width / aspectRatio;
-                } else {
-                    height = desiredHeight;
-                    width = height * aspectRatio;
-                }
-
-                return resolve({ width, height });
-            } catch (error) {
-                console.log('error resizing image', error);
-                reject(error);
-            }
-        });
-    }
-
-    async loadImage(imgDataUri: string): Promise<HTMLImageElement> {
-        return new Promise((resolve, reject) => {
-            try {
-                const image = new Image();
-                image.onload = () => {
-                    try {
-                        return resolve(image);
-                    } catch (error: any) {
-                        return reject(error);
-                    }
-                };
-                image.onerror = (error) => {
-                    return reject(error);
-                };
-                image.src = imgDataUri;
-            } catch (error: any) {
-                return reject(error);
-            }
-        });
-    }
 
     renderSocialIcon(socialUrl: string, x: number, y: number) {
         const { size } = this._params;
