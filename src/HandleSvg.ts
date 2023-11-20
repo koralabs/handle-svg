@@ -7,7 +7,8 @@ import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 import { getBase64Image } from './utils/getBase64Image';
 
-const supportedChars = ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
+const supportedChars =
+    ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
     private _params: { size: number; handle: string; disableDollarSymbol: boolean };
@@ -478,8 +479,8 @@ export default class HandleSvg {
 
         const image = contentType ? `data:${contentType};base64,${qrImageUri}` : qrImageUri;
         const desiredSize = size * (this._baseMargin / this._baseSize);
-        const x = "8.16%";
-        const y = "8.16%";
+        const x = '8.16%';
+        const y = '8.16%';
 
         // check if contentType is svg
         if (contentType === 'image/svg+xml' && xml2json && json2xml) {
