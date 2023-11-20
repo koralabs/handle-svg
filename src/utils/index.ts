@@ -43,34 +43,23 @@ export const getMinimumFontSize = (handle: string): number => {
 export const hexToColorHex = (hex: HexString) => hex.replace('0x', '#');
 
 export const getFontDetails = (font?: string) => {
-    const f =
-        font && font !== ''
-            ? font
-            : 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFO-CneDtsqEr0keqCMhbC-BL9H1tY0.woff2';
-    const [fontFamily, fontLink] = f.split(',');
-    let fontCss = `@import url('${fontLink}');`;
+    const defaultFontLink = 'https://fonts.gstatic.com/s/ubuntumono/v15/KFO-CneDtsqEr0keqCMhbC-BL9H1tY0.woff2';
 
-    // use regular expression to match font file extensions (woff|eot|woff2|ttf|svg)
-    const match = fontLink.match(/(woff|eot|woff2|ttf|svg)$/g);
-    if (match) {
-        const [fontExtension] = match;
-        let format = '';
-        if (fontExtension === 'svg') {
-            format = 'svg';
-        } else if (fontExtension === 'eot') {
-            format = 'embedded-opentype';
-        } else if (fontExtension === 'ttf') {
-            format = 'truetype';
-        } else if (fontExtension === 'woff') {
-            format = 'woff';
-        } else if (fontExtension === 'woff2') {
-            format = 'woff2';
-        }
-
-        fontCss = `@font-face {font-family: '${fontFamily}'; src: url('${fontLink}') format('${format}');}`;
+    if (!font || font === '') {
+        return defaultFontLink;
     }
 
-    return { fontFamily, fontCss, fontLink };
+    const match = font.match(/(woff|eot|woff2|ttf|svg)$/g);
+    if (!match) {
+        return defaultFontLink;
+    }
+
+    if (font.includes(',')) {
+        const [_, fontLink] = font.split(',');
+        return fontLink;
+    }
+
+    return font;
 };
 
 export { getSocialIcon } from './getSocialIcon';
