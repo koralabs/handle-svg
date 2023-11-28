@@ -1,6 +1,6 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
