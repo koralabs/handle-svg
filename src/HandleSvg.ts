@@ -121,7 +121,7 @@ export default class HandleSvg {
 
     _buildPfpImageHtmlString = (image: string) => {
         const { size } = this._params;
-        const { pfp_image, pfp_zoom, pfp_offset, pfp_border_color } = this._options;
+        const { pfp_image, pfp_offset, pfp_border_color } = this._options;
 
         if (!pfp_image || pfp_image === '') return null;
 
@@ -130,11 +130,9 @@ export default class HandleSvg {
         let pfpImageSize = parseInt(`${pfpCircleSize}`);
 
         // add zoom if it exists
-        if (pfp_zoom) {
-            if (pfp_zoom > 1) {
-                pfpImageSize = pfpCircleSize * (pfp_zoom / 100);
-            }
-        }
+        const pfp_zoom = this._options.pfp_zoom ? this._options.pfp_zoom : 100;
+        pfpImageSize = pfpCircleSize * (pfp_zoom / 100);
+        const zoomedOffsetPixels = (pfpImageSize - pfpCircleSize) / 2;
 
         const dx = size / 2;
         const dy = size * (493 / this._baseSize);
@@ -142,11 +140,21 @@ export default class HandleSvg {
 
         const strokeWidth = size * (30 / this._baseSize);
 
-        let pfpImageX = parseInt(`${dx}`) - radius;
-        let pfpImageY = parseInt(`${dy}`) - radius;
+        let pfpImageX = parseInt(`${dx}`) - radius - zoomedOffsetPixels;
+        let pfpImageY = parseInt(`${dy}`) - radius - zoomedOffsetPixels;
 
         if (pfp_offset) {
             const [x, y] = pfp_offset;
+
+            if (
+                x < zoomedOffsetPixels * -1 ||
+                x > zoomedOffsetPixels ||
+                y < zoomedOffsetPixels * -1 ||
+                y > zoomedOffsetPixels
+            ) {
+                throw new Error('pfp_offset out of bounds');
+            }
+
             pfpImageX += size * (x / this._baseSize);
             pfpImageY += size * (y / this._baseSize);
         }
@@ -398,6 +406,12 @@ export default class HandleSvg {
         let fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill = font_shadow_color;
         let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
+
+        if (fontShadowHorzOffset > 20 || fontShadowHorzOffset < -20)
+            throw new Error('font shadow horizontal offset must be between -20 and 20');
+        if (fontShadowVertOffset > 20 || fontShadowVertOffset < -20)
+            throw new Error('font shadow vertical offset must be between -20 and 20');
+        if (fontShadowBlur > 20 || fontShadowBlur < 0) throw new Error('font shadow blur must be between 0 and 20');
 
         if ((text_ribbon_colors?.length ?? 0) > 0) {
             const ribbonColor = text_ribbon_colors?.[0] as HexString;
