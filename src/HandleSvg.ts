@@ -143,7 +143,7 @@ export default class HandleSvg {
         let pfpImageX = parseInt(`${dx}`) - radius - zoomedOffsetPixels;
         let pfpImageY = parseInt(`${dy}`) - radius - zoomedOffsetPixels;
 
-        const maxOffsetPixels = getMaxOffset(pfp_zoom, !!pfp_border_color)
+        const maxOffsetPixels = getMaxOffset(pfp_zoom)
 
         if (pfp_offset) {
             const [x, y] = pfp_offset;
