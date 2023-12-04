@@ -103,6 +103,9 @@ dist
 # TernJS port file
 .tern-port
 
+# macOS
+.DS_Store
+
 /lib
 test_handle.html
 test_svg.jpg

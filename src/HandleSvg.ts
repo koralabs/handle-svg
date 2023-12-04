@@ -1,6 +1,6 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
 import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
-import { getFontDetails, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
+import { getFontDetails, getMaxOffset, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
@@ -143,14 +143,16 @@ export default class HandleSvg {
         let pfpImageX = parseInt(`${dx}`) - radius - zoomedOffsetPixels;
         let pfpImageY = parseInt(`${dy}`) - radius - zoomedOffsetPixels;
 
+        const maxOffsetPixels = getMaxOffset(pfp_zoom)
+
         if (pfp_offset) {
             const [x, y] = pfp_offset;
 
             if (
-                x < zoomedOffsetPixels * -1 ||
-                x > zoomedOffsetPixels ||
-                y < zoomedOffsetPixels * -1 ||
-                y > zoomedOffsetPixels
+                x < maxOffsetPixels * -1 ||
+                x > maxOffsetPixels ||
+                y < maxOffsetPixels * -1 ||
+                y > maxOffsetPixels
             ) {
                 throw new Error('pfp_offset out of bounds');
             }
