@@ -227,7 +227,7 @@ export default class HandleSvg {
     async buildPfpImage() {
         const { pfp_image } = this._options;
 
-        const image = this._getIpfsImageUrl(pfp_image);
+        const image = await this._getSuccessfulIpfsImageUrl(pfp_image);
         if (image) {
             const { contentType, base64 } = await getBase64Image(image, this._https);
             const base64Image = `data:${contentType};base64,${base64}`;
