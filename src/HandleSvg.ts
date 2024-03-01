@@ -5,7 +5,10 @@ import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handle
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
-import { getBase64Image } from './utils/getBase64Image';
+import { getBase64Image, loadImage } from './utils/getBase64Image';
+
+const ALL_IPFS_GATEWAYS = [IPFS_GATEWAY, 'https://public-handles.mypinata.cloud', 'https://ipfs.io'];
+
 
 const supportedChars =
     ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
@@ -91,6 +94,35 @@ export default class HandleSvg {
         return null;
     };
 
+
+    _getSuccessfulIpfsImageUrl = async (ipfsUrl: string) => {
+        if (!ipfsUrl || ipfsUrl === '') {
+            return null;
+        }
+
+        // If not an IPFS hash
+        if(!ipfsUrl.startsWith('ipfs://')) {
+            return ipfsUrl
+        }
+    
+        const imagePath = ipfsUrl.replace('ipfs://', '');
+    
+        for (const gateway of ALL_IPFS_GATEWAYS) {
+            const url = `${gateway}/${imagePath}`;
+            try {
+                const result = await loadImage(url);
+                if (result) return url;
+            } catch (error) {
+                console.log(`Failed to load image from ${gateway}`);
+                return null
+            }
+        }
+    
+        return null;
+    
+    }
+    
+
     _buildBackgroundImageHtmlString = (image: string) => {
         const { size } = this._params;
         return `<image href="${image}" height="${size}" width="${size}" />`;
@@ -105,10 +137,19 @@ export default class HandleSvg {
 
         return '';
     };
+    buildBackgroundImageFrontend = () => {
+        const { bg_image } = this._options;
+        const image = this._getIpfsImageUrl(bg_image);
+        if (image) {
+            return this._buildBackgroundImageHtmlString(image);
+        }
+
+        return '';
+    };
 
     buildBackgroundImage = async () => {
         const { bg_image } = this._options;
-        const image = this._getIpfsImageUrl(bg_image);
+        const image = await this._getSuccessfulIpfsImageUrl(bg_image);
 
         if (image) {
             const { contentType, base64 } = await getBase64Image(image, this._https);
@@ -195,7 +236,7 @@ export default class HandleSvg {
     async buildPfpImage() {
         const { pfp_image } = this._options;
 
-        const image = this._getIpfsImageUrl(pfp_image);
+        const image = await this._getSuccessfulIpfsImageUrl(pfp_image);
         if (image) {
             const { contentType, base64 } = await getBase64Image(image, this._https);
             const base64Image = `data:${contentType};base64,${base64}`;

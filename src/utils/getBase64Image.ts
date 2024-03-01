@@ -22,3 +22,14 @@ export const getBase64Image = async (
         post_req.end();
     });
 };
+
+
+
+export function loadImage(url: string) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => reject(new Error(`Image failed to load from ${url}`));
+        img.src = url;
+    });
+}
