@@ -143,7 +143,7 @@ export default class HandleSvg {
         const image = await this._getSuccessfulIpfsImageUrl(bg_image);
 
         if (image) {
-            const { contentType, base64 } = await getBase64Image(image, this._https);
+            const { contentType, base64 } = await getBase64Image(image);
             const base64Image = `data:${contentType};base64,${base64}`;
             return this._buildBackgroundImageHtmlString(base64Image);
         }
@@ -229,7 +229,7 @@ export default class HandleSvg {
 
         const image = await this._getSuccessfulIpfsImageUrl(pfp_image);
         if (image) {
-            const { contentType, base64 } = await getBase64Image(image, this._https);
+            const { contentType, base64 } = await getBase64Image(image);
             const base64Image = `data:${contentType};base64,${base64}`;
             return this._buildPfpImageHtmlString(base64Image);
         }
@@ -577,7 +577,7 @@ export default class HandleSvg {
         let qrImageSvg = '';
         if (qr_image) {
             try {
-                const qrImageUri = await getBase64Image(qr_image, this._https);
+                const qrImageUri = await getBase64Image(qr_image);
                 if (qrImageUri) {
                     const { contentType, base64 } = qrImageUri;
                     qrImageSvg = await this.buildQrImage(base64, contentType, xml2json, json2xml);
