@@ -137,9 +137,9 @@ export default class HandleSvg {
 
         return '';
     };
-    buildBackgroundImageFrontend = () => {
+    buildBackgroundImageFrontend = async () => {
         const { bg_image } = this._options;
-        const image = this._getIpfsImageUrl(bg_image);
+        const image = await this._getSuccessfulIpfsImageUrl(bg_image);
         if (image) {
             return this._buildBackgroundImageHtmlString(image);
         }
