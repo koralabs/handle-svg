@@ -124,9 +124,10 @@ export default class HandleSvg {
         }
     };
 
-    _buildBackgroundImageHtmlString = (image: string) => {
-        const { size } = this._params;
-        return `<image href="${image}" height="${size}" width="${size}" />`;
+    _buildBackgroundImageHtmlString = (image: string, size?: number) => {
+        const { size: paramSize } = this._params;
+        const imageSize = size ?? paramSize;
+        return `<image href="${image}" height="${imageSize}" width="${imageSize}" />`;
     };
 
     buildBackgroundImageSync = () => {
@@ -138,11 +139,11 @@ export default class HandleSvg {
 
         return '';
     };
-    buildBackgroundImageFrontend = async () => {
+    buildBackgroundImageFrontend = async (size?: number) => {
         const { bg_image } = this._options;
         const image = await this._getSuccessfulIpfsImageUrl(bg_image);
         if (image) {
-            return this._buildBackgroundImageHtmlString(image);
+            return this._buildBackgroundImageHtmlString(image, size);
         }
 
         return '';
