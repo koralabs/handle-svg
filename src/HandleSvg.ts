@@ -1,5 +1,5 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
-import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
+import { IPFS_GATEWAY, OG_TOTAL, PINATA_GATEWAY_TOKEN } from './utils/constants';
 import { getFontDetails, getMaxOffset, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
@@ -8,7 +8,6 @@ import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
 import { getBase64Image, loadImage } from './utils/getBase64Image';
 
 const ALL_IPFS_GATEWAYS = [IPFS_GATEWAY, 'https://public-handles.mypinata.cloud', 'https://ipfs.io'];
-
 
 const supportedChars =
     ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
@@ -94,34 +93,36 @@ export default class HandleSvg {
         return null;
     };
 
-
-    _getSuccessfulIpfsImageUrl = async (ipfsUrl: string) => {
-        if (!ipfsUrl || ipfsUrl === '') {
-            return null;
-        }
+    _getSuccessfulIpfsImageUrl = async (ipfsUrl?: string, gatewayIndex = 0): Promise<string | null> => {
+        if (!ipfsUrl) return null;
 
         // If not an IPFS hash
-        if(!ipfsUrl.startsWith('ipfs://')) {
-            return ipfsUrl
+        if (!ipfsUrl.startsWith('ipfs://')) {
+            return ipfsUrl;
         }
-    
-        const imagePath = ipfsUrl.replace('ipfs://', '');
-    
-        for (const gateway of ALL_IPFS_GATEWAYS) {
-            const url = `${gateway}/${imagePath}`;
-            try {
-                const result = await loadImage(url);
-                if (result) return url;
-            } catch (error) {
-                console.log(`Failed to load image from ${gateway}`);
-                return null
+
+        const buildQueryString = (gateway: string) => {
+            if (gateway.includes('pinata')) return `?pinataGatewayToken=${PINATA_GATEWAY_TOKEN}`;
+            return '';
+        };
+
+        const imagePath = ipfsUrl.replace(':/', '');
+        const gateway = ALL_IPFS_GATEWAYS[gatewayIndex];
+        const queryString = buildQueryString(gateway);
+        const url = `${gateway}/${imagePath}${queryString}`;
+        try {
+            const result = await loadImage(url);
+            if (result) return url;
+
+            throw new Error(`Failed to load image from IPFS: ${url}`);
+        } catch (error) {
+            if (gatewayIndex < ALL_IPFS_GATEWAYS.length - 1) {
+                return this._getSuccessfulIpfsImageUrl(ipfsUrl, gatewayIndex + 1);
             }
+
+            return null;
         }
-    
-        return null;
-    
-    }
-    
+    };
 
     _buildBackgroundImageHtmlString = (image: string) => {
         const { size } = this._params;
@@ -184,17 +185,12 @@ export default class HandleSvg {
         let pfpImageX = parseInt(`${dx}`) - radius - zoomedOffsetPixels;
         let pfpImageY = parseInt(`${dy}`) - radius - zoomedOffsetPixels;
 
-        const maxOffsetPixels = getMaxOffset(pfp_zoom)
+        const maxOffsetPixels = getMaxOffset(pfp_zoom);
 
         if (pfp_offset) {
             const [x, y] = pfp_offset;
 
-            if (
-                x < maxOffsetPixels * -1 ||
-                x > maxOffsetPixels ||
-                y < maxOffsetPixels * -1 ||
-                y > maxOffsetPixels
-            ) {
+            if (x < maxOffsetPixels * -1 || x > maxOffsetPixels || y < maxOffsetPixels * -1 || y > maxOffsetPixels) {
                 throw new Error('pfp_offset out of bounds');
             }
 
