@@ -2,10 +2,12 @@
 # yarn lockfile v1
 
 
-"@koralabs/handles-public-api-interfaces@2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@koralabs/handles-public-api-interfaces/-/handles-public-api-interfaces-2.4.0.tgz#a880e9c088756b10e6a8202e18699a2876cb70d2"
-  integrity sha512-ygKODw0D04dg5EBBcGecYWPrh/dIDN/hQ5LA55tt+0jafk5BXDQlOSdTNlD34YRKQjuOaOKLm4DXg8/WemV6bg==
+"@koralabs/kora-labs-common@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@koralabs/kora-labs-common/-/kora-labs-common-2.5.4.tgz#ae0a3334843b0395c77555e316cefd0b0399de31"
+  integrity sha512-YmBaqEkVEyVfdZpNOT6k4tBWungPgqsH29rBxHiIA5IeKXtvKmUAhXbjkspqdNMdzt7/mz4uL2zlegg7UDpkqw==
+  dependencies:
+    pluralize "^8.0.0"
 
 "@tootallnate/once@2":
   version "2.0.0"
@@ -422,6 +424,11 @@ parse5@^7.0.0, parse5@^7.1.2:
   integrity sha512-Czj1WaSVpaoj0wbhMzLmWD69anp2WH7FXMB9n1Sy8/ZFF9jolSQVMu1Ij5WIyGmcBmhk7EOndpO4mIpihVqAXw==
   dependencies:
     entities "^4.4.0"
+
+pluralize@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-8.0.0.tgz#1a6fa16a38d12a1901e0320fa017051c539ce3b1"
+  integrity sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==
 
 prebuild-install@^7.1.1:
   version "7.1.1"

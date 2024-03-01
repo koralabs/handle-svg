@@ -5,7 +5,7 @@ import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import opentype from 'opentype.js';
 import HandleSvg from '../HandleSvg';
-import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
+import { IHandleSvgOptions } from '@koralabs/kora-labs-common'
 
 import { JSDOM } from 'jsdom';
 
