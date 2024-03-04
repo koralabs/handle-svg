@@ -28,7 +28,8 @@
   ],
   "homepage": "https://github.com/koralabs/handle-svg#readme",
   "dependencies": {
-    "@koralabs/handles-public-api-interfaces": "2.4.0"
+    "@koralabs/handles-public-api-interfaces": "2.4.0",
+    "cross-fetch": "^4.0.0"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.1",

@@ -1,11 +1,11 @@
 import { IHandleSvg } from './interfaces/IHandleSvg';
-import { IPFS_GATEWAY, OG_TOTAL } from './utils/constants';
+import { OG_TOTAL } from './utils/constants';
 import { getFontDetails, getMaxOffset, getMinimumFontSize, getRarityHex, hexToColorHex } from './utils';
 import { HexString, HexStringOrEmpty, IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
 import { getSocialIcon } from './utils/getSocialIcon';
 import { checkContrast } from './utils/checkContrast';
 import { getFontArrayBuffer } from './utils/getFontArrayBuffer';
-import { getBase64Image } from './utils/getBase64Image';
+import { getImageDetails } from './utils/imageHelpers';
 
 const supportedChars =
     ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
@@ -84,49 +84,36 @@ export default class HandleSvg {
         `;
     }
 
-    _getIpfsImageUrl = (image?: string) => {
-        if (image && image != '') {
-            return image.startsWith('ipfs://') ? `${IPFS_GATEWAY}/${image.replace('ipfs://', '')}` : image;
-        }
-        return null;
+    _buildBackgroundImageHtmlString = (image: string, size?: number) => {
+        const { size: paramSize } = this._params;
+        const imageSize = size ?? paramSize;
+        return `<image href="${image}" height="${imageSize}" width="${imageSize}" />`;
     };
 
-    _buildBackgroundImageHtmlString = (image: string) => {
-        const { size } = this._params;
-        return `<image href="${image}" height="${size}" width="${size}" />`;
-    };
+    buildBackgroundImage = async (input?: { useBase64?: boolean; size?: number }) => {
+        const { useBase64 = true, size } = input ?? {};
 
-    buildBackgroundImageSync = () => {
         const { bg_image } = this._options;
-        const image = this._getIpfsImageUrl(bg_image);
-        if (image) {
-            return this._buildBackgroundImageHtmlString(image);
+
+        if (bg_image) {
+            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64 });
+            const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
+            return this._buildBackgroundImageHtmlString(image, size);
         }
 
         return '';
     };
 
-    buildBackgroundImage = async () => {
-        const { bg_image } = this._options;
-        const image = this._getIpfsImageUrl(bg_image);
+    _buildPfpImageHtmlString = (image: string, size?: number) => {
+        const { size: paramSize } = this._params;
+        const imageSize = size ?? paramSize;
 
-        if (image) {
-            const { contentType, base64 } = await getBase64Image(image, this._https);
-            const base64Image = `data:${contentType};base64,${base64}`;
-            return this._buildBackgroundImageHtmlString(base64Image);
-        }
-
-        return '';
-    };
-
-    _buildPfpImageHtmlString = (image: string) => {
-        const { size } = this._params;
         const { pfp_image, pfp_offset, pfp_border_color } = this._options;
 
         if (!pfp_image || pfp_image === '') return null;
 
         const basePfpCircleSize = pfp_border_color ? 576 : 636;
-        const pfpCircleSize = size * (basePfpCircleSize / this._baseSize);
+        const pfpCircleSize = imageSize * (basePfpCircleSize / this._baseSize);
         let pfpImageSize = parseInt(`${pfpCircleSize}`);
 
         // add zoom if it exists
@@ -134,31 +121,26 @@ export default class HandleSvg {
         pfpImageSize = pfpCircleSize * (pfp_zoom / 100);
         const zoomedOffsetPixels = (pfpImageSize - pfpCircleSize) / 2;
 
-        const dx = size / 2;
-        const dy = size * (493 / this._baseSize);
+        const dx = imageSize / 2;
+        const dy = imageSize * (493 / this._baseSize);
         const radius = pfpCircleSize / 2;
 
-        const strokeWidth = size * (30 / this._baseSize);
+        const strokeWidth = imageSize * (30 / this._baseSize);
 
         let pfpImageX = parseInt(`${dx}`) - radius - zoomedOffsetPixels;
         let pfpImageY = parseInt(`${dy}`) - radius - zoomedOffsetPixels;
 
-        const maxOffsetPixels = getMaxOffset(pfp_zoom)
+        const maxOffsetPixels = getMaxOffset(pfp_zoom);
 
         if (pfp_offset) {
             const [x, y] = pfp_offset;
 
-            if (
-                x < maxOffsetPixels * -1 ||
-                x > maxOffsetPixels ||
-                y < maxOffsetPixels * -1 ||
-                y > maxOffsetPixels
-            ) {
+            if (x < maxOffsetPixels * -1 || x > maxOffsetPixels || y < maxOffsetPixels * -1 || y > maxOffsetPixels) {
                 throw new Error('pfp_offset out of bounds');
             }
 
-            pfpImageX += size * (x / this._baseSize);
-            pfpImageY += size * (y / this._baseSize);
+            pfpImageX += imageSize * (x / this._baseSize);
+            pfpImageY += imageSize * (y / this._baseSize);
         }
 
         return `<svg>
@@ -183,23 +165,13 @@ export default class HandleSvg {
         </svg>`;
     };
 
-    buildPfpImageSync = () => {
+    async buildPfpImage(input?: { useBase64?: boolean; size?: number }) {
+        const { useBase64 = true, size } = input ?? {};
         const { pfp_image } = this._options;
-        const image = this._getIpfsImageUrl(pfp_image);
-        if (image) {
-            return this._buildPfpImageHtmlString(image);
-        }
-        return '';
-    };
-
-    async buildPfpImage() {
-        const { pfp_image } = this._options;
-
-        const image = this._getIpfsImageUrl(pfp_image);
-        if (image) {
-            const { contentType, base64 } = await getBase64Image(image, this._https);
-            const base64Image = `data:${contentType};base64,${base64}`;
-            return this._buildPfpImageHtmlString(base64Image);
+        if (pfp_image) {
+            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64 });
+            const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
+            return this._buildPfpImageHtmlString(image, size);
         }
 
         return '';
@@ -545,7 +517,7 @@ export default class HandleSvg {
         let qrImageSvg = '';
         if (qr_image) {
             try {
-                const qrImageUri = await getBase64Image(qr_image, this._https);
+                const qrImageUri = await getImageDetails({ imageUrl: qr_image, useBase64: true });
                 if (qrImageUri) {
                     const { contentType, base64 } = qrImageUri;
                     qrImageSvg = await this.buildQrImage(base64, contentType, xml2json, json2xml);
