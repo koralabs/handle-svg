@@ -1,4 +1,4 @@
-import { IHandleSvgOptions } from '@koralabs/handles-public-api-interfaces';
+import { IHandleSvgOptions } from '@koralabs/kora-labs-common';
 
 export interface IHandleSvg {
     handle: string;
