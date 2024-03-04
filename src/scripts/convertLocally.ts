@@ -30,13 +30,15 @@ const options: IHandleSvgOptions = {
     font: 'https://derp.link/barlow-black-italic-derp.woff',
     text_ribbon_colors: ['0x15445466'],
     //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
-    pfp_image: 'ipfs://QmZYtTq2aiQond3ZyDK4uzTLD1zz269JfSJoEWCfoxREPa',
+    //pfp_image: 'ipfs://QmZYtTq2aiQond3ZyDK4uzTLD1zz269JfSJoEWCfoxREPa',
+    pfp_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
     pfp_zoom: 150,
     pfp_offset: [-135, 0],
     pfp_border_color: '0x3992b011',
     // bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs',
     // bg_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
-    bg_image: 'ipfs://QmPdwMizqJ5NnqvhdiWLzHdXdWuQREkuGnx14QGLCz4gNx',
+    // bg_image: 'ipfs://QmPdwMizqJ5NnqvhdiWLzHdXdWuQREkuGnx14QGLCz4gNx',
+    bg_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
     bg_border_color: '0x797985',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
@@ -103,7 +105,7 @@ const options: IHandleSvgOptions = {
 
         const handleSvg = new HandleSvg(input, https);
         const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, opentype, xml2json, json2xml);
-        const buffer = await sharp(Buffer.from(svg), {unlimited: true, limitInputPixels: false}).jpeg().toBuffer();
+        const buffer = await sharp(Buffer.from(svg), { unlimited: true, limitInputPixels: false }).jpeg().toBuffer();
 
         // write jpg
         fs.writeFile('test_svg.jpg', buffer, (err: any) => {
