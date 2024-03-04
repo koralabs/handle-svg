@@ -1,4 +1,4 @@
-import { HexString } from '@koralabs/handles-public-api-interfaces';
+import { HexString } from '@koralabs/kora-labs-common';
 
 export const getRarityFromLength = (length: number): string => {
     if (1 === length) return 'Legendary';
