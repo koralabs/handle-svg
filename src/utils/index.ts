@@ -65,3 +65,5 @@ export const getFontDetails = (font?: string) => {
 export { getSocialIcon } from './getSocialIcon';
 
 export { getMaxOffset } from './getMaxOffset';
+
+export { getImageDetails } from './imageHelpers';
