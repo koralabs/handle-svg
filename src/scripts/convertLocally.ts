@@ -27,6 +27,7 @@ const options: IHandleSvgOptions = {
     // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
     // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
     // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
+    // font: 'https://public.koralabs.io/partner-files/Druk-Bold-Apprentices.woff2',
     font: 'https://derp.link/barlow-black-italic-derp.woff',
     text_ribbon_colors: ['0x15445466'],
     //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
