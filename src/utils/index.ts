@@ -55,7 +55,7 @@ export const getFontDetails = (font?: string) => {
     }
 
     if (font.includes(',')) {
-        const [_, fontLink] = font.split(',');
+        const [ , fontLink] = font.split(',');
         return fontLink;
     }
 

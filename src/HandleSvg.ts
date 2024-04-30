@@ -284,7 +284,7 @@ export default class HandleSvg {
         opentype?: any
     ) => {
         // ****** LOAD AND PARSE THE FONT *******
-        let fontLink = getFontDetails(font);
+        const fontLink = getFontDetails(font);
 
         let parsedFont: any;
         const ubuntuMono = opentype.parse(await getFontArrayBuffer(getFontDetails(), decompress));
@@ -332,7 +332,7 @@ export default class HandleSvg {
         }
 
         // ****** GENERAL FONT SETTINGS *******
-        let baseFontSize = 48;
+        const baseFontSize = 48;
         const fontSize = size * (baseFontSize / this._baseSize);
 
         const ogText = `OG ${og_number}/${OG_TOTAL}`;
@@ -354,20 +354,20 @@ export default class HandleSvg {
     };
 
     async buildHandleName(decompress: (src: Uint8Array | Buffer) => Promise<Uint8Array>, opentype: any) {
-        let { size, handle } = this._params;
+        const { size, handle } = this._params;
 
-        let {
+        const {
             bg_color,
             bg_image,
             text_ribbon_colors,
             font_color,
             font_shadow_color,
-            font,
-            font_shadow_size = []
+            font
         } = this._options;
+        let {font_shadow_size = []} = this._options;
 
         // ****** GENERAL FONT SETTINGS *******
-        let baseFontSize = 200;
+        const baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
 
         const fontMarginX = size * (200 / this._baseSize);
@@ -385,7 +385,7 @@ export default class HandleSvg {
         const svg = path.toSVG(2);
 
         // ****** SETUP USER/CREATOR SETTINGS *******
-        let fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+        const fontFill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
         let fontShadowFill = font_shadow_color;
         let [fontShadowHorzOffset = 8, fontShadowVertOffset = 8, fontShadowBlur = 8] = font_shadow_size;
 
@@ -428,7 +428,7 @@ export default class HandleSvg {
 
         const horizontalOffset = size * (fontShadowHorzOffset / this._baseSize);
         const verticalOffset = size * (fontShadowVertOffset / this._baseSize);
-        let blur = size * (fontShadowBlur / this._baseSize);
+        const blur = size * (fontShadowBlur / this._baseSize);
 
         // ******* PLACEMENT AND ZOOM MATH *******
         let realFontHeight = bb.y2 - bb.y1;
@@ -454,7 +454,7 @@ export default class HandleSvg {
         const viewBoxX = 0;
         const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / zoomPercent) * -1;
 
-        let viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
+        const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
 
         let shadowSvg = '';
         if (fontShadowFill && fontShadowFill.startsWith('0x')) {
@@ -499,8 +499,8 @@ export default class HandleSvg {
     buildQRCode = async (jsdom: any, QRCodeStyling: any, xml2json?: any, json2xml?: any) => {
         const { handle } = this._params;
         const { qr_link, qr_bg_color, qr_image } = this._options;
-        const qrImageMaxSize = this._params.size * (80 / this._baseSize);
-        const qrCodeSize = this._params.size * (this._qrCodeBaseSize / this._baseSize);
+        // const qrImageMaxSize = this._params.size * (80 / this._baseSize);
+        // const qrCodeSize = this._params.size * (this._qrCodeBaseSize / this._baseSize);
 
         const options = this.buildQrCodeOptions();
 
@@ -573,26 +573,15 @@ export default class HandleSvg {
 
     async buildSocialsSvg(decompress: any, opentype: any) {
         const { size } = this._params;
-        const { socials, font, font_color, bg_image, bg_color } = this._options;
+        const { socials, font, font_color } = this._options;
         const iconSize = size * (48 / this._baseSize);
         const fontSize = size * (64 / this._baseSize);
         const socialLineHeight = size * (80 / this._baseSize);
         const x = this._margin;
         const y = size - this._margin - iconSize;
 
-        let fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
-        let fontShadowFill: string | undefined;
-        let fontShadowSize: number[];
-
-        if (!bg_image && bg_color) {
-            const validBgColor = checkContrast(hexToColorHex(bg_color), fontColor);
-            if (!validBgColor) {
-                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                const blur = size * (8 / this._baseSize);
-                fontShadowSize = [0, 0, blur];
-            }
-        }
-
+        const fontColor = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+       
         if (!socials || socials.length === 0) {
             return '';
         }
