@@ -1,9 +1,9 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "echo \"No tests\"",
     "build": "tsc",
@@ -49,9 +49,5 @@
     "typescript": "^5.0.4",
     "wawoff2": "^2.0.1",
     "xml-js": "^1.6.11"
-  },
-  "files": [
-    "bin",
-    "lib"
-  ]
+  }
 }

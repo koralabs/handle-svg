@@ -10,5 +10,5 @@
         "skipLibCheck": true,
         "moduleResolution": "Node"
     },
-    "exclude": ["node_modules", "lib"]
+    "exclude": ["node_modules", "lib", "**/*.test.ts"]
 }
