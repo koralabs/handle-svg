@@ -28,24 +28,24 @@ const options: IHandleSvgOptions = {
     // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
     // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
     // font: 'https://public.koralabs.io/partner-files/Druk-Bold-Apprentices.woff2',
-    font: 'https://derp.link/barlow-black-italic-derp.woff',
+    // font: 'https://derp.link/barlow-black-italic-derp.woff',
     text_ribbon_colors: ['0x15445466'],
     //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
     //pfp_image: 'ipfs://QmZYtTq2aiQond3ZyDK4uzTLD1zz269JfSJoEWCfoxREPa',
-    pfp_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
+    // pfp_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
     pfp_zoom: 150,
     pfp_offset: [-135, 0],
     pfp_border_color: '0x3992b011',
     // bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs',
     // bg_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
     // bg_image: 'ipfs://QmPdwMizqJ5NnqvhdiWLzHdXdWuQREkuGnx14QGLCz4gNx',
-    bg_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
+    // bg_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
     bg_border_color: '0x797985',
     bg_color: '0xbe4961',
     qr_link: 'https://handle.me/bigirishlion',
     //qr_image: 'https://derp.link/derp-icon.svg',
     //qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
-    qr_image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/FedEx_Ground.svg/2560px-FedEx_Ground.svg.png',
+    // qr_image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/FedEx_Ground.svg/2560px-FedEx_Ground.svg.png',
     qr_bg_color: '0xBA000000',
     qr_inner_eye: 'square,#FFFFFF',
     qr_outer_eye: 'rounded,#0cd25b99',
