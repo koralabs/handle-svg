@@ -84,6 +84,36 @@ const options: IHandleSvgOptions = {
 //     // text_ribbon_colors: ['0xffffff']
 // };
 
+const buildTestHandle = async (handle: string) => {
+    const size = 2048;
+
+    const handle1 = handle;
+    const input1: IHandleSvg = {
+        handle: handle1,
+        disableDollarSymbol: false,
+        size,
+        options
+    };
+
+    const handleSvg1 = new HandleSvg(input1, https);
+    // const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, opentype, xml2json, json2xml);
+
+    // Build only the handle with the logo in the beginning
+    const svg1 = await handleSvg1.buildLogoHandleSvg(decompress, opentype);
+    const buffer1 = await sharp(Buffer.from(svg1), { unlimited: true, limitInputPixels: false }).jpeg().toBuffer();
+
+    // write jpg
+    fs.writeFile(`test_svg_${handle}.jpg`, buffer1, (err: any) => {
+        // throws an error, you could also catch it here
+        if (err) throw err;
+
+        // success case, the file was saved
+        console.log('JPG written!');
+    });
+
+    return svg1;
+};
+
 (async () => {
     console.log('STARTED!');
     try {
@@ -97,30 +127,26 @@ const options: IHandleSvgOptions = {
         const handle = '0o1lijt2z5s8@0o1lijt2z5s8';
         // 0ctopus, 1nternet lnternet
 
-        const input: IHandleSvg = {
-            handle,
-            disableDollarSymbol: false,
-            size,
-            options
-        };
+        const handles = [
+            '0ctopus',
+            '1nternet lnternet',
+            'mmw5j7h0gqklwmm',
+            '1lnternetz',
+            'w00di',
+            '0o1lijt2z5s8b',
+            'b_.-mj',
+            'jlg',
+            '0o1lijt2z5s8@0o1lijt2z5s8'
+        ];
 
-        const handleSvg = new HandleSvg(input, https);
-        // const svg = await handleSvg.build(decompress, JSDOM, QRCodeStyling, opentype, xml2json, json2xml);
+        // ****** SHORT HANDLE ******
+        let svg;
+        for (const handle of handles) {
+            svg = await buildTestHandle(handle);
 
-        // Build only the handle with the logo in the beginning
-        const svg = await handleSvg.buildLogoHandleSvg(decompress, opentype);
-        const buffer = await sharp(Buffer.from(svg), { unlimited: true, limitInputPixels: false }).jpeg().toBuffer();
+            // --------- HTML-------
 
-        // write jpg
-        fs.writeFile('test_svg.jpg', buffer, (err: any) => {
-            // throws an error, you could also catch it here
-            if (err) throw err;
-
-            // success case, the file was saved
-            console.log('JPG written!');
-        });
-
-        const html = `
+            const html = `
     <html>
         <head>
             <title>${handle} SVG</title>
@@ -165,14 +191,15 @@ const options: IHandleSvgOptions = {
     </html>
     `;
 
-        // write html file
-        fs.writeFile('test_handle.html', html, (err: any) => {
-            // throws an error, you could also catch it here
-            if (err) throw err;
+            // write html file
+            fs.writeFile(`test_handle_${handle}.html`, html, (err: any) => {
+                // throws an error, you could also catch it here
+                if (err) throw err;
 
-            // success case, the file was saved
-            console.log('HTML written!');
-        });
+                // success case, the file was saved
+                console.log('HTML written!');
+            });
+        }
     } catch (error) {
         console.error('ERROR:', error);
     }
