@@ -620,6 +620,71 @@ export default class HandleSvg {
         return socialStrings.join('');
     }
 
+    // Build the handle with only "$" logo and handle text (ex: "$bigirishlion") 
+    async buildLogoAndHandleName(decompress: any, opentype: any) {
+        const { size, handle } = this._params;
+
+        // ****** GENERAL FONT SETTINGS *******
+        const font_color = '0xffffff';
+        const font = 'Inter';
+        const baseFontSize = 200;
+        const fontSize = size * (baseFontSize / this._baseSize);    
+        const fontMarginX = size * (200 / this._baseSize);
+        const fontMarginY = size * (94 / this._baseSize);
+        const ribbonHeight = size * (314 / this._baseSize);
+        const maxFontWidth = size - fontMarginX;
+        const maxFontHeight = ribbonHeight - fontMarginY;
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+    
+        // ****** LOAD AND PARSE THE FONT *******
+        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize, opentype);
+        const path = parsedFont.getPath(handle, 0, 0, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+
+        const svg = path.toSVG(2);
+
+        // ******* PLACEMENT AND ZOOM MATH *******
+        let realFontHeight = bb.y2 - bb.y1;
+        const realFontWidth = bb.x2 - bb.x1;
+
+        if (realFontHeight < minimumFontHeight) {
+            // This is to keep really small characters from becoming ginormous
+            realFontHeight = minimumFontHeight;
+        }
+
+        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
+        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+        }
+        zoomPercent = 1 + zoomPercent;
+
+        const viewBoxWidth = size / zoomPercent;
+        const viewBoxHeight = size / zoomPercent;
+
+        const x = size / 2 - (realFontWidth / 2 + bb.x1) * zoomPercent;
+        const y = size / 2 - (realFontHeight / 2 + bb.y2) * zoomPercent;
+
+        const viewBoxX = 0;
+        const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / zoomPercent) * -1;
+
+        const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
+
+        
+        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} >${svg}</svg>`;
+
+    }
+
+    async buildLogoHandleSvg(decompress: any, opentype: any) {
+        const { size, handle } = this._params;
+
+        return `
+            <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+                ${await this.buildLogoAndHandleName(decompress, opentype)}
+            </svg>
+        `;
+    }
+
+    // Build the full handle svg (with all the elements)
     async build(decompress: any, jsdom: any, QRCodeStyling: any, opentype: any, xml2json?: any, json2xml?: any) {
         const { size, disableDollarSymbol } = this._params;
 
