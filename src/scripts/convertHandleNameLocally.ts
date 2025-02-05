@@ -117,24 +117,14 @@ const buildTestHandle = async (handle: string) => {
 (async () => {
     console.log('STARTED!');
     try {
-        const size = 2048;
-        // const handle = 'mmw5j7h0gqklwmm';
-        // const handle = 'jlg';
-        // const handle = '1lnternetz';
-        // const handle = 'w00di';
-        // const handle = '0o1lijt2z5s8b';
-        // const handle = 'b_.-mj';
-        const handle = '0o1lijt2z5s8@0o1lijt2z5s8';
-        // 0ctopus, 1nternet lnternet
-
         const handles = [
-            '0ctopus',
-            '1nternet lnternet',
-            'mmw5j7h0gqklwmm',
-            '1lnternetz',
-            'w00di',
-            '0o1lijt2z5s8b',
-            'b_.-mj',
+            // '0ctopus',
+            // '1nternet lnternet',
+            // 'mmw5j7h0gqklwmm',
+            // '1lnternetz',
+            // 'w00di',
+            // '0o1lijt2z5s8b',
+            // 'b_.-mj',
             'jlg',
             '0o1lijt2z5s8@0o1lijt2z5s8'
         ];
