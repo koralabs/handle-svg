@@ -624,6 +624,9 @@ export default class HandleSvg {
     async buildLogoAndHandleName(decompress: any, opentype: any) {
         const { size, handle } = this._params;
 
+        // Since this will be used for just the text, the height can be reduced
+        const sizeY = size / 3;
+
         // ****** GENERAL FONT SETTINGS *******
         const font_color = '0xffffff';
         const font = 'Inter';
@@ -646,13 +649,11 @@ export default class HandleSvg {
         // ******* PLACEMENT AND ZOOM MATH *******
         let realFontHeight = bb.y2 - bb.y1;
         const realFontWidth = bb.x2 - bb.x1;
-        console.log('handle', handle);
 
         if (realFontHeight < minimumFontHeight) {
             // This is to keep really small characters from becoming ginormous
             realFontHeight = minimumFontHeight;
         }
-
 
         // First calculate zoom for text only to determine final text size
         let textOnlyZoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
@@ -691,11 +692,11 @@ export default class HandleSvg {
         zoomPercent = 1 + zoomPercent;
 
         const viewBoxWidth = size / zoomPercent;
-        const viewBoxHeight = size / zoomPercent;
+        const viewBoxHeight = sizeY / zoomPercent;
 
         // Center the combined elements
         const combinedX = size / 2 - (totalWidth / 2 + bb.x1) * zoomPercent;
-        const y = size / 2 - (realFontHeight / 2 + bb.y2) * zoomPercent;
+        const y = sizeY / 2 - (realFontHeight / 2 + bb.y2) * zoomPercent;
 
         const viewBoxX = 0;
         const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / zoomPercent) * -1;
@@ -728,8 +729,11 @@ export default class HandleSvg {
     async buildLogoHandleSvg(decompress: any, opentype: any) {
         const { size, handle } = this._params;
 
+        const sizeX = size;
+        const sizeY = size / 3;
+
         return `
-            <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+            <svg width="${sizeX}" height="${sizeY}" xmlns="http://www.w3.org/2000/svg" style="background: transparent">
                 ${await this.buildLogoAndHandleName(decompress, opentype)}
             </svg>
         `;
