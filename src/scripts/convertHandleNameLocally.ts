@@ -126,7 +126,7 @@ const buildTestHandle = async (handle: string) => {
             // '0o1lijt2z5s8b',
             // 'b_.-mj',
             'jlg',
-            '0o1lijt2z5s8@0o1lijt2z5s8'
+            '0o1lijt2z5g8@0o1lijt2z5s8'
         ];
 
         // ****** SHORT HANDLE ******
