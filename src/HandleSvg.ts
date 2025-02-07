@@ -672,14 +672,15 @@ export default class HandleSvg {
             minX: 0,  
             maxX: 14  
         };
-
-        console.log("handle", handle)
-        console.log("originalFontHeight", originalFontHeight)
-        console.log("textOnlyZoomPercent", textOnlyZoomPercent)
         
         const dollarPathHeight = dollarSignBounds.maxY - dollarSignBounds.minY;
         const dollarPathWidth = dollarSignBounds.maxX - dollarSignBounds.minX;
-        const dollarSignScale = ((originalFontHeight * 2) / dollarPathHeight) * textOnlyZoomPercent;
+
+        // For 1-2 character handles, make dollar sign same height as text
+        const isShortHandle = handle.length <= 2;
+        const dollarSignScale = isShortHandle 
+            ? ((originalFontHeight * 2.5) / dollarPathHeight) * textOnlyZoomPercent
+            : ((originalFontHeight * 2) / dollarPathHeight) * textOnlyZoomPercent;
         const dollarSignScaleWidth = ((originalFontHeight) / dollarPathHeight) / textOnlyZoomPercent;
         
         // Calculate width while maintaining aspect ratio
@@ -713,7 +714,7 @@ export default class HandleSvg {
         const handleX = dollarSignX + (dollarSignWidth + spacing) * zoomPercent;
         
         // Adjust vertical position of dollar sign to align with text
-        const dollarSignY = y + ((realFontHeight * zoomPercent) * 0.1); // Small adjustment to visually center the dollar sign
+        const dollarSignY = y + ((realFontHeight * (isShortHandle ? -1 : zoomPercent)) * 0.1); // Small adjustment to visually center the dollar sign
 
         let dollarFill = "#0cd15b"; // default green color
         
