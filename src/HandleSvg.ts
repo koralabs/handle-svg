@@ -668,7 +668,7 @@ export default class HandleSvg {
         // The dollar sign SVG path coordinates
         const dollarSignBounds = {
             minY: 0,  
-            maxY: 33.5,
+            maxY: 31.7,
             minX: 0,  
             maxX: 14  
         };
@@ -679,7 +679,7 @@ export default class HandleSvg {
         // For 1-2 character handles, make dollar sign same height as text
         const isShortHandle = handle.length <= 2;
         const dollarSignScale = isShortHandle 
-            ? ((originalFontHeight * 2.5) / dollarPathHeight) * textOnlyZoomPercent
+            ? ((originalFontHeight * 2.45) / dollarPathHeight) * textOnlyZoomPercent
             : ((originalFontHeight * 2) / dollarPathHeight) * textOnlyZoomPercent;
         const dollarSignScaleWidth = ((originalFontHeight) / dollarPathHeight) / textOnlyZoomPercent;
         
@@ -712,9 +712,12 @@ export default class HandleSvg {
         // Position the dollar sign to the left of the text with proper spacing
         const dollarSignX = combinedX;
         const handleX = dollarSignX + (dollarSignWidth + spacing) * zoomPercent;
-        
+        console.log("handle", handle)
+        console.log("originalFontHeight", originalFontHeight)
+        console.log("zoomPercent", zoomPercent)
+        console.log("textOnlyZoomPercent", textOnlyZoomPercent)
         // Adjust vertical position of dollar sign to align with text
-        const dollarSignY = y + ((realFontHeight * (isShortHandle ? -1 : zoomPercent)) * 0.1); // Small adjustment to visually center the dollar sign
+        const dollarSignY = y + ((originalFontHeight * (isShortHandle ? -1.2 : zoomPercent)) * 0.12); // Small adjustment to visually center the dollar sign
 
         let dollarFill = "#0cd15b"; // default green color
         
