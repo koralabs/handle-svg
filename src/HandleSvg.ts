@@ -620,6 +620,135 @@ export default class HandleSvg {
         return socialStrings.join('');
     }
 
+    // Build the handle with only "$" logo and handle text (ex: "$bigirishlion") 
+    async buildLogoAndHandleName(decompress: any, opentype: any) {
+        const { size, handle } = this._params;
+
+        // Since this will be used for just the text, the height can be reduced
+        const sizeY = size / 3;
+
+        // ****** GENERAL FONT SETTINGS *******
+        const font_color = '0xffffff';
+        const font = 'Inter';
+        const baseFontSize = 200;
+        const fontSize = size * (baseFontSize / this._baseSize);    
+        const fontMarginX = size * (200 / this._baseSize);
+        const fontMarginY = size * (94 / this._baseSize);
+        const ribbonHeight = size * (314 / this._baseSize);
+        const maxFontWidth = size - fontMarginX;
+        const maxFontHeight = ribbonHeight - fontMarginY;
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+    
+        // ****** LOAD AND PARSE THE FONT *******
+        const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize, opentype);
+        const path = parsedFont.getPath(handle, 0, 0, fontSize);
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+
+        const svg = path.toSVG(2);
+
+        // ******* PLACEMENT AND ZOOM MATH *******
+        let realFontHeight = bb.y2 - bb.y1;
+        let originalFontHeight = realFontHeight;
+        const realFontWidth = bb.x2 - bb.x1;
+
+        if (realFontHeight < minimumFontHeight) {
+            // This is to keep really small characters from becoming ginormous
+            realFontHeight = minimumFontHeight;
+        }
+
+        // First calculate zoom for text only to determine final text size
+        let textOnlyZoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
+        if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
+            textOnlyZoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+        }
+        textOnlyZoomPercent = 1 + textOnlyZoomPercent;
+
+        // Begin calculating dollar sign size and placement
+
+        // The dollar sign SVG path coordinates
+        const dollarSignBounds = {
+            minY: 0,  
+            maxY: 31.7,
+            minX: 0,  
+            maxX: 14  
+        };
+        
+        const dollarPathHeight = dollarSignBounds.maxY - dollarSignBounds.minY;
+        const dollarPathWidth = dollarSignBounds.maxX - dollarSignBounds.minX;
+
+        // For 1-2 character handles, make dollar sign same height as text
+        const isShortHandle = handle.length <= 2;
+        const dollarSignScale = isShortHandle 
+            ? ((originalFontHeight * 2.45) / dollarPathHeight) * textOnlyZoomPercent
+            : ((originalFontHeight * 2) / dollarPathHeight) * textOnlyZoomPercent;
+        const dollarSignScaleWidth = ((originalFontHeight) / dollarPathHeight) / textOnlyZoomPercent;
+        
+        // Calculate width while maintaining aspect ratio
+        const dollarSignWidth = dollarSignScaleWidth * dollarPathWidth;
+        const spacing = size * ((45 * textOnlyZoomPercent) / this._baseSize);
+        
+        // Calculate total width including dollar sign and spacing
+        const totalWidth = realFontWidth + dollarSignWidth + spacing;
+
+        // Now calculate final zoom including dollar sign
+        let zoomPercent = (maxFontWidth - totalWidth) / totalWidth;
+        if (realFontHeight / maxFontHeight > totalWidth / maxFontWidth) {
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+        }
+        zoomPercent = 1 + zoomPercent;
+
+        const viewBoxWidth = size / zoomPercent;
+        const viewBoxHeight = sizeY / zoomPercent;
+
+        // Center the combined elements
+        const combinedX = size / 2 - (totalWidth / 2 + bb.x1) * zoomPercent;
+        const y = sizeY / 2 - (realFontHeight / 2 + bb.y2) * zoomPercent;
+
+        const viewBoxX = 0;
+        const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / zoomPercent) * -1;
+
+        const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
+
+        // Position the dollar sign to the left of the text with proper spacing
+        const dollarSignX = combinedX;
+        const handleX = dollarSignX + (dollarSignWidth + spacing) * zoomPercent;
+        console.log("handle", handle)
+        console.log("originalFontHeight", originalFontHeight)
+        console.log("zoomPercent", zoomPercent)
+        console.log("textOnlyZoomPercent", textOnlyZoomPercent)
+        // Adjust vertical position of dollar sign to align with text
+        const dollarSignY = y + ((originalFontHeight * (isShortHandle ? -1.2 : zoomPercent)) * 0.12); // Small adjustment to visually center the dollar sign
+
+        let dollarFill = "#0cd15b"; // default green color
+        
+        // Create the dollar sign SVG with the same scale as the text
+        const dollarSignSvg = `
+                <path transform="translate(${-dollarSignBounds.minX}, ${-dollarSignBounds.minY}) scale(${dollarSignScale})" id="S" fill="${dollarFill}" d="M3.48,1.16c0-.28,.21-.54,.64-.78,.43-.25,.99-.38,1.7-.38,.54,0,.89,.12,1.05,.36,.11,.17,.17,.33,.17,.47v.54c1.28,.14,2.16,.4,2.66,.76,.2,.14,.31,.28,.31,.42,0,.63-.14,1.3-.42,2.02-.27,.72-.54,1.08-.8,1.08-.05,0-.19-.05-.44-.16-.75-.35-1.37-.52-1.86-.52s-.82,.05-1,.14c-.17,.1-.25,.25-.25,.45,0,.19,.12,.34,.37,.45,.25,.11,.55,.2,.92,.29,.37,.07,.77,.2,1.2,.38,.44,.18,.85,.4,1.22,.65,.37,.25,.68,.63,.93,1.14,.25,.49,.37,1,.37,1.52s-.05,.95-.14,1.28c-.09,.34-.25,.69-.47,1.05-.21,.36-.55,.69-1,.98-.44,.28-.97,.48-1.59,.61v.29c0,.28-.21,.54-.64,.78-.43,.25-.99,.38-1.7,.38-.54,0-.89-.12-1.05-.36-.11-.17-.17-.33-.17-.47v-.54c-.73-.07-1.37-.19-1.92-.34-1.04-.3-1.56-.63-1.56-.98,0-.67,.09-1.37,.27-2.1,.18-.73,.4-1.1,.64-1.1,.05,0,.51,.16,1.41,.49s1.57,.49,2.02,.49,.75-.05,.88-.14c.14-.11,.2-.26,.2-.45s-.12-.36-.37-.49c-.25-.14-.56-.26-.93-.34-.37-.08-.78-.22-1.22-.4-.43-.18-.83-.39-1.2-.63-.37-.24-.68-.6-.93-1.07-.25-.47-.37-1.02-.37-1.64C.39,3.06,1.42,1.76,3.48,1.39v-.23Z"/>
+        `;
+        
+
+        return `
+            <svg id="dollar_sign" x="${dollarSignX}" y="${dollarSignY}" xmlns="http://www.w3.org/2000/svg">
+                ${dollarSignSvg}
+            </svg>
+            <svg id="handle_name_${handle}" x="${handleX}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox}>${svg}</svg>
+        `;
+    }
+
+    async buildLogoHandleSvg(decompress: any, opentype: any) {
+        const { size, handle } = this._params;
+
+        const sizeX = size;
+        const sizeY = size / 3;
+
+        return `
+            <svg width="${sizeX}" height="${sizeY}" xmlns="http://www.w3.org/2000/svg" style="background: transparent">
+                ${await this.buildLogoAndHandleName(decompress, opentype)}
+            </svg>
+        `;
+    }
+
+    // Build the full handle svg (with all the elements)
     async build(decompress: any, jsdom: any, QRCodeStyling: any, opentype: any, xml2json?: any, json2xml?: any) {
         const { size, disableDollarSymbol } = this._params;
 
