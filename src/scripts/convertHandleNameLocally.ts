@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import https from 'https';
-import { xml2json, json2xml } from 'xml-js';
 import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import opentype from 'opentype.js';
@@ -16,7 +15,6 @@ global.document = global.window.document;
 global.XMLSerializer = global.window.XMLSerializer;
 global.Image = global.window.Image;
 
-import QRCodeStyling from 'qr-code-styling-node';
 import sharp from 'sharp';
 
 const options: IHandleSvgOptions = {
@@ -128,7 +126,7 @@ const buildTestHandle = async (handle: string) => {
             'jlg',
             '0o1lijt2z5g8@0o1lijt2z5s8',
             '0',
-            '01',
+            '01'
         ];
 
         // ****** SHORT HANDLE ******
