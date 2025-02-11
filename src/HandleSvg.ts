@@ -621,7 +621,9 @@ export default class HandleSvg {
         const sizeY = size / 3;
 
         // ****** GENERAL FONT SETTINGS *******
-        const font_color = '0xffffff';
+        // font color must be slighly off white due to Sharp's unflatten
+        // https://sharp.pixelplumbing.com/api-operation#unflatten
+        const font_color = '0xfdfdfd';
         const font = 'Inter';
         const baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
@@ -635,7 +637,7 @@ export default class HandleSvg {
         // ****** LOAD AND PARSE THE FONT *******
         const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize, opentype);
         const path = parsedFont.getPath(handle, 0, 0, fontSize);
-        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#ffffff';
+        path.fill = font_color && font_color.startsWith('0x') ? hexToColorHex(font_color) : '#fdfdfd';
 
         const svg = path.toSVG(2);
 
@@ -705,10 +707,6 @@ export default class HandleSvg {
         // Position the dollar sign to the left of the text with proper spacing
         const dollarSignX = combinedX;
         const handleX = dollarSignX + (dollarSignWidth + spacing) * zoomPercent;
-        console.log('handle', handle);
-        console.log('originalFontHeight', originalFontHeight);
-        console.log('zoomPercent', zoomPercent);
-        console.log('textOnlyZoomPercent', textOnlyZoomPercent);
         // Adjust vertical position of dollar sign to align with text
         const dollarSignY = y + originalFontHeight * (isShortHandle ? -1.2 : zoomPercent) * 0.12; // Small adjustment to visually center the dollar sign
 

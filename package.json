@@ -1,6 +1,6 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "3.0.9",
+  "version": "3.0.10",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
@@ -10,6 +10,7 @@
     "npm:publish": "yarn build && yarn publish",
     "compile:local": "yarn build && node --experimental-vm-modules ./lib/scripts/convertLocally.js",
     "convert": "ts-node ./src/scripts/convertLocally.ts",
+    "convert:handleName": "ts-node ./src/scripts/convertHandleNameLocally.ts",
     "lint": "eslint . --ext .ts"
   },
   "repository": {

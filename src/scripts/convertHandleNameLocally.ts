@@ -98,15 +98,18 @@ const buildTestHandle = async (handle: string) => {
 
     // Build only the handle with the logo in the beginning
     const svg1 = await handleSvg1.buildLogoHandleSvg(decompress, opentype);
-    const buffer1 = await sharp(Buffer.from(svg1), { unlimited: true, limitInputPixels: false }).jpeg().toBuffer();
+    const buffer1 = await sharp(Buffer.from(svg1), { unlimited: true, limitInputPixels: false })
+        .unflatten()
+        .png()
+        .toBuffer();
 
     // write jpg
-    fs.writeFile(`test_svg_${handle}.jpg`, buffer1, (err: any) => {
+    fs.writeFile(`test__handle_name_svg_${handle}.png`, buffer1, (err: any) => {
         // throws an error, you could also catch it here
         if (err) throw err;
 
         // success case, the file was saved
-        console.log('JPG written!');
+        console.log('PNG written!');
     });
 
     return svg1;
