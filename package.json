@@ -11,7 +11,8 @@
     "compile:local": "yarn build && node --experimental-vm-modules ./lib/scripts/convertLocally.js",
     "convert": "ts-node ./src/scripts/convertLocally.ts",
     "convert:handleName": "ts-node ./src/scripts/convertHandleNameLocally.ts",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "preinstall": "npm install -D --cpu=wasm32 sharp"
   },
   "repository": {
     "type": "git",
