@@ -1,18 +1,17 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "3.0.10",
+  "version": "3.0.11",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
     "test": "echo \"No tests\"",
     "build": "tsc",
-    "npm:publish": "yarn build && yarn publish",
-    "compile:local": "yarn build && node --experimental-vm-modules ./lib/scripts/convertLocally.js",
-    "convert": "ts-node ./src/scripts/convertLocally.ts",
-    "convert:handleName": "ts-node ./src/scripts/convertHandleNameLocally.ts",
+    "render": "npm run sharp:install && ts-node ./src/scripts/renderLocally.ts && npm run sharp:uninstall",
+    "render:handleName": "npm run sharp:install && ts-node ./src/scripts/renderHandleNameLocally.ts && npm run sharp:uninstall",
     "lint": "eslint . --ext .ts",
-    "preinstall": "npm install -D --cpu=wasm32 sharp"
+    "sharp:install": "npm install -D --cpu=wasm32 sharp",
+    "sharp:uninstall": "npm uninstall -D sharp"
   },
   "repository": {
     "type": "git",
