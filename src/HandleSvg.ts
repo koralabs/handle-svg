@@ -673,21 +673,23 @@ export default class HandleSvg {
             maxX: 10.25 
         };
         
+        // Need to account for dollar sign descender / ascender
+        const ascenderSize = 1
         const dollarPathHeight = dollarSignBounds.maxY - dollarSignBounds.minY;
         const dollarPathWidth = dollarSignBounds.maxX - dollarSignBounds.minX;
 
-        const dollarSignScale = ((originalFontHeight) / dollarPathHeight) * textOnlyZoomPercent;
+        const dollarSignScale = ((originalFontHeight) / dollarPathHeight) * (textOnlyZoomPercent);
         const dollarSignScaleWidth = ((originalFontHeight) / dollarPathHeight) / textOnlyZoomPercent;
         
         // Calculate width while maintaining aspect ratio
-        const dollarSignWidth = dollarSignScaleWidth * dollarPathWidth;
+        const dollarSignWidth = dollarSignScaleWidth * dollarPathWidth * textOnlyZoomPercent;
 
-        const isLargeHandle = handle.length >= 20;
+        const isShortHandle = handle.length <= 2;
 
         // const spacing = size * (((25 * (textOnlyZoomPercent))) / this._baseSize);
 
         // Scale spacing based on handle length and zoom - longer handles get proportionally less spacing
-        const baseSpacing = size * (25 / this._baseSize);
+        const baseSpacing = size * ((15) / this._baseSize);
         const spacing = (baseSpacing * textOnlyZoomPercent);
         
         console.log("handle", handle)
@@ -695,6 +697,7 @@ export default class HandleSvg {
         
         // Calculate total width including dollar sign and spacing
         const totalWidth = realFontWidth + dollarSignWidth + spacing;
+        console.log("dollarSignWidth", dollarSignWidth)
 
         const viewBoxWidth = size / textOnlyZoomPercent;
         const viewBoxHeight = sizeY / textOnlyZoomPercent;
@@ -713,7 +716,7 @@ export default class HandleSvg {
         const handleX = dollarSignX + (dollarSignWidth + spacing) * textOnlyZoomPercent;
         console.log("textOnlyZoomPercent", textOnlyZoomPercent)
         // Adjust vertical position of dollar sign to align with text
-        const dollarSignY = y + ((originalFontHeight * (textOnlyZoomPercent)) * 0.12); // Small adjustment to visually center the dollar sign
+        const dollarSignY = y + ((originalFontHeight * (textOnlyZoomPercent)) * (isShortHandle ? 0.1 : 0.14)); // Small adjustment to visually center the dollar sign
 
         let dollarFill = "#0cd15b"; // default green color
         const dollarViewBoxSize = "0 0 10.25 15.38"
