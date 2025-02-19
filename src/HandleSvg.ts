@@ -11,38 +11,7 @@ const supportedChars =
     ' 1234567890-!@#$%^&*()_=+qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWWERTYUIOP{}}|ASDFGHJKL:"ZXCVBNM<>?ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïð';
 
 // Characters without ascenders or descenders (sitting between x-height and baseline)
-export const noAscenderDescenderChars = [
-    // Lowercase letters
-    'a',
-    'c',
-    'e',
-    'i',
-    'm',
-    'n',
-    'o',
-    'r',
-    's',
-    'u',
-    'v',
-    'w',
-    'x',
-    'z',
-    // Numbers
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    // Special characters
-    '-',
-    '.',
-    '_'
-];
+export const noAscenderDescenderChars = 'aceimnorsuvwxz0123456789-._';
 
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
@@ -710,18 +679,22 @@ export default class HandleSvg {
         
         // Need to account for dollar sign descender / ascender
         const dollarAscenderSize = 1.38
-        const dollarDescenderSize = 1.38
+        const dollarDescenderSize = 1.4
 
         const dollarPathHeight = dollarSignBounds.maxY - dollarSignBounds.minY;
         const dollarPathWidth = dollarSignBounds.maxX - dollarSignBounds.minX;
 
-        const dollarSignScale = ((originalFontHeight * 0.92) / dollarPathHeight) * (textOnlyZoomPercent);
-        const dollarSignScaleWidth = ((originalFontHeight * 0.92) / dollarPathHeight) / textOnlyZoomPercent;
+        const isShortHandle = handle.length <= 3;
+
+        // const noAscenderDescenderChars = 'acemnorsuvwxz';
+        const hasOnlyNoAscenderDescenderChars = handle.split('').every(char => noAscenderDescenderChars.includes(char.toLowerCase()));
+        const heightMultiplier = hasOnlyNoAscenderDescenderChars || isShortHandle ? 1.19 : 0.97;
+        
+        const dollarSignScale = ((originalFontHeight * heightMultiplier) / dollarPathHeight) * (textOnlyZoomPercent);
+        const dollarSignScaleWidth = ((originalFontHeight * heightMultiplier) / dollarPathHeight) / textOnlyZoomPercent;
         
         // Calculate width while maintaining aspect ratio
         const dollarSignWidth = dollarSignScaleWidth * dollarPathWidth * textOnlyZoomPercent;
-
-        const isShortHandle = handle.length <= 2;
 
         // const spacing = size * (((25 * (textOnlyZoomPercent))) / this._baseSize);
 
@@ -754,8 +727,18 @@ export default class HandleSvg {
         // Position the dollar sign to the left of the text with proper spacing
         const dollarSignX = combinedX;
         const handleX = dollarSignX + (dollarSignWidth + spacing) * textOnlyZoomPercent;
+
+        let multiplier = 0.18;
+        if(isShortHandle){
+            if(hasOnlyNoAscenderDescenderChars){
+                multiplier = -0.1;
+            }
+            else {
+                multiplier = 0.1;
+            }
+        }
         // Adjust vertical position of dollar sign to align with text
-        const dollarSignY = y + ((originalFontHeight * (textOnlyZoomPercent)) * (isShortHandle ? 0.1 : 0.18)); // Small adjustment to visually center the dollar sign
+        const dollarSignY = y + ((originalFontHeight * (textOnlyZoomPercent)) * multiplier); // Small adjustment to visually center the dollar sign
 
         let dollarFill = "#0cd15b"; // default green color
         const dollarViewBoxSize = "0 0 10.25 15.38"
