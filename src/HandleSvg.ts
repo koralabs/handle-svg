@@ -679,7 +679,7 @@ export default class HandleSvg {
             maxX: 10.25 
         };
 
-        const dollarAscenderSize = 1.38;
+        const dollarAscenderSize = 1.4;
         const dollarDescenderSize = 1.4;
 
         // Calculate the body height of the dollar sign (excluding ascender and descender)
@@ -707,8 +707,7 @@ export default class HandleSvg {
         const y = sizeY / 2 - (realFontHeight / 2 + bb.y2) * textOnlyZoomPercent;
 
         console.log(`********* ${handle} *********`);
-        console.log("realFontHeight", realFontHeight);
-        console.log("referenceHeight", referenceHeight);
+        console.log("textOnlyZoomPercent", textOnlyZoomPercent);
 
         const viewBoxX = 0;
         const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / textOnlyZoomPercent) * -1;
@@ -718,7 +717,15 @@ export default class HandleSvg {
         const dollarSignX = combinedX;
         const handleX = dollarSignX + (dollarSignWidth + spacing) * textOnlyZoomPercent;
 
-        const dollarSignY = y + (((realFontHeight - referenceHeight) / 2) * textOnlyZoomPercent)// - (dollarAscenderSize * dollarSignScale);
+        // Adjust Y position with a scaling factor based on handle length
+        const heightDifference = ((realFontHeight - referenceHeight));
+        const heightDifferenceRatio = (heightDifference / originalFontHeight);
+        const dollarSignY = y + (((heightDifference * textOnlyZoomPercent)) - (((dollarAscenderSize * dollarSignScale) / textOnlyZoomPercent)) );
+
+        console.log("heightDifference", heightDifference);
+        console.log("heightDifferenceRatio", heightDifferenceRatio);
+
+        console.log("dollarSignY", dollarSignY);
 
         const dollarFill = "#0cd15b";
 
