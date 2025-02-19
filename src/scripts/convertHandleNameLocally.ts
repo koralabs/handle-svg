@@ -119,17 +119,18 @@ const buildTestHandle = async (handle: string) => {
     try {
         const handles = [
             // '0ctopus',
-            // '1nternet lnternet',
-            // 'mmw5j7h0gqklwmm',
-            // '1lnternetz',
-            // 'w00di',
-            // '0o1lijt2z5s8b',
-            // 'b_.-mj',
-            'jlg',
-            'bigirishlion',
-            '0o1lijt2z5g8@0o1lijt2z5s8',
+            // 'jlg',
+            // 'bigirishlion',
+            // '0o1lijt2z5g8@0o1lijt2z5s8', // bad
+            // '0o1lijt2z5g8@0o1', // looks good
+            // '0o1lijt2z5g8@0o1lijd',
+            // "jl5",
+            'h5',
+            'jh',
+            '0',
+            '05',
+            'h',
             'j',
-            'jg',
         ];
 
         // ****** SHORT HANDLE ******

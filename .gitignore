@@ -109,3 +109,4 @@ dist
 /lib
 test_handle.html
 test_svg.jpg
+*_svg_*.jpg
