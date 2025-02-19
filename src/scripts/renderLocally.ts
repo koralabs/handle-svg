@@ -19,48 +19,48 @@ global.Image = global.window.Image;
 import QRCodeStyling from 'qr-code-styling-node';
 import sharp from 'sharp';
 
-const options1: IHandleSvgOptions = {
-    font_shadow_color: '0x000000',
-    font_color: '0xffffff',
-    // font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
-    // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
-    // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
-    // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
-    // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
-    // font: 'https://public.koralabs.io/partner-files/Druk-Bold-Apprentices.woff2',
-    // font: 'https://derp.link/barlow-black-italic-derp.woff',
-    text_ribbon_colors: ['0x15445466'],
-    //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
-    //pfp_image: 'ipfs://QmZYtTq2aiQond3ZyDK4uzTLD1zz269JfSJoEWCfoxREPa',
-    // pfp_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
-    pfp_zoom: 150,
-    pfp_offset: [-135, 0],
-    pfp_border_color: '0x3992b011',
-    // bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs',
-    // bg_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
-    // bg_image: 'ipfs://QmPdwMizqJ5NnqvhdiWLzHdXdWuQREkuGnx14QGLCz4gNx',
-    // bg_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
-    bg_border_color: '0x797985',
-    bg_color: '0xbe4961',
-    qr_link: 'https://handle.me/bigirishlion',
-    //qr_image: 'https://derp.link/derp-icon.svg',
-    //qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
-    // qr_image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/FedEx_Ground.svg/2560px-FedEx_Ground.svg.png',
-    qr_bg_color: '0xBA000000',
-    qr_inner_eye: 'square,#FFFFFF',
-    qr_outer_eye: 'rounded,#0cd25b99',
-    qr_dot: 'rounded,#FFFFFF',
-    socials: [
-        // { display: '!@#$%^&*()bjm', url: 'https://telegram.com/testing' },
-        // { display: '-=_+[]{}    \\	|;\':"', url: 'https://whatsapp.com/testing' },
-        // { display: ',./<>?6Me4G', url: 'https://reddit.com/testing' }
-        { display: '@personalized.handles', url: 'https://twitter.com/personalized' },
-        { display: 'personazlize-this', url: 'https://facebook.com/personalized' },
-        { display: '@$personalized', url: 'https://discord.gg/personalized' }
-    ],
-    font_shadow_size: [-5, 7, 5],
-    og_number: 2438
-};
+// const options: IHandleSvgOptions = {
+//     font_shadow_color: '0x000000',
+//     font_color: '0xffffff',
+//     // font: 'ShortStackMod,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStackNew.ttf',
+//     // font: 'ShortStack,https://claynation.nyc3.cdn.digitaloceanspaces.com/ada_handles/ShortStack.ttf',
+//     // font: 'times new roman,https://fonts.cdnfonts.com/s/57197/times.woff',
+//     // font: 'Ubuntu Mono,https://fonts.gstatic.com/s/ubuntumono/v15/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2',
+//     // font: 'Poppins,https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
+//     // font: 'https://public.koralabs.io/partner-files/Druk-Bold-Apprentices.woff2',
+//     // font: 'https://derp.link/barlow-black-italic-derp.woff',
+//     text_ribbon_colors: ['0x15445466'],
+//     //pfp_image: 'ipfs://QmY3uZmaBrWiCAisREsKMwhJyaDXSUxk5PiC6hVoVLW1iP',
+//     //pfp_image: 'ipfs://QmZYtTq2aiQond3ZyDK4uzTLD1zz269JfSJoEWCfoxREPa',
+//     // pfp_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
+//     pfp_zoom: 150,
+//     pfp_offset: [-135, 0],
+//     pfp_border_color: '0x3992b011',
+//     // bg_image: 'ipfs://QmQB24x3XyWVofvbd3qYXNB4icJTcBgPmtYXEcuEpMF1Fs',
+//     // bg_image: 'https://koralabs-public.s3.amazonaws.com/marketing/pz_designer_layout.png',
+//     // bg_image: 'ipfs://QmPdwMizqJ5NnqvhdiWLzHdXdWuQREkuGnx14QGLCz4gNx',
+//     // bg_image: 'ipfs://QmfWXEff9kE89djd1dzyEB9vqygrVLS4fDiLv8yg7ix5Dd', // hosky
+//     bg_border_color: '0x797985',
+//     bg_color: '0xbe4961',
+//     qr_link: 'https://handle.me/bigirishlion',
+//     //qr_image: 'https://derp.link/derp-icon.svg',
+//     //qr_image: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
+//     // qr_image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/FedEx_Ground.svg/2560px-FedEx_Ground.svg.png',
+//     qr_bg_color: '0xBA000000',
+//     qr_inner_eye: 'square,#FFFFFF',
+//     qr_outer_eye: 'rounded,#0cd25b99',
+//     qr_dot: 'rounded,#FFFFFF',
+//     socials: [
+//         // { display: '!@#$%^&*()bjm', url: 'https://telegram.com/testing' },
+//         // { display: '-=_+[]{}    \\	|;\':"', url: 'https://whatsapp.com/testing' },
+//         // { display: ',./<>?6Me4G', url: 'https://reddit.com/testing' }
+//         { display: '@personalized.handles', url: 'https://twitter.com/personalized' },
+//         { display: 'personazlize-this', url: 'https://facebook.com/personalized' },
+//         { display: '@$personalized', url: 'https://discord.gg/personalized' }
+//     ],
+//     font_shadow_size: [-5, 7, 5],
+//     og_number: 2438
+// };
 
 // const options: IHandleSvgOptions = {
 //     font_shadow_color: '0x000000',
@@ -83,6 +83,30 @@ const options1: IHandleSvgOptions = {
 //     font_shadow_size: [1, 1, 6]
 //     // text_ribbon_colors: ['0xffffff']
 // };
+
+// const options: IHandleSvgOptions = {
+//     text_ribbon_colors: ['0xdd00efff'],
+//     pfp_border_color: '0xdd00efff',
+//     pfp_zoom: 100,
+//     pfp_offset: [0, 0],
+//     bg_image: 'ipfs://bafybeibgpuwabzt36qrum4yqlq75fpyrcz5iw2g4bl4sgxqgi5emuwo55e',
+//     bg_border_color: '0xffffff00',
+//     qr_bg_color: '0xffffff00',
+//     creator_defaults_enabled: 1,
+//     bg_asset: '0x5a6962003ed7ded871c0e9cf210cc8df8af627f91c1ce20f0b9bec8c001bc2804c6f79616c747920616e6420476c6f7279'
+// };
+
+const options: IHandleSvgOptions = {
+    text_ribbon_colors: ['0xdd00efff'],
+    pfp_border_color: '0xdd00efff',
+    pfp_zoom: 100,
+    pfp_offset: [0, 0],
+    bg_image: 'ipfs://bafybeigpimdzrpfn2ntlurkandx45wautqmhhtgltjjw4xeugajrx4aqhi',
+    bg_border_color: '0xffffff00',
+    qr_bg_color: '0xffffff00',
+    creator_defaults_enabled: 1,
+    bg_asset: '0x3511b4b365ecbc4b3898af2a05148ebba23337fb1a3df2205d0b36e2001bc2804341442043524557'
+};
 
 (async () => {
     console.log('STARTED!');

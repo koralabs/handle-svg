@@ -5,7 +5,6 @@ export const getFontArrayBuffer = async (
     const fontResponse = await fetch(fontLink).then((res) => res);
     const buffer = await fontResponse.arrayBuffer();
     const fontType = fontResponse.headers.get('Content-Type');
-    console.log('FONT_TYPE', fontType, fontLink)
 
     function toArrayBuffer(buffer: any) {
         const ab = new ArrayBuffer(buffer.length);

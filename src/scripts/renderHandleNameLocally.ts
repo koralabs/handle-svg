@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import https from 'https';
-import { xml2json, json2xml } from 'xml-js';
 import { decompress } from 'wawoff2';
 import { IHandleSvg } from '../interfaces';
 import opentype from 'opentype.js';
@@ -16,7 +15,6 @@ global.document = global.window.document;
 global.XMLSerializer = global.window.XMLSerializer;
 global.Image = global.window.Image;
 
-import QRCodeStyling from 'qr-code-styling-node';
 import sharp from 'sharp';
 
 const options: IHandleSvgOptions = {
@@ -100,15 +98,18 @@ const buildTestHandle = async (handle: string) => {
 
     // Build only the handle with the logo in the beginning
     const svg1 = await handleSvg1.buildLogoHandleSvg(decompress, opentype);
-    const buffer1 = await sharp(Buffer.from(svg1), { unlimited: true, limitInputPixels: false }).jpeg().toBuffer();
+    const buffer1 = await sharp(Buffer.from(svg1), { unlimited: true, limitInputPixels: false })
+        .unflatten()
+        .png()
+        .toBuffer();
 
     // write jpg
-    fs.writeFile(`test_svg_${handle}.jpg`, buffer1, (err: any) => {
+    fs.writeFile(`test__handle_name_svg_${handle}.png`, buffer1, (err: any) => {
         // throws an error, you could also catch it here
         if (err) throw err;
 
         // success case, the file was saved
-        console.log('JPG written!');
+        console.log('PNG written!');
     });
 
     return svg1;
@@ -124,9 +125,9 @@ const buildTestHandle = async (handle: string) => {
             // '0o1lijt2z5g8@0o1lijt2z5s8', // bad
             // '0o1lijt2z5g8@0o1', // looks good
             '0o1lijt2z5g8@0o1lijd',
-            "jl5",
+            'jl5',
             'h5',
-            'jh',
+            'jh'
             // '0',
             // '05',
             // '055',
@@ -139,7 +140,6 @@ const buildTestHandle = async (handle: string) => {
             // "-",
             // "---",
             // "____",
-            
         ];
 
         // ****** SHORT HANDLE ******
@@ -148,7 +148,7 @@ const buildTestHandle = async (handle: string) => {
             svg = await buildTestHandle(handle);
 
             // --------- HTML-------
-            if(false){
+            if (false) {
                 const html = `
                     <html>
                         <head>
@@ -203,7 +203,6 @@ const buildTestHandle = async (handle: string) => {
                     console.log('HTML written!');
                 });
             }
-
         }
     } catch (error) {
         console.error('ERROR:', error);
