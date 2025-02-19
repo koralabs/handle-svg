@@ -627,8 +627,6 @@ export default class HandleSvg {
     // Build the handle with only "$" logo and handle text (ex: "$bigirishlion") 
     async buildLogoAndHandleName(decompress: any, opentype: any) {
         const { size, handle } = this._params;
-
-        // Since this will be used for just the text, the height can be reduced
         const sizeY = size / 3;
 
         // ****** GENERAL FONT SETTINGS *******
@@ -650,9 +648,15 @@ export default class HandleSvg {
 
         const svg = path.toSVG(2);
 
+        // Get reference height using zeros
+        const referenceText = '0'.repeat(handle.length);
+        const { boundingBox: refBB } = await this.loadParsedFont(font, decompress, referenceText, fontSize, opentype);
+        const referenceHeight = refBB.y2 - refBB.y1;
+
         // ******* PLACEMENT AND ZOOM MATH *******
+
         let realFontHeight = bb.y2 - bb.y1;
-        let originalFontHeight = realFontHeight;
+        const originalFontHeight = realFontHeight;
         const realFontWidth = bb.x2 - bb.x1;
 
         if (realFontHeight < minimumFontHeight) {
@@ -660,92 +664,64 @@ export default class HandleSvg {
             realFontHeight = minimumFontHeight;
         }
 
-        // First calculate zoom for text only to determine final text size
+        // Calculate zoom based on original text dimensions
         let textOnlyZoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
         if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
             textOnlyZoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
         }
         textOnlyZoomPercent = 1 + textOnlyZoomPercent;
 
-        // Begin calculating dollar sign size and placement
-
-        // The dollar sign SVG path coordinates
+        // Dollar sign calculations
         const dollarSignBounds = {
             minY: 0,  
             maxY: 15.38,
             minX: 0,  
             maxX: 10.25 
         };
-        
-        // Need to account for dollar sign descender / ascender
-        const dollarAscenderSize = 1.38
-        const dollarDescenderSize = 1.4
 
-        const dollarPathHeight = dollarSignBounds.maxY - dollarSignBounds.minY;
+        const dollarAscenderSize = 1.38;
+        const dollarDescenderSize = 1.4;
+
+        // Calculate the body height of the dollar sign (excluding ascender and descender)
+        const dollarBodyMinY = dollarAscenderSize;
+        const dollarBodyMaxY = dollarSignBounds.maxY - dollarDescenderSize;
+        const dollarBodyHeight = dollarBodyMaxY - dollarBodyMinY;
+
         const dollarPathWidth = dollarSignBounds.maxX - dollarSignBounds.minX;
 
-        const isShortHandle = handle.length <= 3;
-
-        // const noAscenderDescenderChars = 'acemnorsuvwxz';
-        const hasOnlyNoAscenderDescenderChars = handle.split('').every(char => noAscenderDescenderChars.includes(char.toLowerCase()));
-        const heightMultiplier = hasOnlyNoAscenderDescenderChars || isShortHandle ? 1.19 : 0.97;
-        
-        const dollarSignScale = ((originalFontHeight * heightMultiplier) / dollarPathHeight) * (textOnlyZoomPercent);
-        const dollarSignScaleWidth = ((originalFontHeight * heightMultiplier) / dollarPathHeight) / textOnlyZoomPercent;
-        
-        // Calculate width while maintaining aspect ratio
+        // Use reference height to scale dollar sign based on its body height
+        const dollarSignScale = (referenceHeight / dollarBodyHeight) * textOnlyZoomPercent;
+        const dollarSignScaleWidth = (referenceHeight / dollarBodyHeight) / textOnlyZoomPercent;
         const dollarSignWidth = dollarSignScaleWidth * dollarPathWidth * textOnlyZoomPercent;
 
-        // const spacing = size * (((25 * (textOnlyZoomPercent))) / this._baseSize);
+        // Scale spacing based on handle length and zoom
+        const baseSpacing = size * (15 / this._baseSize);
+        const spacing = baseSpacing * textOnlyZoomPercent;
 
-        // Scale spacing based on handle length and zoom - longer handles get proportionally less spacing
-        const baseSpacing = size * ((15) / this._baseSize);
-        const spacing = (baseSpacing * textOnlyZoomPercent);
-        
-        console.log(`******************* ${handle} *******************`)
-        console.log("textOnlyZoomPercent", textOnlyZoomPercent)
-        console.log("originalFontHeight", originalFontHeight)
-        console.log("dollarSignScale", dollarSignScale)
-        console.log("spacing", spacing)
-        console.log("dollarSignWidth", dollarSignWidth)
-        
-        // Calculate total width including dollar sign and spacing
+        // Calculate total width and positioning
         const totalWidth = realFontWidth + dollarSignWidth + spacing;
-
         const viewBoxWidth = size / textOnlyZoomPercent;
         const viewBoxHeight = sizeY / textOnlyZoomPercent;
 
-        // Center the combined elements
         const combinedX = size / 2 - (totalWidth / 2 + bb.x1) * textOnlyZoomPercent;
         const y = sizeY / 2 - (realFontHeight / 2 + bb.y2) * textOnlyZoomPercent;
 
+        console.log(`********* ${handle} *********`);
+        console.log("realFontHeight", realFontHeight);
+        console.log("referenceHeight", referenceHeight);
+
         const viewBoxX = 0;
         const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / textOnlyZoomPercent) * -1;
-
         const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
 
-        // Position the dollar sign to the left of the text with proper spacing
+        // Position elements
         const dollarSignX = combinedX;
         const handleX = dollarSignX + (dollarSignWidth + spacing) * textOnlyZoomPercent;
 
-        let multiplier = 0.18;
-        if(isShortHandle){
-            if(hasOnlyNoAscenderDescenderChars){
-                multiplier = -0.1;
-            }
-            else {
-                multiplier = 0.1;
-            }
-        }
-        // Adjust vertical position of dollar sign to align with text
-        const dollarSignY = y + ((originalFontHeight * (textOnlyZoomPercent)) * multiplier); // Small adjustment to visually center the dollar sign
+        const dollarSignY = y + (((realFontHeight - referenceHeight) / 2) * textOnlyZoomPercent)// - (dollarAscenderSize * dollarSignScale);
 
-        let dollarFill = "#0cd15b"; // default green color
-        const dollarViewBoxSize = "0 0 10.25 15.38"
+        const dollarFill = "#0cd15b";
 
-        
-
-        // Create the dollar sign SVG with the same scale as the text
         const dollarSignSvg = `<path transform="translate(${-dollarSignBounds.minX}, ${-dollarSignBounds.minY}) scale(${dollarSignScale})" id="S" fill="${dollarFill}" d="M3.48,1.16c0-.28,.21-.54,.64-.78,.43-.25,.99-.38,1.7-.38,.54,0,.89,.12,1.05,.36,.11,.17,.17,.33,.17,.47v.54c1.28,.14,2.16,.4,2.66,.76,.2,.14,.31,.28,.31,.42,0,.63-.14,1.3-.42,2.02-.27,.72-.54,1.08-.8,1.08-.05,0-.19-.05-.44-.16-.75-.35-1.37-.52-1.86-.52s-.82,.05-1,.14c-.17,.1-.25,.25-.25,.45,0,.19,.12,.34,.37,.45,.25,.11,.55,.2,.92,.29,.37,.07,.77,.2,1.2,.38,.44,.18,.85,.4,1.22,.65,.37,.25,.68,.63,.93,1.14,.25,.49,.37,1,.37,1.52s-.05,.95-.14,1.28c-.09,.34-.25,.69-.47,1.05-.21,.36-.55,.69-1,.98-.44,.28-.97,.48-1.59,.61v.29c0,.28-.21,.54-.64,.78-.43,.25-.99,.38-1.7,.38-.54,0-.89-.12-1.05-.36-.11-.17-.17-.33-.17-.47v-.54c-.73-.07-1.37-.19-1.92-.34-1.04-.3-1.56-.63-1.56-.98,0-.67,.09-1.37,.27-2.1,.18-.73,.4-1.1,.64-1.1,.05,0,.51,.16,1.41,.49s1.57,.49,2.02,.49,.75-.05,.88-.14c.14-.11,.2-.26,.2-.45s-.12-.36-.37-.49c-.25-.14-.56-.26-.93-.34-.37-.08-.78-.22-1.22-.4-.43-.18-.83-.39-1.2-.63-.37-.24-.68-.6-.93-1.07-.25-.47-.37-1.02-.37-1.64C.39,3.06,1.42,1.76,3.48,1.39v-.23Z"/>`;
 
         return `
