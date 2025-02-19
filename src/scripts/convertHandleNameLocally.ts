@@ -121,18 +121,25 @@ const buildTestHandle = async (handle: string) => {
             '0ctopus',
             'jlg',
             'bigirishlion',
-            '0o1lijt2z5g8@0o1lijt2z5s8', // bad
-            '0o1lijt2z5g8@0o1', // looks good
+            // '0o1lijt2z5g8@0o1lijt2z5s8', // bad
+            // '0o1lijt2z5g8@0o1', // looks good
             '0o1lijt2z5g8@0o1lijd',
             "jl5",
             'h5',
             'jh',
-            '0',
-            '05',
-            '055',
-            '0555',
-            'h',
-            'j',
+            // '0',
+            // '05',
+            // '055',
+            // '0555',
+            // 'h',
+            // 'j',
+            // ".",
+            // "..",
+            // "_",
+            // "-",
+            // "---",
+            // "____",
+            
         ];
 
         // ****** SHORT HANDLE ******

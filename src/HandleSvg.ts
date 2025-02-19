@@ -659,6 +659,10 @@ export default class HandleSvg {
         const originalFontHeight = realFontHeight;
         const realFontWidth = bb.x2 - bb.x1;
 
+        console.log("originalFontHeight", originalFontHeight);
+        
+
+        // For ex) ".",  "..", "_", "-"
         if (realFontHeight < minimumFontHeight) {
             // This is to keep really small characters from becoming ginormous
             realFontHeight = minimumFontHeight;
@@ -671,7 +675,8 @@ export default class HandleSvg {
         }
         textOnlyZoomPercent = 1 + textOnlyZoomPercent;
 
-        // Dollar sign calculations
+        // ******* DOLLAR SIGN CALCULATIONS *******
+
         const dollarSignBounds = {
             minY: 0,  
             maxY: 15.38,
@@ -706,12 +711,13 @@ export default class HandleSvg {
         const combinedX = size / 2 - (totalWidth / 2 + bb.x1) * textOnlyZoomPercent;
         const y = sizeY / 2 - (realFontHeight / 2 + bb.y2) * textOnlyZoomPercent;
 
-        console.log(`********* ${handle} *********`);
-        console.log("textOnlyZoomPercent", textOnlyZoomPercent);
-
         const viewBoxX = 0;
         const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / textOnlyZoomPercent) * -1;
         const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
+
+
+        console.log(`********* ${handle} *********`);
+        console.log("textOnlyZoomPercent", textOnlyZoomPercent);
 
         // Position elements
         const dollarSignX = combinedX;
@@ -720,7 +726,11 @@ export default class HandleSvg {
         // Adjust Y position with a scaling factor based on handle length
         const heightDifference = ((realFontHeight - referenceHeight));
         const heightDifferenceRatio = (heightDifference / originalFontHeight);
-        const dollarSignY = y + (((heightDifference * textOnlyZoomPercent)) - (((dollarAscenderSize * dollarSignScale) / textOnlyZoomPercent)) );
+        const dollarSignY = y + (((heightDifference * textOnlyZoomPercent)) - ((((dollarAscenderSize) * dollarSignScale) / textOnlyZoomPercent)) );
+
+        // Get ratio of ascender
+        // dollarAscenderSize / entireHeightOfSVG = percentage of dollar sign that is the ascender
+        // then you know where the top parrt (aka Y) of the S part should go
 
         console.log("heightDifference", heightDifference);
         console.log("heightDifferenceRatio", heightDifferenceRatio);
