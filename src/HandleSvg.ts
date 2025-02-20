@@ -451,12 +451,22 @@ export default class HandleSvg {
 
         let shadowSvg = '';
         if (fontShadowFill && fontShadowFill.startsWith('0x')) {
-            shadowSvg = `style="filter: drop-shadow( ${horizontalOffset}px ${verticalOffset}px ${blur}px ${fontShadowFill.replace(
-                '0x',
-                '#'
-            )} );" `;
+            shadowSvg = `
+                <defs>
+                    <filter id="drop-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="${blur}" />
+                        <feOffset dx="${horizontalOffset}" dy="${verticalOffset}" result="offsetblur" />
+                        <feFlood flood-color="${fontShadowFill.replace('0x', '#')}" />
+                        <feComposite in2="offsetblur" operator="in" />
+                        <feMerge>
+                            <feMergeNode />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+            `;
         }
-        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox} ${shadowSvg}>${svg}</svg>`;
+        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox}>${shadowSvg}<g filter="url(#drop-shadow)">${svg}</g></svg>`;
     }
 
     async buildQrImage(qrImageUri?: string, contentType?: string, xml2json?: any, json2xml?: any) {

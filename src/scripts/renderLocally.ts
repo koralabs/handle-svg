@@ -97,15 +97,14 @@ import sharp from 'sharp';
 // };
 
 const options: IHandleSvgOptions = {
-    text_ribbon_colors: ['0xdd00efff'],
-    pfp_border_color: '0xdd00efff',
+    font_shadow_color: '0x353eabff',
+    font_shadow_size: [15, 15, 5],
     pfp_zoom: 100,
     pfp_offset: [0, 0],
-    bg_image: 'ipfs://bafybeigpimdzrpfn2ntlurkandx45wautqmhhtgltjjw4xeugajrx4aqhi',
-    bg_border_color: '0xffffff00',
+    bg_color: '0x000000ff',
     qr_bg_color: '0xffffff00',
     creator_defaults_enabled: 1,
-    bg_asset: '0x3511b4b365ecbc4b3898af2a05148ebba23337fb1a3df2205d0b36e2001bc2804341442043524557'
+    bg_asset: '0x788765a51e4add65ac37e686b937e6698964ad68910d3503674aef97001bc2804e6967687420416c70'
 };
 
 (async () => {
