@@ -449,9 +449,8 @@ export default class HandleSvg {
 
         const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
 
-        let shadowSvg = '';
         if (fontShadowFill && fontShadowFill.startsWith('0x')) {
-            shadowSvg = `
+            const shadowSvg = `
                 <defs>
                     <filter id="drop-shadow" x="-50%" y="-50%" width="200%" height="200%">
                         <feGaussianBlur in="SourceAlpha" stdDeviation="${blur}" />
@@ -465,8 +464,9 @@ export default class HandleSvg {
                     </filter>
                 </defs>
             `;
+            return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox}>${shadowSvg}<g filter="url(#drop-shadow)">${svg}</g></svg>`;
         }
-        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox}>${shadowSvg}<g filter="url(#drop-shadow)">${svg}</g></svg>`;
+        return `<svg id="handle_name_${handle}" x="${x}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox}>${svg}</svg>`;
     }
 
     async buildQrImage(qrImageUri?: string, contentType?: string, xml2json?: any, json2xml?: any) {
