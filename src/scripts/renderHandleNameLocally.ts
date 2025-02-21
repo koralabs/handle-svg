@@ -119,17 +119,27 @@ const buildTestHandle = async (handle: string) => {
     console.log('STARTED!');
     try {
         const handles = [
-            // '0ctopus',
-            // '1nternet lnternet',
-            // 'mmw5j7h0gqklwmm',
-            // '1lnternetz',
-            // 'w00di',
-            // '0o1lijt2z5s8b',
-            // 'b_.-mj',
+            '0ctopus',
             'jlg',
-            '0o1lijt2z5g8@0o1lijt2z5s8',
-            '0',
-            '01'
+            'bigirishlion',
+            // '0o1lijt2z5g8@0o1lijt2z5s8', // bad
+            // '0o1lijt2z5g8@0o1', // looks good
+            '0o1lijt2z5g8@0o1lijd',
+            'jl5',
+            'h5',
+            'jh'
+            // '0',
+            // '05',
+            // '055',
+            // '0555',
+            // 'h',
+            // 'j',
+            // ".",
+            // "..",
+            // "_",
+            // "-",
+            // "---",
+            // "____",
         ];
 
         // ****** SHORT HANDLE ******
@@ -138,60 +148,61 @@ const buildTestHandle = async (handle: string) => {
             svg = await buildTestHandle(handle);
 
             // --------- HTML-------
+            if (false) {
+                const html = `
+                    <html>
+                        <head>
+                            <title>${handle} SVG</title>
+                            <script type="text/javascript" src="https://unpkg.com/wawoff2@2.0.1/build/decompress_binding.js"></script>
+                        </head>
+                        <body style="margin: 0; padding: 0;">
+                        <div style="
+                            position: absolute;
+                            width: 435px;
+                            height: 2px;
+                            background: red;
+                            top: 1075px;
+                            left: 811px;
+                        "></div>
+                        <div style="
+                            position: absolute;
+                            width: 435px;
+                            height: 1px;
+                            background: red;
+                            top: 1024px;
+                            left: 811px;
+                        "></div>
+                        <div style="
+                            position: absolute;
+                            width: 435px;
+                            height: 1px;
+                            background: red;
+                            top: 973px;
+                            left: 811px;
+                        "></div>
+                        <div style="
+                            position: absolute;
+                            width: 1px;
+                            height: 130px;
+                            background: red;
+                            position: absolute;
+                            top: 960;
+                            left: 1024px;
+                        "></div>
+                            ${svg}
+                        </body>
+                    </html>
+                `;
 
-            const html = `
-    <html>
-        <head>
-            <title>${handle} SVG</title>
-            <script type="text/javascript" src="https://unpkg.com/wawoff2@2.0.1/build/decompress_binding.js"></script>
-        </head>
-        <body style="margin: 0; padding: 0;">
-        <div style="
-            position: absolute;
-            width: 435px;
-            height: 2px;
-            background: red;
-            top: 1075px;
-            left: 811px;
-        "></div>
-        <div style="
-            position: absolute;
-            width: 435px;
-            height: 1px;
-            background: red;
-            top: 1024px;
-            left: 811px;
-        "></div>
-        <div style="
-            position: absolute;
-            width: 435px;
-            height: 1px;
-            background: red;
-            top: 973px;
-            left: 811px;
-        "></div>
-        <div style="
-            position: absolute;
-            width: 1px;
-            height: 130px;
-            background: red;
-            position: absolute;
-            top: 960;
-            left: 1024px;
-        "></div>
-            ${svg}
-        </body>
-    </html>
-    `;
+                // write html file
+                fs.writeFile(`test_handle_${handle}.html`, html, (err: any) => {
+                    // throws an error, you could also catch it here
+                    if (err) throw err;
 
-            // write html file
-            fs.writeFile(`test_handle_${handle}.html`, html, (err: any) => {
-                // throws an error, you could also catch it here
-                if (err) throw err;
-
-                // success case, the file was saved
-                console.log('HTML written!');
-            });
+                    // success case, the file was saved
+                    console.log('HTML written!');
+                });
+            }
         }
     } catch (error) {
         console.error('ERROR:', error);

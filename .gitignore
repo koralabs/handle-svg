@@ -109,6 +109,7 @@ dist
 /lib
 test_handle.html
 test_svg.jpg
+*_svg_*.jpg
 test__handle_name_svg_0.png
 test__handle_name_svg_0o1lijt2z5g8@0o1lijt2z5s8.png
 test__handle_name_svg_01.png
