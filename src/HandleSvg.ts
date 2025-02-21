@@ -623,18 +623,17 @@ export default class HandleSvg {
         const sizeY = size / 3;
 
         // ****** GENERAL FONT SETTINGS *******
-        // font color must be slighly off white due to Sharp's unflatten
-        // https://sharp.pixelplumbing.com/api-operation#unflatten
         const font_color = '0xfdfdfd';
         const font = 'Inter';
         const baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
+        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
         const fontMarginX = size * (200 / this._baseSize);
         const fontMarginY = size * (94 / this._baseSize);
         const ribbonHeight = size * (314 / this._baseSize);
         const maxFontWidth = size - fontMarginX;
         const maxFontHeight = ribbonHeight - fontMarginY;
-        const minimumFontHeight = size * (getMinimumFontSize(handle) / this._baseSize);
+
 
         // ****** LOAD AND PARSE THE FONT *******
         const { parsedFont, boundingBox: bb } = await this.loadParsedFont(font, decompress, handle, fontSize, opentype);
@@ -648,29 +647,22 @@ export default class HandleSvg {
         const { boundingBox: refBB } = await this.loadParsedFont(font, decompress, referenceText, fontSize, opentype);
         const referenceHeight = refBB.y2 - refBB.y1;
 
-        // ******* PLACEMENT AND ZOOM MATH *******
-
+        // ******* TEXT DIMENSIONS *******
         let realFontHeight = bb.y2 - bb.y1;
-        const originalFontHeight = realFontHeight;
         const realFontWidth = bb.x2 - bb.x1;
-
-        console.log('originalFontHeight', originalFontHeight);
 
         // For ex) ".",  "..", "_", "-"
         if (realFontHeight < minimumFontHeight) {
-            // This is to keep really small characters from becoming ginormous
             realFontHeight = minimumFontHeight;
         }
 
-        // Calculate zoom based on original text dimensions
-        let textOnlyZoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
+        let zoomPercent = (maxFontWidth - realFontWidth) / realFontWidth;
         if (realFontHeight / maxFontHeight > realFontWidth / maxFontWidth) {
-            textOnlyZoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
+            zoomPercent = (maxFontHeight - realFontHeight) / realFontHeight;
         }
-        textOnlyZoomPercent = 1 + textOnlyZoomPercent;
+        zoomPercent = 1 + zoomPercent;
 
-        // ******* DOLLAR SIGN CALCULATIONS *******
-
+        // ******* DOLLAR SIGN DIMENSIONS *******
         const dollarSignBounds = {
             minY: 0,
             maxY: 15.38,
@@ -680,66 +672,40 @@ export default class HandleSvg {
 
         const dollarAscenderSize = 1.4;
         const dollarDescenderSize = 1.4;
-
-        // Calculate the body height of the dollar sign (excluding ascender and descender)
         const dollarBodyMinY = dollarAscenderSize;
         const dollarBodyMaxY = dollarSignBounds.maxY - dollarDescenderSize;
         const dollarBodyHeight = dollarBodyMaxY - dollarBodyMinY;
-
         const dollarPathWidth = dollarSignBounds.maxX - dollarSignBounds.minX;
 
-        // Use reference height to scale dollar sign based on its body height
-        const dollarSignScale = (referenceHeight / dollarBodyHeight) * textOnlyZoomPercent;
-        const dollarSignScaleWidth = referenceHeight / dollarBodyHeight / textOnlyZoomPercent;
-        const dollarSignWidth = dollarSignScaleWidth * dollarPathWidth * textOnlyZoomPercent;
+        // Scale dollar sign to match text body height
+        const dollarScale = referenceHeight / dollarBodyHeight;
+        const dollarWidth = dollarPathWidth * dollarScale;
 
-        // Scale spacing based on handle length and zoom
-        const baseSpacing = size * (15 / this._baseSize);
-        const spacing = baseSpacing * textOnlyZoomPercent;
+        // ******* LAYOUT CALCULATIONS *******
+        const spacing = size * (20 / this._baseSize);
+        const totalWidth = realFontWidth + dollarWidth + spacing;
 
-        // Calculate total width and positioning
-        const totalWidth = realFontWidth + dollarSignWidth + spacing;
-        const viewBoxWidth = size / textOnlyZoomPercent;
-        const viewBoxHeight = sizeY / textOnlyZoomPercent;
+        // Center the combined elements
+        const centerX = size / 2 - (totalWidth * zoomPercent) / 2;
+        const centerY = sizeY / 2;
 
-        const combinedX = size / 2 - (totalWidth / 2 + bb.x1) * textOnlyZoomPercent;
-        const y = sizeY / 2 - (realFontHeight / 2 + bb.y2) * textOnlyZoomPercent;
-
-        const viewBoxX = 0;
-        const viewBoxY = (realFontHeight - (realFontHeight - (bb.y2 - bb.y1)) / 2 / textOnlyZoomPercent) * -1;
-        const viewBox = `viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}"`;
-
-        console.log(`********* ${handle} *********`);
-        console.log('textOnlyZoomPercent', textOnlyZoomPercent);
-
-        // Position elements
-        const dollarSignX = combinedX;
-        const handleX = dollarSignX + (dollarSignWidth + spacing) * textOnlyZoomPercent;
-
-        // Adjust Y position with a scaling factor based on handle length
-        const heightDifference = realFontHeight - referenceHeight;
-        const heightDifferenceRatio = heightDifference / originalFontHeight;
-        const dollarSignY =
-            y + (heightDifference * textOnlyZoomPercent - (dollarAscenderSize * dollarSignScale) / textOnlyZoomPercent);
-
-        // Get ratio of ascender
-        // dollarAscenderSize / entireHeightOfSVG = percentage of dollar sign that is the ascender
-        // then you know where the top parrt (aka Y) of the S part should go
-
-        console.log('heightDifference', heightDifference);
-        console.log('heightDifferenceRatio', heightDifferenceRatio);
-
-        console.log('dollarSignY', dollarSignY);
+        // Position elements relative to center
+        const dollarX = centerX;
+        const textX = dollarX + dollarWidth * zoomPercent + spacing - bb.x1;
+        const textY = centerY - (referenceHeight * zoomPercent) / 2;
 
         const dollarFill = '#0cd15b';
-
-        const dollarSignSvg = `<path transform="translate(${-dollarSignBounds.minX}, ${-dollarSignBounds.minY}) scale(${dollarSignScale})" id="S" fill="${dollarFill}" d="M3.48,1.16c0-.28,.21-.54,.64-.78,.43-.25,.99-.38,1.7-.38,.54,0,.89,.12,1.05,.36,.11,.17,.17,.33,.17,.47v.54c1.28,.14,2.16,.4,2.66,.76,.2,.14,.31,.28,.31,.42,0,.63-.14,1.3-.42,2.02-.27,.72-.54,1.08-.8,1.08-.05,0-.19-.05-.44-.16-.75-.35-1.37-.52-1.86-.52s-.82,.05-1,.14c-.17,.1-.25,.25-.25,.45,0,.19,.12,.34,.37,.45,.25,.11,.55,.2,.92,.29,.37,.07,.77,.2,1.2,.38,.44,.18,.85,.4,1.22,.65,.37,.25,.68,.63,.93,1.14,.25,.49,.37,1,.37,1.52s-.05,.95-.14,1.28c-.09,.34-.25,.69-.47,1.05-.21,.36-.55,.69-1,.98-.44,.28-.97,.48-1.59,.61v.29c0,.28-.21,.54-.64,.78-.43,.25-.99,.38-1.7,.38-.54,0-.89-.12-1.05-.36-.11-.17-.17-.33-.17-.47v-.54c-.73-.07-1.37-.19-1.92-.34-1.04-.3-1.56-.63-1.56-.98,0-.67,.09-1.37,.27-2.1,.18-.73,.4-1.1,.64-1.1,.05,0,.51,.16,1.41,.49s1.57,.49,2.02,.49,.75-.05,.88-.14c.14-.11,.2-.26,.2-.45s-.12-.36-.37-.49c-.25-.14-.56-.26-.93-.34-.37-.08-.78-.22-1.22-.4-.43-.18-.83-.39-1.2-.63-.37-.24-.68-.6-.93-1.07-.25-.47-.37-1.02-.37-1.64C.39,3.06,1.42,1.76,3.48,1.39v-.23Z"/>`;
+        const dollarSignSvg = `<path id="S" fill="${dollarFill}" d="M3.48,1.16c0-.28,.21-.54,.64-.78,.43-.25,.99-.38,1.7-.38,.54,0,.89,.12,1.05,.36,.11,.17,.17,.33,.17,.47v.54c1.28,.14,2.16,.4,2.66,.76,.2,.14,.31,.28,.31,.42,0,.63-.14,1.3-.42,2.02-.27,.72-.54,1.08-.8,1.08-.05,0-.19-.05-.44-.16-.75-.35-1.37-.52-1.86-.52s-.82,.05-1,.14c-.17,.1-.25,.25-.25,.45,0,.19,.12,.34,.37,.45,.25,.11,.55,.2,.92,.29,.37,.07,.77,.2,1.2,.38,.44,.18,.85,.4,1.22,.65,.37,.25,.68,.63,.93,1.14,.25,.49,.37,1,.37,1.52s-.05,.95-.14,1.28c-.09,.34-.25,.69-.47,1.05-.21,.36-.55,.69-1,.98-.44,.28-.97,.48-1.59,.61v.29c0,.28-.21,.54-.64,.78-.43,.25-.99,.38-1.7,.38-.54,0-.89-.12-1.05-.36-.11-.17-.17-.33-.17-.47v-.54c-.73-.07-1.37-.19-1.92-.34-1.04-.3-1.56-.63-1.56-.98,0-.67,.09-1.37,.27-2.1,.18-.73,.4-1.1,.64-1.1,.05,0,.51,.16,1.41,.49s1.57,.49,2.02,.49,.75-.05,.88-.14c.14-.11,.2-.26,.2-.45s-.12-.36-.37-.49c-.25-.14-.56-.26-.93-.34-.37-.08-.78-.22-1.22-.4-.43-.18-.83-.39-1.2-.63-.37-.24-.68-.6-.93-1.07-.25-.47-.37-1.02-.37-1.64C.39,3.06,1.42,1.76,3.48,1.39v-.23Z"/>`;
 
         return `
-            <svg id="dollar_sign" x="${dollarSignX}" y="${dollarSignY}" xmlns="http://www.w3.org/2000/svg">
-                ${dollarSignSvg}
+            <svg id="handle_name_${handle}" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${sizeY}">
+                <g transform="translate(${dollarX},${textY - ((dollarAscenderSize * dollarScale))}) scale(${dollarScale * zoomPercent})">
+                    ${dollarSignSvg}
+                </g>
+                <g transform="translate(${textX},${textY + (dollarBodyHeight * dollarScale * zoomPercent)}) scale(${zoomPercent})">
+                    ${svg}
+                </g>
             </svg>
-            <svg id="handle_name_${handle}" x="${handleX}" y="${y}" xmlns="http://www.w3.org/2000/svg" ${viewBox}>${svg}</svg>
         `;
     }
 
