@@ -120,6 +120,17 @@ const options: IHandleSvgOptions = {
         const handle = '0o1lijt2z5s8@0o1lijt2z5s8';
         // 0ctopus, 1nternet lnternet
 
+        const options: IHandleSvgOptions = {
+            font_shadow_color: '0x353eabff',
+            font_shadow_size: [8, 8, 5],
+            pfp_zoom: 100,
+            pfp_offset: [0, 0],
+            bg_image: 'ipfs://bafybeig5xnhvexbkq7i462vmp6ycjtnt262eggusqpa3gpftk7ndcm7ycy',
+            qr_bg_color: '0xffffff00',
+            creator_defaults_enabled: 1,
+            bg_asset: '0x788765a51e4add65ac37e686b937e6698964ad68910d3503674aef97001bc2804e6967687420416c70'
+        };
+
         const input: IHandleSvg = {
             handle,
             disableDollarSymbol: false,
