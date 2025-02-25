@@ -148,7 +148,8 @@ const buildTestHandle = async (handle: string) => {
             svg = await buildTestHandle(handle);
 
             // --------- HTML-------
-            if (false) {
+            const renderHtml = false;
+            if (renderHtml) {
                 const html = `
                     <html>
                         <head>
