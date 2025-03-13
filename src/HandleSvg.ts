@@ -15,7 +15,7 @@ export const noAscenderDescenderChars = 'aceimnorsuvwxz0123456789-._';
 
 export default class HandleSvg {
     private _options: IHandleSvgOptions;
-    private _params: { size: number; handle: string; disableDollarSymbol: boolean };
+    private _params: { size: number; handle: string; disableDollarSymbol: boolean, isLight?: boolean };
     private _baseMargin: number = 80;
     private _baseSize: number = 2048;
     private _qrCodeBaseSize: number = 430;
@@ -28,7 +28,8 @@ export default class HandleSvg {
         this._params = {
             size: inputs.size,
             handle: inputs.handle,
-            disableDollarSymbol: inputs.disableDollarSymbol ?? false
+            disableDollarSymbol: inputs.disableDollarSymbol ?? false,
+            isLight: inputs.isLight ?? true
         };
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
         this._https = https;
@@ -69,9 +70,8 @@ export default class HandleSvg {
     buildBackground() {
         const { size } = this._params;
         const { bg_color } = this._options;
-        return `<rect width="${size}" height="${size}" fill="${
-            bg_color && bg_color.startsWith('0x') ? hexToColorHex(bg_color) : '#0d0f26ff'
-        }" />`;
+        return `<rect width="${size}" height="${size}" fill="${bg_color && bg_color.startsWith('0x') ? hexToColorHex(bg_color) : '#0d0f26ff'
+            }" />`;
     }
 
     buildDefaultBackground() {
@@ -161,12 +161,11 @@ export default class HandleSvg {
                     <circle cx="${dx}" cy="${dy}" r="${radius}" />
                 </clipPath>
             </defs>
-            ${
-                pfp_border_color && pfp_border_color.startsWith('0x')
-                    ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${hexToColorHex(
-                          pfp_border_color
-                      )}" />`
-                    : ''
+            ${pfp_border_color && pfp_border_color.startsWith('0x')
+                ? `<circle cx="${dx}" cy="${dy}" r="${radius + strokeWidth}" fill="${hexToColorHex(
+                    pfp_border_color
+                )}" />`
+                : ''
             }
             <foreignObject>
             <div xmlns="http://www.w3.org/1999/xhtml">
@@ -218,13 +217,11 @@ export default class HandleSvg {
                 return `
                 <svg>
                     <defs>
-                        ${
-                            text_ribbon_gradient.startsWith('linear')
-                                ? `<linearGradient id="grad1" gradientTransform="rotate(${
-                                      text_ribbon_gradient.split('-')[1]
-                                  } 0.5 0.5)">${getGradientStops(text_ribbon_colors)}</linearGradient>`
-                                : `<radialGradient id="grad1">${getGradientStops(text_ribbon_colors)}</radialGradient>`
-                        }
+                        ${text_ribbon_gradient.startsWith('linear')
+                        ? `<linearGradient id="grad1" gradientTransform="rotate(${text_ribbon_gradient.split('-')[1]
+                        } 0.5 0.5)">${getGradientStops(text_ribbon_colors)}</linearGradient>`
+                        : `<radialGradient id="grad1">${getGradientStops(text_ribbon_colors)}</radialGradient>`
+                    }
                     </defs>
                     <rect x="${x}" y="${y}" width="${size}" height="${height}" style="fill: url(#grad1)" />
                 </svg>
@@ -233,9 +230,8 @@ export default class HandleSvg {
 
             return `
                 <svg>
-                    <rect x="0" y="${size / 2 - height / 2}" width="${size}" height="${height}" style="fill: ${
-                firstColor && firstColor.startsWith('0x') ? hexToColorHex(firstColor) : '#fff'
-            }" />
+                    <rect x="0" y="${size / 2 - height / 2}" width="${size}" height="${height}" style="fill: ${firstColor && firstColor.startsWith('0x') ? hexToColorHex(firstColor) : '#fff'
+                }" />
                 </svg>
             `;
         }
@@ -249,11 +245,10 @@ export default class HandleSvg {
         const strokeWidth = size * (30 / this._baseSize);
         const recSize = size - strokeWidth;
         return bg_border_color && bg_border_color.startsWith('0x')
-            ? `<rect x="${strokeWidth / 2}" y="${
-                  strokeWidth / 2
-              }" width="${recSize}" height="${recSize}" fill="none" stroke-width="${strokeWidth}" stroke="${hexToColorHex(
-                  bg_border_color
-              )}" />`
+            ? `<rect x="${strokeWidth / 2}" y="${strokeWidth / 2
+            }" width="${recSize}" height="${recSize}" fill="none" stroke-width="${strokeWidth}" stroke="${hexToColorHex(
+                bg_border_color
+            )}" />`
             : '';
     };
 
@@ -545,16 +540,13 @@ export default class HandleSvg {
 
         if (qr_link) {
             return `
-                <rect x="${svgQrPosition}" y="${svgQrPosition}" width="${adjustedQRCodeSize + qrCodeMargin}" height="${
-                adjustedQRCodeSize + qrCodeMargin
-            }" 
-                    style="fill: ${
-                        qr_bg_color && qr_bg_color.startsWith('0x') ? hexToColorHex(qr_bg_color) : '#ffffff00'
-                    }" 
+                <rect x="${svgQrPosition}" y="${svgQrPosition}" width="${adjustedQRCodeSize + qrCodeMargin}" height="${adjustedQRCodeSize + qrCodeMargin
+                }" 
+                    style="fill: ${qr_bg_color && qr_bg_color.startsWith('0x') ? hexToColorHex(qr_bg_color) : '#ffffff00'
+                }" 
                 />
-                <svg id="qr_code_${handle}" x="${svgQrPosition + qrCodeMargin / 2}" y="${
-                svgQrPosition + qrCodeMargin / 2
-            }" viewBox="${svgViewBox}">${qrCode._svg?._element.outerHTML}${qrImageSvg}</svg>
+                <svg id="qr_code_${handle}" x="${svgQrPosition + qrCodeMargin / 2}" y="${svgQrPosition + qrCodeMargin / 2
+                }" viewBox="${svgViewBox}">${qrCode._svg?._element.outerHTML}${qrImageSvg}</svg>
             `;
         }
 
@@ -633,7 +625,7 @@ export default class HandleSvg {
         const sizeY = size / 3;
 
         // ****** GENERAL FONT SETTINGS *******
-        const font_color = '0xfdfdfd';
+        const font_color = this._params.isLight ? '0xfdfdfd' : '0x000000';
         const font = 'Inter';
         const baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
