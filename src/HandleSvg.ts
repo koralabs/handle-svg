@@ -633,7 +633,7 @@ export default class HandleSvg {
         const sizeY = size / 3;
 
         // ****** GENERAL FONT SETTINGS *******
-        const font_color = '0xfdfdfd';
+        const { font_color } = this._options;
         const font = 'Inter';
         const baseFontSize = 200;
         const fontSize = size * (baseFontSize / this._baseSize);
