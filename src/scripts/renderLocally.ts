@@ -117,7 +117,11 @@ import sharp from 'sharp';
         // const handle = 'w00di';
         // const handle = '0o1lijt2z5s8b';
         // const handle = 'b_.-mj';
-        const handle = '0o1lijt2z5s8@0o1lijt2z5s8';
+        // const handle = '0o1lijt2z5s8@0o1lijt2z5s8';
+        // const handle = 'abcdefghijk@lmnopqrstuvwxyz'
+        // const handle = '0123456789_,-@14alphanumeric'
+        // const handle = '15-alphanumeric';
+        const handle = '28-subhandle@15-alphanumeric'
         // 0ctopus, 1nternet lnternet
 
         const options: IHandleSvgOptions = {
