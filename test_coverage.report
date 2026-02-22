@@ -1,74 +1,206 @@
 FORMAT_VERSION=1
 REPO=handle-svg
-TIMESTAMP_UTC=2026-02-22T16:32:21Z
+TIMESTAMP_UTC=2026-02-22T20:07:19Z
 THRESHOLD_LINES=90
 THRESHOLD_BRANCHES=90
-TOTAL_LINES_PCT=99.58
-TOTAL_BRANCHES_PCT=93.22
+TOTAL_LINES_PCT=99.42
+TOTAL_BRANCHES_PCT=92.25
 STATUS=pass
-SOURCE_PATHS=lib/utils/checkContrast.js,lib/utils/constants.js,lib/utils/getMaxOffset.js,lib/utils/imageHelpers.js
-EXCLUDED_PATHS=NON_CRITICAL_RUNTIME_PATHS:covered_by_separate_suites
-LANGUAGE_SUMMARY=nodejs:lines=99.58,branches=93.22,tool=node-test-coverage,status=pass
+SOURCE_PATHS=lib/index.js;lib/utils/{checkContrast.js,constants.js,getMaxOffset.js,imageHelpers.js,index.js,getSocialIcon.js,getFontArrayBuffer.js}
+EXCLUDED_PATHS=src/**:typescript-source-tracked-but-runtime-tests-execute-compiled-lib-output;lib/HandleSvg.js:requires-broader-font-rendering-and-svg-runtime-integration-coverage;lib/scripts/**:local-rendering-scripts-excluded-from-runtime-coverage;lib/interfaces/**:compiled-type-surface-not-runtime-logic
+LANGUAGE_SUMMARY=nodejs:lines=99.42,branches=92.25,tool=c8,status=pass
 
-=== RAW_OUTPUT_NODE_TEST ===
+=== RAW_OUTPUT_STANDARD_NPM_TEST ===
+
+> @koralabs/handle-svg@3.0.15 test
+> node --test tests/*.test.cjs
+
 TAP version 13
-# Subtest: checkContrast handles default threshold and alpha inputs
-ok 1 - checkContrast handles default threshold and alpha inputs
+# Subtest: getFontArrayBuffer returns decompressed array buffer for woff2 resources
+ok 1 - getFontArrayBuffer returns decompressed array buffer for woff2 resources
   ---
-  duration_ms: 0.5378
+  duration_ms: 1.252473
+  ...
+# Subtest: getFontArrayBuffer returns original buffer when no decompression is needed
+ok 2 - getFontArrayBuffer returns original buffer when no decompression is needed
+  ---
+  duration_ms: 0.152443
+  ...
+# (node:1150675) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: library index exposes default HandleSvg and utility exports
+ok 3 - library index exposes default HandleSvg and utility exports
+  ---
+  duration_ms: 0.367198
+  ...
+# Subtest: getSocialIcon resolves known provider branches
+ok 4 - getSocialIcon resolves known provider branches
+  ---
+  duration_ms: 0.593902
+  ...
+# Subtest: getSocialIcon falls back to website icon when no provider matches
+ok 5 - getSocialIcon falls back to website icon when no provider matches
+  ---
+  duration_ms: 0.119149
+  ...
+# (node:1150682) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: utils index rarity helpers cover all rarity branches
+ok 6 - utils index rarity helpers cover all rarity branches
+  ---
+  duration_ms: 0.425822
+  ...
+# Subtest: utils index supports color and font helpers
+ok 7 - utils index supports color and font helpers
+  ---
+  duration_ms: 0.17945
+  ...
+# Subtest: checkContrast handles default threshold and alpha inputs
+ok 8 - checkContrast handles default threshold and alpha inputs
+  ---
+  duration_ms: 0.402745
   ...
 # Subtest: getMaxOffset handles explicit zoom and fallback zoom
-ok 2 - getMaxOffset handles explicit zoom and fallback zoom
+ok 9 - getMaxOffset handles explicit zoom and fallback zoom
   ---
-  duration_ms: 0.11903
+  duration_ms: 0.071664
   ...
 # Subtest: buildFallbackUrl appends pinata token only for pinata gateway
-ok 3 - buildFallbackUrl appends pinata token only for pinata gateway
+ok 10 - buildFallbackUrl appends pinata token only for pinata gateway
   ---
-  duration_ms: 1.083527
+  duration_ms: 0.434551
   ...
 # Subtest: getImageDetails returns metadata without base64 for direct URLs
-ok 4 - getImageDetails returns metadata without base64 for direct URLs
+ok 11 - getImageDetails returns metadata without base64 for direct URLs
   ---
-  duration_ms: 0.788944
+  duration_ms: 0.575987
   ...
 # Subtest: getImageDetails returns base64 payload for ipfs URLs
-ok 5 - getImageDetails returns base64 payload for ipfs URLs
+ok 12 - getImageDetails returns base64 payload for ipfs URLs
   ---
-  duration_ms: 0.333007
+  duration_ms: 0.766142
   ...
 # Subtest: getImageDetails retries with next gateway on failure
-ok 6 - getImageDetails retries with next gateway on failure
+ok 13 - getImageDetails retries with next gateway on failure
   ---
-  duration_ms: 0.246663
+  duration_ms: 0.261446
   ...
 # Subtest: getImageDetails throws when all gateways fail
-ok 7 - getImageDetails throws when all gateways fail
+ok 14 - getImageDetails throws when all gateways fail
   ---
-  duration_ms: 0.476339
+  duration_ms: 0.514873
   ...
-1..7
-# tests 7
+1..14
+# tests 14
 # suites 0
-# pass 7
+# pass 14
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 41.176777
-# start of coverage report
-# -------------------------------------------------------------------
-# file               | line % | branch % | funcs % | uncovered lines
-# -------------------------------------------------------------------
-# lib                |        |          |         | 
-#  utils             |        |          |         | 
-#   checkContrast.js | 100.00 |   100.00 |  100.00 | 
-#   constants.js     | 100.00 |    50.00 |  100.00 | 
-#   getMaxOffset.js  | 100.00 |   100.00 |  100.00 | 
-#   imageHelpers.js  | 100.00 |    88.89 |   83.33 | 
-# tests              |        |          |         | 
-#  utils.test.cjs    |  99.32 |   100.00 |   73.08 | 38
-# -------------------------------------------------------------------
-# all files          |  99.58 |    93.22 |   78.05 | 
-# -------------------------------------------------------------------
-# end of coverage report
+# duration_ms 45.448734
+
+=== RAW_OUTPUT_COVERAGE_C8 ===
+
+> @koralabs/handle-svg@3.0.15 test
+> node --test tests/*.test.cjs
+
+TAP version 13
+# Subtest: getFontArrayBuffer returns decompressed array buffer for woff2 resources
+ok 1 - getFontArrayBuffer returns decompressed array buffer for woff2 resources
+  ---
+  duration_ms: 1.061129
+  ...
+# Subtest: getFontArrayBuffer returns original buffer when no decompression is needed
+ok 2 - getFontArrayBuffer returns original buffer when no decompression is needed
+  ---
+  duration_ms: 0.152102
+  ...
+# (node:1150767) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: library index exposes default HandleSvg and utility exports
+ok 3 - library index exposes default HandleSvg and utility exports
+  ---
+  duration_ms: 0.455914
+  ...
+# Subtest: getSocialIcon resolves known provider branches
+ok 4 - getSocialIcon resolves known provider branches
+  ---
+  duration_ms: 0.638591
+  ...
+# Subtest: getSocialIcon falls back to website icon when no provider matches
+ok 5 - getSocialIcon falls back to website icon when no provider matches
+  ---
+  duration_ms: 0.18725
+  ...
+# (node:1150774) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: utils index rarity helpers cover all rarity branches
+ok 6 - utils index rarity helpers cover all rarity branches
+  ---
+  duration_ms: 0.478518
+  ...
+# Subtest: utils index supports color and font helpers
+ok 7 - utils index supports color and font helpers
+  ---
+  duration_ms: 0.160367
+  ...
+# Subtest: checkContrast handles default threshold and alpha inputs
+ok 8 - checkContrast handles default threshold and alpha inputs
+  ---
+  duration_ms: 0.512946
+  ...
+# Subtest: getMaxOffset handles explicit zoom and fallback zoom
+ok 9 - getMaxOffset handles explicit zoom and fallback zoom
+  ---
+  duration_ms: 0.112064
+  ...
+# Subtest: buildFallbackUrl appends pinata token only for pinata gateway
+ok 10 - buildFallbackUrl appends pinata token only for pinata gateway
+  ---
+  duration_ms: 0.878632
+  ...
+# Subtest: getImageDetails returns metadata without base64 for direct URLs
+ok 11 - getImageDetails returns metadata without base64 for direct URLs
+  ---
+  duration_ms: 0.723671
+  ...
+# Subtest: getImageDetails returns base64 payload for ipfs URLs
+ok 12 - getImageDetails returns base64 payload for ipfs URLs
+  ---
+  duration_ms: 0.275139
+  ...
+# Subtest: getImageDetails retries with next gateway on failure
+ok 13 - getImageDetails retries with next gateway on failure
+  ---
+  duration_ms: 0.255946
+  ...
+# Subtest: getImageDetails throws when all gateways fail
+ok 14 - getImageDetails throws when all gateways fail
+  ---
+  duration_ms: 0.473157
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 49.793183
+------------------------|---------|----------|---------|---------|-------------------
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------------|---------|----------|---------|---------|-------------------
+All files               |   99.42 |    92.25 |   90.32 |   99.42 |                   
+ lib                    |    91.3 |    69.23 |     100 |    91.3 |                   
+  index.js              |    91.3 |    69.23 |     100 |    91.3 | 10-11             
+ lib/utils              |     100 |    94.57 |   89.28 |     100 |                   
+  checkContrast.js      |     100 |      100 |     100 |     100 |                   
+  constants.js          |     100 |       50 |     100 |     100 | 7                 
+  getFontArrayBuffer.js |     100 |    83.33 |   85.71 |     100 | 3,5,27            
+  getMaxOffset.js       |     100 |      100 |     100 |     100 |                   
+  getSocialIcon.js      |     100 |      100 |     100 |     100 |                   
+  imageHelpers.js       |     100 |    88.88 |   88.88 |     100 | 3,12,46           
+  index.js              |     100 |      100 |    87.5 |     100 |                   
+------------------------|---------|----------|---------|---------|-------------------
