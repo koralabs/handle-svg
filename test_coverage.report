@@ -1,38 +1,51 @@
+FORMAT_VERSION=1
+REPO=handle-svg
+TIMESTAMP_UTC=2026-02-22T16:32:21Z
+THRESHOLD_LINES=90
+THRESHOLD_BRANCHES=90
+TOTAL_LINES_PCT=99.58
+TOTAL_BRANCHES_PCT=93.22
+STATUS=pass
+SOURCE_PATHS=lib/utils/checkContrast.js,lib/utils/constants.js,lib/utils/getMaxOffset.js,lib/utils/imageHelpers.js
+EXCLUDED_PATHS=NON_CRITICAL_RUNTIME_PATHS:covered_by_separate_suites
+LANGUAGE_SUMMARY=nodejs:lines=99.58,branches=93.22,tool=node-test-coverage,status=pass
+
+=== RAW_OUTPUT_NODE_TEST ===
 TAP version 13
 # Subtest: checkContrast handles default threshold and alpha inputs
 ok 1 - checkContrast handles default threshold and alpha inputs
   ---
-  duration_ms: 0.549069
+  duration_ms: 0.5378
   ...
 # Subtest: getMaxOffset handles explicit zoom and fallback zoom
 ok 2 - getMaxOffset handles explicit zoom and fallback zoom
   ---
-  duration_ms: 0.125375
+  duration_ms: 0.11903
   ...
 # Subtest: buildFallbackUrl appends pinata token only for pinata gateway
 ok 3 - buildFallbackUrl appends pinata token only for pinata gateway
   ---
-  duration_ms: 0.858447
+  duration_ms: 1.083527
   ...
 # Subtest: getImageDetails returns metadata without base64 for direct URLs
 ok 4 - getImageDetails returns metadata without base64 for direct URLs
   ---
-  duration_ms: 0.705593
+  duration_ms: 0.788944
   ...
 # Subtest: getImageDetails returns base64 payload for ipfs URLs
 ok 5 - getImageDetails returns base64 payload for ipfs URLs
   ---
-  duration_ms: 0.298391
+  duration_ms: 0.333007
   ...
 # Subtest: getImageDetails retries with next gateway on failure
 ok 6 - getImageDetails retries with next gateway on failure
   ---
-  duration_ms: 0.249644
+  duration_ms: 0.246663
   ...
 # Subtest: getImageDetails throws when all gateways fail
 ok 7 - getImageDetails throws when all gateways fail
   ---
-  duration_ms: 0.456928
+  duration_ms: 0.476339
   ...
 1..7
 # tests 7
@@ -42,7 +55,7 @@ ok 7 - getImageDetails throws when all gateways fail
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 37.906916
+# duration_ms 41.176777
 # start of coverage report
 # -------------------------------------------------------------------
 # file               | line % | branch % | funcs % | uncovered lines
@@ -59,4 +72,3 @@ ok 7 - getImageDetails throws when all gateways fail
 # all files          |  99.58 |    93.22 |   78.05 | 
 # -------------------------------------------------------------------
 # end of coverage report
-Coverage threshold met (line=99.58%, branch=93.22%).
