@@ -1,0 +1,62 @@
+TAP version 13
+# Subtest: checkContrast handles default threshold and alpha inputs
+ok 1 - checkContrast handles default threshold and alpha inputs
+  ---
+  duration_ms: 0.549069
+  ...
+# Subtest: getMaxOffset handles explicit zoom and fallback zoom
+ok 2 - getMaxOffset handles explicit zoom and fallback zoom
+  ---
+  duration_ms: 0.125375
+  ...
+# Subtest: buildFallbackUrl appends pinata token only for pinata gateway
+ok 3 - buildFallbackUrl appends pinata token only for pinata gateway
+  ---
+  duration_ms: 0.858447
+  ...
+# Subtest: getImageDetails returns metadata without base64 for direct URLs
+ok 4 - getImageDetails returns metadata without base64 for direct URLs
+  ---
+  duration_ms: 0.705593
+  ...
+# Subtest: getImageDetails returns base64 payload for ipfs URLs
+ok 5 - getImageDetails returns base64 payload for ipfs URLs
+  ---
+  duration_ms: 0.298391
+  ...
+# Subtest: getImageDetails retries with next gateway on failure
+ok 6 - getImageDetails retries with next gateway on failure
+  ---
+  duration_ms: 0.249644
+  ...
+# Subtest: getImageDetails throws when all gateways fail
+ok 7 - getImageDetails throws when all gateways fail
+  ---
+  duration_ms: 0.456928
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 37.906916
+# start of coverage report
+# -------------------------------------------------------------------
+# file               | line % | branch % | funcs % | uncovered lines
+# -------------------------------------------------------------------
+# lib                |        |          |         | 
+#  utils             |        |          |         | 
+#   checkContrast.js | 100.00 |   100.00 |  100.00 | 
+#   constants.js     | 100.00 |    50.00 |  100.00 | 
+#   getMaxOffset.js  | 100.00 |   100.00 |  100.00 | 
+#   imageHelpers.js  | 100.00 |    88.89 |   83.33 | 
+# tests              |        |          |         | 
+#  utils.test.cjs    |  99.32 |   100.00 |   73.08 | 38
+# -------------------------------------------------------------------
+# all files          |  99.58 |    93.22 |   78.05 | 
+# -------------------------------------------------------------------
+# end of coverage report
+Coverage threshold met (line=99.58%, branch=93.22%).

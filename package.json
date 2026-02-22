@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "echo \"No tests\"",
+    "test": "node --test tests/*.test.cjs",
     "build": "tsc",
     "render": "npm run sharp:install && ts-node ./src/scripts/renderLocally.ts && npm run sharp:uninstall",
     "render:handleName": "npm run sharp:install && ts-node ./src/scripts/renderHandleNameLocally.ts && npm run sharp:uninstall",
