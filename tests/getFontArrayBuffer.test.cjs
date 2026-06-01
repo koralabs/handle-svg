@@ -33,6 +33,23 @@ test('getFontArrayBuffer returns decompressed array buffer for woff2 resources',
     });
 });
 
+test('getFontArrayBuffer decompresses woff2 URLs even when content type is generic', async () => {
+    let decompressCalls = 0;
+
+    await withFetch(async () => ({
+        headers: { get: () => 'application/octet-stream' },
+        arrayBuffer: async () => Uint8Array.from([1, 2, 3]).buffer
+    }), async () => {
+        const result = await getFontArrayBuffer('https://example.com/font.woff2', async () => {
+            decompressCalls += 1;
+            return Uint8Array.from([4, 5, 6]);
+        });
+
+        assert.equal(decompressCalls, 1);
+        assert.deepEqual(Array.from(new Uint8Array(result)), [4, 5, 6]);
+    });
+});
+
 test('getFontArrayBuffer returns original buffer when no decompression is needed', async () => {
     await withFetch(async () => ({
         headers: { get: () => 'font/ttf' },
@@ -43,5 +60,18 @@ test('getFontArrayBuffer returns original buffer when no decompression is needed
         });
 
         assert.deepEqual(Array.from(new Uint8Array(result)), [5, 4, 3]);
+    });
+});
+
+test('getFontArrayBuffer returns original buffer when content type is missing', async () => {
+    await withFetch(async () => ({
+        headers: { get: () => null },
+        arrayBuffer: async () => Uint8Array.from([6, 7, 8]).buffer
+    }), async () => {
+        const result = await getFontArrayBuffer('https://example.com/font.bin', async () => {
+            throw new Error('decompress should not run');
+        });
+
+        assert.deepEqual(Array.from(new Uint8Array(result)), [6, 7, 8]);
     });
 });
