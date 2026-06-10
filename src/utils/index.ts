@@ -8,8 +8,18 @@ export const getRarityFromLength = (length: number): string => {
     return 'Basic';
 };
 
+/**
+ * The segment a handle's rarity is derived from: the root handle for a subhandle
+ * (`sub@root` -> `root`), otherwise the handle itself. A subhandle inherits its
+ * root handle's rarity color (handle.me#872). Note: rarity COLOR uses this root
+ * segment, but text sizing (getMinimumFontSize) deliberately keeps the full
+ * displayed handle length.
+ */
+export const getRarityHandleSegment = (handle: string): string =>
+    handle.includes('@') ? handle.split('@').pop() ?? handle : handle;
+
 export const getRarityHex = (handle: string): string => {
-    const rarity = getRarityFromLength(handle.length);
+    const rarity = getRarityFromLength(getRarityHandleSegment(handle).length);
     switch (rarity) {
         case 'Legendary':
             return '#f4900c';
