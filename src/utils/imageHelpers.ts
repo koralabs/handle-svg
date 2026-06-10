@@ -22,15 +22,26 @@ export const getImageDetails = async ({
     useBase64: boolean;
     gatewayIndex?: number;
 }): Promise<{ contentType: string; base64: string; imageUrl: string }> => {
-    const url = imageUrl.startsWith('ipfs://') ? buildFallbackUrl(imageUrl, gatewayIndex) : imageUrl;
-    const result = await fetch(url);
+    const isIpfs = imageUrl.startsWith('ipfs://');
+    const url = isIpfs ? buildFallbackUrl(imageUrl, gatewayIndex) : imageUrl;
+    const hasMoreGateways = isIpfs && gatewayIndex < ALL_IPFS_GATEWAYS.length - 1;
+
+    let result: Response;
+    try {
+        result = await fetch(url);
+    } catch (error) {
+        // Gateway errored (network/DNS/timeout) — try the next IPFS gateway before failing.
+        if (hasMoreGateways) {
+            return getImageDetails({ imageUrl, useBase64, gatewayIndex: gatewayIndex + 1 });
+        }
+        throw error;
+    }
 
     if (!result.ok) {
-        if (gatewayIndex < ALL_IPFS_GATEWAYS.length - 1) {
+        if (hasMoreGateways) {
             return getImageDetails({ imageUrl, useBase64, gatewayIndex: gatewayIndex + 1 });
-        } else {
-            throw new Error(`Failed to fetch image from ${url}`);
         }
+        throw new Error(`Failed to fetch image from ${url}`);
     }
 
     const contentType = result.headers.get('content-type');

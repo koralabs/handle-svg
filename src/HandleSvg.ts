@@ -107,15 +107,13 @@ export default class HandleSvg {
 
         const { bg_image } = this._options;
 
+        // A provided bg_image MUST render. getImageDetails walks every IPFS gateway and
+        // throws if all fail — that hard-fails the whole render (handle.me#436). The image
+        // is only "optional" when it was never provided (the `if` below).
         if (bg_image) {
-            try {
-                const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64 });
-                const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
-                return this._buildBackgroundImageHtmlString(image, size);
-            } catch (error) {
-                console.log('Error processing bg_image', JSON.stringify(error));
-                // bg_image is optional — render remaining layers without it (handle.me#436)
-            }
+            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64 });
+            const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
+            return this._buildBackgroundImageHtmlString(image, size);
         }
 
         return '';
@@ -185,15 +183,11 @@ export default class HandleSvg {
     async buildPfpImage(input?: { useBase64?: boolean; size?: number }) {
         const { useBase64 = true, size } = input ?? {};
         const { pfp_image } = this._options;
+        // A provided pfp_image MUST render or hard-fail the render (see buildBackgroundImage).
         if (pfp_image) {
-            try {
-                const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64 });
-                const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
-                return this._buildPfpImageHtmlString(image, size);
-            } catch (error) {
-                console.log('Error processing pfp_image', JSON.stringify(error));
-                // pfp_image is optional — render remaining layers without it (handle.me#436)
-            }
+            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64 });
+            const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
+            return this._buildPfpImageHtmlString(image, size);
         }
 
         return '';
