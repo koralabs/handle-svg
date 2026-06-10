@@ -108,9 +108,14 @@ export default class HandleSvg {
         const { bg_image } = this._options;
 
         if (bg_image) {
-            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64 });
-            const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
-            return this._buildBackgroundImageHtmlString(image, size);
+            try {
+                const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64 });
+                const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
+                return this._buildBackgroundImageHtmlString(image, size);
+            } catch (error) {
+                console.log('Error processing bg_image', JSON.stringify(error));
+                // bg_image is optional — render remaining layers without it (handle.me#436)
+            }
         }
 
         return '';
@@ -181,9 +186,14 @@ export default class HandleSvg {
         const { useBase64 = true, size } = input ?? {};
         const { pfp_image } = this._options;
         if (pfp_image) {
-            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64 });
-            const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
-            return this._buildPfpImageHtmlString(image, size);
+            try {
+                const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64 });
+                const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
+                return this._buildPfpImageHtmlString(image, size);
+            } catch (error) {
+                console.log('Error processing pfp_image', JSON.stringify(error));
+                // pfp_image is optional — render remaining layers without it (handle.me#436)
+            }
         }
 
         return '';
