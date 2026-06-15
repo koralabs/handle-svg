@@ -22,7 +22,6 @@ const mockFontResult = (bbox = { x1: 0, y1: -20, x2: 100, y2: 30 }) => ({
         })
     }
 });
-
 test('HandleSvg builds background, ribbon, border, and contrast-safe logo fragments', () => {
     const renderer = createRenderer({
         size: 2048,
@@ -190,6 +189,48 @@ test('HandleSvg builds socials with icon and text fragments', async () => {
 
     const emptyRenderer = createRenderer({ options: { socials: [] } });
     assert.equal(await emptyRenderer.buildSocialsSvg(async () => new Uint8Array(), {}), '');
+});
+
+
+test('HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rarity fragments', async () => {
+    let renderer = createRenderer({ size: 1200, options: { bg_image: 'ipfs://bg' } });
+    assert.equal(
+        renderer._buildBackgroundImageHtmlString('data:image/png;base64,AQID', 600),
+        '<image href="data:image/png;base64,AQID" height="600" width="600" />'
+    );
+
+    renderer = createRenderer({
+        size: 2048,
+        options: {
+            text_ribbon_colors: ['0x123456'],
+            text_ribbon_gradient: 'linear-45'
+        }
+    });
+    const solidRibbon = renderer.buildTextRibbon();
+    assert.equal(solidRibbon.includes('style="fill: #123456"'), true);
+    assert.equal(solidRibbon.includes('linearGradient'), false);
+
+    renderer = createRenderer({ size: 2048, handle: 'aa', options: {} });
+    const dollar = renderer.buildDollarSign();
+    assert.equal(dollar.includes('fill="#593292"'), true);
+    assert.equal(dollar.includes('x="1668" y="80"'), true);
+
+    renderer = createRenderer({
+        size: 2048,
+        handle: 'oggy',
+        options: {
+            og_number: 42,
+            font_color: '0xabcdef'
+        }
+    });
+    renderer.loadParsedFont = async (_font, _decompress, text, fontSize) =>
+        mockFontResult({ x1: 0, y1: -10, x2: text.length * 12, y2: 30 });
+
+    const og = await renderer.buildOG(async () => new Uint8Array(), {});
+    assert.equal(og.includes('data-text="OG 42/2438"'), true);
+    assert.equal(og.includes('data-x="964"'), true);
+    assert.equal(og.includes('data-y="120"'), true);
+    assert.equal(og.includes('data-fill="#abcdef"'), true);
 });
 
 test('HandleSvg full build composes child fragments and honors disabled dollar sign', async () => {
