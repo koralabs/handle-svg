@@ -303,7 +303,7 @@ export default class HandleSvg {
         try {
             const fontArrayBuffer = await getFontArrayBuffer(fontLink, decompress);
             parsedFont = opentype.parse(fontArrayBuffer);
-        } catch (error) {
+        } catch {
             parsedFont = ubuntuMono;
         }
         const glyphs = [parsedFont.glyphs.get(0)];
