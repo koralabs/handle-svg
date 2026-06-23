@@ -1,29 +1,56 @@
 name: handle-svg
 on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+    push:
+        branches:
+            - master
+    workflow_dispatch:
+permissions:
+    contents: read
+    id-token: write # OIDC trusted publishing to npm (no NPM_TOKEN)
 jobs:
-  deploy:
-    name: Deploying from ${{ github.ref_name }}
-    environment: mainnet
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v1
+    deploy:
+        name: Deploying from ${{ github.ref_name }}
+        environment: mainnet
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-    - name: Publish ${{ github.workflow }}
-      id: publish
-      env:
-        DEPLOYMENT_ACCESS_TOKEN: ${{ secrets.DEPLOYMENT_ACCESS_TOKEN }}
-        SECRETS_CONTEXT: ${{ toJson(secrets) }}
-        VARS_CONTEXT: ${{ toJson(vars) }}
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-        DEPLOYMENT_TYPE: npm-publish
-        NODE_VERSION: 18
-        IS_PUBLIC: true
-      run: |
-        set -eu
-        curl -H "Authorization: Bearer ${DEPLOYMENT_ACCESS_TOKEN}" https://raw.githubusercontent.com/koralabs/adahandle-deployments/master/common/main.sh -o main.sh
-        chmod +x main.sh && ./main.sh
+            - name: Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  registry-url: https://registry.npmjs.org
+                  scope: '@koralabs'
+
+            - name: Install deps
+              run: npm install --no-audit --no-fund
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Test
+              run: npm test
+
+            - name: Build
+              run: npm run build
+
+            # Only publish when package.json's version isn't already on npm, so commits that don't
+            # bump the version (CI/test/doc changes) don't fail the run trying to republish.
+            - name: Check version
+              id: ver
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  if npm view "@koralabs/handle-svg@${VERSION}" version >/dev/null 2>&1; then
+                      echo "publish=false" >> "$GITHUB_OUTPUT"
+                      echo "Version ${VERSION} already published — skipping publish."
+                  else
+                      echo "publish=true" >> "$GITHUB_OUTPUT"
+                      echo "Version ${VERSION} is new — will publish."
+                  fi
+
+            # OIDC trusted publishing (provenance) — no NPM_TOKEN. tsc emits to lib/; publish from
+            # there with package.json + README copied in (main=index.js -> lib/index.js).
+            - name: Publish to npm
+              if: steps.ver.outputs.publish == 'true'
+              run: cp package.json README.md ./lib/ && cd ./lib && npm publish --provenance --access public
