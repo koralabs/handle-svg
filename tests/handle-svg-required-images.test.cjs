@@ -96,6 +96,17 @@ test('buildBackgroundImage RECOVERS via bg_image_nftcdn_url when gateways miss',
     assert.ok(out && out.length > 0, 'background should render from the NFTCDN recovery, not throw');
 });
 
+// A lapsed pin makes a gateway hang instead of failing fast; timedFetch must abort it so the
+// failover can walk to the next gateway / NFTCDN within the caller's time budget (ticket-2113).
+test('timedFetch aborts a hanging gateway fetch after the timeout', async () => {
+    const hangingFetch = (_url, opts) =>
+        new Promise((_resolve, reject) => {
+            opts.signal.addEventListener('abort', () => reject(new Error('aborted')));
+        });
+    const { timedFetch } = withMockedCrossFetch(hangingFetch, imageHelpersPath);
+    await assert.rejects(timedFetch('https://gateway/dead-pin', 50));
+});
+
 test('buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss', async () => {
     const HandleSvg = loadHandleSvg(failGatewaysServeNftcdn);
     const svg = new HandleSvg({
