@@ -22,6 +22,8 @@ export default class HandleSvg {
     private _margin: number;
     private _defaultContrastColor: string = '#888888';
     private _https: any;
+    private _bgImageNftcdnUrl?: string;
+    private _pfpImageNftcdnUrl?: string;
 
     constructor(inputs: IHandleSvg, https?: any) {
         this._options = inputs.options;
@@ -32,6 +34,8 @@ export default class HandleSvg {
         };
         this._margin = inputs.size * (this._baseMargin / this._baseSize);
         this._https = https;
+        this._bgImageNftcdnUrl = inputs.bg_image_nftcdn_url;
+        this._pfpImageNftcdnUrl = inputs.pfp_image_nftcdn_url;
     }
 
     buildLogoHandle() {
@@ -111,7 +115,7 @@ export default class HandleSvg {
         // throws if all fail — that hard-fails the whole render (handle.me#436). The image
         // is only "optional" when it was never provided (the `if` below).
         if (bg_image) {
-            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64 });
+            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: bg_image, useBase64, nftcdnUrl: this._bgImageNftcdnUrl });
             const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
             return this._buildBackgroundImageHtmlString(image, size);
         }
@@ -185,7 +189,7 @@ export default class HandleSvg {
         const { pfp_image } = this._options;
         // A provided pfp_image MUST render or hard-fail the render (see buildBackgroundImage).
         if (pfp_image) {
-            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64 });
+            const { imageUrl, contentType, base64 } = await getImageDetails({ imageUrl: pfp_image, useBase64, nftcdnUrl: this._pfpImageNftcdnUrl });
             const image = useBase64 ? `data:${contentType};base64,${base64}` : imageUrl;
             return this._buildPfpImageHtmlString(image, size);
         }

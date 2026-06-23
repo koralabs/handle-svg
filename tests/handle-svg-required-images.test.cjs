@@ -59,3 +59,51 @@ test('getImageDetails advances to the next IPFS gateway when one throws (not jus
     assert.equal(r.contentType, 'image/png');
     assert.ok(calls >= 2, 'should have advanced past the throwing gateway');
 });
+
+// --- NFTCDN recovery: a lapsed IPFS pin is recovered from the pre-signed NFTCDN URL (ticket-2113). ---
+// Gateways all miss; NFTCDN serves it. Mock branches on the URL so only the NFTCDN host succeeds.
+const failGatewaysServeNftcdn = async (url) =>
+    `${url}`.includes('nftcdn')
+        ? { ok: true, headers: { get: () => 'image/webp' }, arrayBuffer: async () => Buffer.from('recovered') }
+        : { ok: false, status: 504, headers: { get: () => null } };
+
+test('getImageDetails falls back to nftcdnUrl after every IPFS gateway misses', async () => {
+    const { getImageDetails } = withMockedCrossFetch(failGatewaysServeNftcdn, imageHelpersPath);
+    const r = await getImageDetails({
+        imageUrl: 'ipfs://dead-pin',
+        useBase64: true,
+        nftcdnUrl: 'https://fingerprint.handles.nftcdn.io/image?tk=sig'
+    });
+    assert.equal(r.contentType, 'image/webp');
+    assert.equal(Buffer.from(r.base64, 'base64').toString(), 'recovered');
+    assert.ok(r.imageUrl.includes('nftcdn'), 'resolved URL should be the NFTCDN recovery');
+});
+
+test('getImageDetails still throws when gateways miss and NO nftcdnUrl is given (unchanged behavior)', async () => {
+    const { getImageDetails } = withMockedCrossFetch(failingFetch, imageHelpersPath);
+    await assert.rejects(getImageDetails({ imageUrl: 'ipfs://dead-pin', useBase64: true }));
+});
+
+test('buildBackgroundImage RECOVERS via bg_image_nftcdn_url when gateways miss', async () => {
+    const HandleSvg = loadHandleSvg(failGatewaysServeNftcdn);
+    const svg = new HandleSvg({
+        size: 1024,
+        handle: 'handle',
+        options: { bg_image: 'ipfs://dead-bg' },
+        bg_image_nftcdn_url: 'https://fingerprint.handles.nftcdn.io/image?tk=sig'
+    });
+    const out = await svg.buildBackgroundImage();
+    assert.ok(out && out.length > 0, 'background should render from the NFTCDN recovery, not throw');
+});
+
+test('buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss', async () => {
+    const HandleSvg = loadHandleSvg(failGatewaysServeNftcdn);
+    const svg = new HandleSvg({
+        size: 1024,
+        handle: 'handle',
+        options: { pfp_image: 'ipfs://dead-pfp' },
+        pfp_image_nftcdn_url: 'https://fingerprint.handles.nftcdn.io/image?tk=sig'
+    });
+    const out = await svg.buildPfpImage();
+    assert.ok(out && out.length > 0, 'pfp should render from the NFTCDN recovery, not throw');
+});
