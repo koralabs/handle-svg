@@ -13,6 +13,25 @@ export const buildFallbackUrl = (imageUrl: string, gatewayIndex: number) => {
     return `${gateway}/${imagePath}${queryString}`;
 };
 
+// Per-fetch timeout. A lapsed IPFS pin makes a gateway HANG (~60s returning "no providers") rather
+// than fail fast, so without a cap three sequential gateway misses blew past the render Lambda's
+// 180s budget and the NFTCDN recovery was never reached (ticket-2113). Aborting each fetch quickly
+// lets the failover walk gateways → NFTCDN well within budget. Generous enough not to abort a
+// legitimately slow large image on a healthy gateway.
+export const GATEWAY_FETCH_TIMEOUT_MS = 15_000;
+
+// fetch() with an AbortController timeout. On timeout it rejects (AbortError), which getImageDetails
+// treats like any gateway error — advance to the next gateway, then NFTCDN.
+export const timedFetch = async (url: string, timeoutMs: number = GATEWAY_FETCH_TIMEOUT_MS): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+};
+
 type ImageResult = { contentType: string; base64: string; imageUrl: string };
 
 const buildResult = async (url: string, response: Response, useBase64: boolean): Promise<ImageResult> => {
@@ -34,7 +53,12 @@ const recoverViaNftcdn = async (
     gatewayError: Error
 ): Promise<ImageResult> => {
     if (!nftcdnUrl) throw gatewayError;
-    const recovered = await fetch(nftcdnUrl);
+    let recovered: Response;
+    try {
+        recovered = await timedFetch(nftcdnUrl);
+    } catch {
+        throw gatewayError; // NFTCDN unreachable/timed out — surface the original gateway failure.
+    }
     if (!recovered.ok) throw gatewayError;
     return buildResult(nftcdnUrl, recovered, useBase64);
 };
@@ -57,7 +81,7 @@ export const getImageDetails = async ({
 
     let result: Response;
     try {
-        result = await fetch(url);
+        result = await timedFetch(url);
     } catch (error) {
         // Gateway errored (network/DNS/timeout) — try the next IPFS gateway, then NFTCDN, before failing.
         if (hasMoreGateways) {
