@@ -22,6 +22,7 @@ const mockFontResult = (bbox = { x1: 0, y1: -20, x2: 100, y2: 30 }) => ({
         })
     }
 });
+
 test('HandleSvg builds background, ribbon, border, and contrast-safe logo fragments', () => {
     const renderer = createRenderer({
         size: 2048,
@@ -108,6 +109,12 @@ test('HandleSvg builds QR image fragments for raster and embedded SVG assets', a
     });
 });
 
+test('HandleSvg returns an empty QR image fragment when no asset is provided', async () => {
+    const renderer = createRenderer();
+
+    assert.equal(await renderer.buildQrImage(), '');
+});
+
 test('HandleSvg derives QR styling options and positioned view properties', () => {
     const renderer = createRenderer({
         size: 1024,
@@ -137,6 +144,84 @@ test('HandleSvg derives QR styling options and positioned view properties', () =
         svgQrPosition: 769,
         svgViewBox: '17.5 17.5 921.5999999999999 921.5999999999999'
     });
+});
+
+test('HandleSvg builds QR code markup with background, positioning, and embedded image', async () => {
+    const renderer = createRenderer({
+        size: 1024,
+        handle: 'qrhandle',
+        options: {
+            qr_link: 'https://handle.me/$qrhandle',
+            qr_bg_color: '0x010203',
+            qr_image: 'ipfs://qr-image'
+        }
+    });
+    renderer.initQrCodeStyling = (QRCodeStyling, options) => ({
+        qrCode: new QRCodeStyling(options),
+        realQrHeight: 180
+    });
+    renderer.buildQrImage = async (base64, contentType) => `<qr-image data-base64="${base64}" data-type="${contentType}" />`;
+
+    const OriginalGetImageDetails = require('../lib/utils/imageHelpers.js').getImageDetails;
+    const imageHelpers = require('../lib/utils/imageHelpers.js');
+    imageHelpers.getImageDetails = async () => ({ contentType: 'image/png', base64: 'AQID' });
+    try {
+        const svg = await renderer.buildQRCode(
+            function MockJSDOM() {
+                this.window = { document: {}, XMLSerializer: function XMLSerializer() {} };
+            },
+            class MockQRCodeStyling {
+                constructor(options) {
+                    this.options = options;
+                    this._svg = { _element: { outerHTML: '<svg class="qr-core"></svg>' } };
+                }
+            }
+        );
+
+        assert.equal(svg.includes('style="fill: #010203"'), true);
+        assert.equal(svg.includes('id="qr_code_qrhandle"'), true);
+        assert.equal(svg.includes('x="776.5" y="776.5"'), true);
+        assert.equal(svg.includes('viewBox="17.5 17.5 921.5999999999999 921.5999999999999"'), true);
+        assert.equal(svg.includes('<svg class="qr-core"></svg>'), true);
+        assert.equal(svg.includes('<qr-image data-base64="AQID" data-type="image/png" />'), true);
+    } finally {
+        imageHelpers.getImageDetails = OriginalGetImageDetails;
+    }
+});
+
+test('HandleSvg skips QR image failures but still renders QR code markup', async () => {
+    const renderer = createRenderer({
+        handle: 'qrhandle',
+        options: {
+            qr_link: 'https://handle.me/$qrhandle',
+            qr_image: 'ipfs://missing-qr-image'
+        }
+    });
+    renderer.initQrCodeStyling = () => ({
+        qrCode: { _svg: { _element: { outerHTML: '<svg class="qr-core"></svg>' } } },
+        realQrHeight: 180
+    });
+    renderer.buildQrImage = async () => {
+        throw new Error('should not be called when image details fail');
+    };
+
+    const OriginalGetImageDetails = require('../lib/utils/imageHelpers.js').getImageDetails;
+    const imageHelpers = require('../lib/utils/imageHelpers.js');
+    imageHelpers.getImageDetails = async () => {
+        throw new Error('unreachable image');
+    };
+    const originalLog = console.log;
+    console.log = () => {};
+    try {
+        const svg = await renderer.buildQRCode(null, class MockQRCodeStyling {});
+
+        assert.equal(svg.includes('id="qr_code_qrhandle"'), true);
+        assert.equal(svg.includes('<svg class="qr-core"></svg>'), true);
+        assert.equal(svg.includes('<qr-image'), false);
+    } finally {
+        console.log = originalLog;
+        imageHelpers.getImageDetails = OriginalGetImageDetails;
+    }
 });
 
 test('HandleSvg builds handle-name shadow fallback and validates shadow bounds', async () => {
@@ -191,6 +276,23 @@ test('HandleSvg builds socials with icon and text fragments', async () => {
     assert.equal(await emptyRenderer.buildSocialsSvg(async () => new Uint8Array(), {}), '');
 });
 
+test('HandleSvg renders social icons with contrast fallback against solid backgrounds', () => {
+    const renderer = createRenderer({
+        size: 2048,
+        options: {
+            bg_color: '0xffffff',
+            font_color: '0xffffff'
+        }
+    });
+
+    const icon = renderer.renderSocialIcon('https://example.com/profile', 10, 20);
+
+    assert.equal(icon.includes('class="bi bi-globe2"'), true);
+    assert.equal(icon.includes('x="10" y="20"'), true);
+    assert.equal(icon.includes('fill="#888888"'), true);
+    assert.equal(icon.includes('scale(3)'), true);
+});
+
 
 test('HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rarity fragments', async () => {
     let renderer = createRenderer({ size: 1200, options: { bg_image: 'ipfs://bg' } });
@@ -231,6 +333,38 @@ test('HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rari
     assert.equal(og.includes('data-x="964"'), true);
     assert.equal(og.includes('data-y="120"'), true);
     assert.equal(og.includes('data-fill="#abcdef"'), true);
+});
+
+test('HandleSvg builds centered logo-only handle name markup', async () => {
+    const renderer = createRenderer({
+        size: 2048,
+        handle: 'hi',
+        options: { font_color: '0x445566' }
+    });
+    renderer.loadParsedFont = async (_font, _decompress, text, fontSize) =>
+        text === '00'
+            ? mockFontResult({ x1: 0, y1: -80, x2: 180, y2: 20 })
+            : mockFontResult({ x1: -10, y1: -50, x2: 150, y2: 30 });
+
+    const svg = await renderer.buildLogoAndHandleName(async () => new Uint8Array(), {});
+
+    assert.equal(svg.includes('id="handle_name_hi"'), true);
+    assert.equal(svg.includes('width="2048" height="682.6666666666666"'), true);
+    assert.equal(svg.includes('id="S" fill="#0cd15b"'), true);
+    assert.equal(svg.includes('data-text="hi"'), true);
+    assert.equal(svg.includes('data-fill="#445566"'), true);
+    assert.equal(svg.includes('scale(2.3157894736842106)'), true);
+});
+
+test('HandleSvg wraps logo-only handle markup in a transparent SVG shell', async () => {
+    const renderer = createRenderer({ size: 1200 });
+    renderer.buildLogoAndHandleName = async () => '<logo-name />';
+
+    const svg = await renderer.buildLogoHandleSvg(async () => new Uint8Array(), {});
+
+    assert.equal(svg.includes('width="1200" height="400"'), true);
+    assert.equal(svg.includes('style="background: transparent"'), true);
+    assert.equal(svg.includes('<logo-name />'), true);
 });
 
 test('HandleSvg full build composes child fragments and honors disabled dollar sign', async () => {

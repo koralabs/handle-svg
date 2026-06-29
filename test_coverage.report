@@ -1,350 +1,578 @@
 FORMAT_VERSION=1
 REPO=handle-svg
-TIMESTAMP_UTC=2026-06-01T14:40:36Z
+TIMESTAMP_UTC=2026-06-29T17:59:48Z
 THRESHOLD_LINES=90
 THRESHOLD_BRANCHES=90
-TOTAL_LINES_PCT=99.42
-TOTAL_BRANCHES_PCT=92.85
+TOTAL_LINES_PCT=98.52
+TOTAL_BRANCHES_PCT=91.62
 STATUS=pass
 SOURCE_PATHS=lib/index.js;lib/utils/{checkContrast.js,constants.js,getMaxOffset.js,imageHelpers.js,index.js,getSocialIcon.js,getFontArrayBuffer.js}
 EXCLUDED_PATHS=src/**:typescript-source-tracked-but-runtime-tests-execute-compiled-lib-output;lib/HandleSvg.js:requires-broader-font-rendering-and-svg-runtime-integration-coverage;lib/scripts/**:local-rendering-scripts-excluded-from-runtime-coverage;lib/interfaces/**:compiled-type-surface-not-runtime-logic
-LANGUAGE_SUMMARY=nodejs:lines=99.42,branches=92.85,tool=c8,status=pass
+LANGUAGE_SUMMARY=nodejs:lines=98.52,branches=91.62,tool=c8,status=pass
 
 === RAW_OUTPUT_STANDARD_NPM_TEST ===
 
-> @koralabs/handle-svg@3.0.16 pretest
+> @koralabs/handle-svg@3.0.19 pretest
 > npm run build
 
 
-> @koralabs/handle-svg@3.0.16 build
+> @koralabs/handle-svg@3.0.19 build
 > tsc
 
 
-> @koralabs/handle-svg@3.0.16 test
+> @koralabs/handle-svg@3.0.19 test
 > node --test tests/*.test.cjs
 
 TAP version 13
 # Subtest: getFontArrayBuffer returns decompressed array buffer for woff2 resources
 ok 1 - getFontArrayBuffer returns decompressed array buffer for woff2 resources
   ---
-  duration_ms: 2.683728
+  duration_ms: 1.924603
   type: 'test'
   ...
 # Subtest: getFontArrayBuffer decompresses woff2 URLs even when content type is generic
 ok 2 - getFontArrayBuffer decompresses woff2 URLs even when content type is generic
   ---
-  duration_ms: 0.361303
+  duration_ms: 0.304847
   type: 'test'
   ...
 # Subtest: getFontArrayBuffer returns original buffer when no decompression is needed
 ok 3 - getFontArrayBuffer returns original buffer when no decompression is needed
   ---
-  duration_ms: 0.362495
+  duration_ms: 0.349631
   type: 'test'
   ...
 # Subtest: getFontArrayBuffer returns original buffer when content type is missing
 ok 4 - getFontArrayBuffer returns original buffer when content type is missing
   ---
-  duration_ms: 0.275093
+  duration_ms: 0.261607
+  type: 'test'
+  ...
+# Subtest: buildBackgroundImage THROWS when a provided bg_image fails on every gateway
+ok 5 - buildBackgroundImage THROWS when a provided bg_image fails on every gateway
+  ---
+  duration_ms: 9.578321
+  type: 'test'
+  ...
+# Subtest: buildPfpImage THROWS when a provided pfp_image fails on every gateway
+ok 6 - buildPfpImage THROWS when a provided pfp_image fails on every gateway
+  ---
+  duration_ms: 1.087114
+  type: 'test'
+  ...
+# Subtest: no bg_image / pfp_image provided -> empty layer, no throw
+ok 7 - no bg_image / pfp_image provided -> empty layer, no throw
+  ---
+  duration_ms: 1.397232
+  type: 'test'
+  ...
+# Subtest: getImageDetails advances to the next IPFS gateway when one throws (not just on !ok)
+ok 8 - getImageDetails advances to the next IPFS gateway when one throws (not just on !ok)
+  ---
+  duration_ms: 0.75769
+  type: 'test'
+  ...
+# Subtest: getImageDetails falls back to nftcdnUrl after every IPFS gateway misses
+ok 9 - getImageDetails falls back to nftcdnUrl after every IPFS gateway misses
+  ---
+  duration_ms: 0.814486
+  type: 'test'
+  ...
+# Subtest: getImageDetails still throws when gateways miss and NO nftcdnUrl is given (unchanged behavior)
+ok 10 - getImageDetails still throws when gateways miss and NO nftcdnUrl is given (unchanged behavior)
+  ---
+  duration_ms: 0.481566
+  type: 'test'
+  ...
+# Subtest: buildBackgroundImage RECOVERS via bg_image_nftcdn_url when gateways miss
+ok 11 - buildBackgroundImage RECOVERS via bg_image_nftcdn_url when gateways miss
+  ---
+  duration_ms: 0.807993
+  type: 'test'
+  ...
+# Subtest: timedFetch aborts a hanging gateway fetch after the timeout
+ok 12 - timedFetch aborts a hanging gateway fetch after the timeout
+  ---
+  duration_ms: 50.559979
+  type: 'test'
+  ...
+# Subtest: buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss
+ok 13 - buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss
+  ---
+  duration_ms: 1.226023
   type: 'test'
   ...
 # Subtest: HandleSvg builds background, ribbon, border, and contrast-safe logo fragments
-ok 5 - HandleSvg builds background, ribbon, border, and contrast-safe logo fragments
+ok 14 - HandleSvg builds background, ribbon, border, and contrast-safe logo fragments
   ---
-  duration_ms: 1.452636
+  duration_ms: 3.741093
   type: 'test'
   ...
 # Subtest: HandleSvg builds pfp markup with border, zoom, and bounded offsets
-ok 6 - HandleSvg builds pfp markup with border, zoom, and bounded offsets
+ok 15 - HandleSvg builds pfp markup with border, zoom, and bounded offsets
   ---
-  duration_ms: 0.628952
+  duration_ms: 0.644579
   type: 'test'
   ...
 # Subtest: HandleSvg builds QR image fragments for raster and embedded SVG assets
-ok 7 - HandleSvg builds QR image fragments for raster and embedded SVG assets
+ok 16 - HandleSvg builds QR image fragments for raster and embedded SVG assets
   ---
-  duration_ms: 0.983622
+  duration_ms: 0.917757
+  type: 'test'
+  ...
+# Subtest: HandleSvg returns an empty QR image fragment when no asset is provided
+ok 17 - HandleSvg returns an empty QR image fragment when no asset is provided
+  ---
+  duration_ms: 0.148405
   type: 'test'
   ...
 # Subtest: HandleSvg derives QR styling options and positioned view properties
-ok 8 - HandleSvg derives QR styling options and positioned view properties
+ok 18 - HandleSvg derives QR styling options and positioned view properties
   ---
-  duration_ms: 2.074645
+  duration_ms: 0.403081
+  type: 'test'
+  ...
+# Subtest: HandleSvg builds QR code markup with background, positioning, and embedded image
+ok 19 - HandleSvg builds QR code markup with background, positioning, and embedded image
+  ---
+  duration_ms: 0.658476
+  type: 'test'
+  ...
+# Subtest: HandleSvg skips QR image failures but still renders QR code markup
+ok 20 - HandleSvg skips QR image failures but still renders QR code markup
+  ---
+  duration_ms: 0.443345
   type: 'test'
   ...
 # Subtest: HandleSvg builds handle-name shadow fallback and validates shadow bounds
-ok 9 - HandleSvg builds handle-name shadow fallback and validates shadow bounds
+ok 21 - HandleSvg builds handle-name shadow fallback and validates shadow bounds
   ---
-  duration_ms: 0.814035
+  duration_ms: 0.722595
   type: 'test'
   ...
 # Subtest: HandleSvg builds socials with icon and text fragments
-ok 10 - HandleSvg builds socials with icon and text fragments
+ok 22 - HandleSvg builds socials with icon and text fragments
   ---
-  duration_ms: 0.66048
+  duration_ms: 0.8703
+  type: 'test'
+  ...
+# Subtest: HandleSvg renders social icons with contrast fallback against solid backgrounds
+ok 23 - HandleSvg renders social icons with contrast fallback against solid backgrounds
+  ---
+  duration_ms: 0.367283
+  type: 'test'
+  ...
+# Subtest: HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rarity fragments
+ok 24 - HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rarity fragments
+  ---
+  duration_ms: 0.497707
+  type: 'test'
+  ...
+# Subtest: HandleSvg builds centered logo-only handle name markup
+ok 25 - HandleSvg builds centered logo-only handle name markup
+  ---
+  duration_ms: 0.378706
+  type: 'test'
+  ...
+# Subtest: HandleSvg wraps logo-only handle markup in a transparent SVG shell
+ok 26 - HandleSvg wraps logo-only handle markup in a transparent SVG shell
+  ---
+  duration_ms: 0.194944
   type: 'test'
   ...
 # Subtest: HandleSvg full build composes child fragments and honors disabled dollar sign
-ok 11 - HandleSvg full build composes child fragments and honors disabled dollar sign
+ok 27 - HandleSvg full build composes child fragments and honors disabled dollar sign
   ---
-  duration_ms: 0.422227
+  duration_ms: 0.302874
   type: 'test'
   ...
 # Subtest: library index exposes default HandleSvg and utility exports
-ok 12 - library index exposes default HandleSvg and utility exports
+ok 28 - library index exposes default HandleSvg and utility exports
   ---
-  duration_ms: 0.749416
+  duration_ms: 0.788838
+  type: 'test'
+  ...
+# Subtest: getRarityHandleSegment returns the root for a subhandle, the handle otherwise
+ok 29 - getRarityHandleSegment returns the root for a subhandle, the handle otherwise
+  ---
+  duration_ms: 0.819795
+  type: 'test'
+  ...
+# Subtest: subhandle rarity color matches its root handle, not the combined length (handle.me\#872)
+ok 30 - subhandle rarity color matches its root handle, not the combined length (handle.me\#872)
+  ---
+  duration_ms: 0.233374
+  type: 'test'
+  ...
+# Subtest: root-handle rarity is unchanged
+ok 31 - root-handle rarity is unchanged
+  ---
+  duration_ms: 0.147615
   type: 'test'
   ...
 # Subtest: getSocialIcon resolves known provider branches
-ok 13 - getSocialIcon resolves known provider branches
+ok 32 - getSocialIcon resolves known provider branches
   ---
-  duration_ms: 1.224231
+  duration_ms: 1.191478
   type: 'test'
   ...
 # Subtest: getSocialIcon falls back to website icon when no provider matches
-ok 14 - getSocialIcon falls back to website icon when no provider matches
+ok 33 - getSocialIcon falls back to website icon when no provider matches
   ---
-  duration_ms: 0.149047
+  duration_ms: 0.154057
   type: 'test'
   ...
 # Subtest: utils index rarity helpers cover all rarity branches
-ok 15 - utils index rarity helpers cover all rarity branches
+ok 34 - utils index rarity helpers cover all rarity branches
   ---
-  duration_ms: 0.838902
+  duration_ms: 0.881331
   type: 'test'
   ...
 # Subtest: utils index supports color and font helpers
-ok 16 - utils index supports color and font helpers
+ok 35 - utils index supports color and font helpers
   ---
-  duration_ms: 0.324384
+  duration_ms: 0.363457
   type: 'test'
   ...
 # Subtest: checkContrast handles default threshold and alpha inputs
-ok 17 - checkContrast handles default threshold and alpha inputs
+ok 36 - checkContrast handles default threshold and alpha inputs
   ---
-  duration_ms: 0.706557
+  duration_ms: 0.77372
   type: 'test'
   ...
 # Subtest: getMaxOffset handles explicit zoom and fallback zoom
-ok 18 - getMaxOffset handles explicit zoom and fallback zoom
+ok 37 - getMaxOffset handles explicit zoom and fallback zoom
   ---
-  duration_ms: 0.166781
+  duration_ms: 0.17736
   type: 'test'
   ...
 # Subtest: buildFallbackUrl appends pinata token only for pinata gateway
-ok 19 - buildFallbackUrl appends pinata token only for pinata gateway
+ok 38 - buildFallbackUrl appends pinata token only for pinata gateway
   ---
-  duration_ms: 0.574971
+  duration_ms: 0.712266
   type: 'test'
   ...
 # Subtest: getImageDetails returns metadata without base64 for direct URLs
-ok 20 - getImageDetails returns metadata without base64 for direct URLs
+ok 39 - getImageDetails returns metadata without base64 for direct URLs
   ---
-  duration_ms: 0.960579
+  duration_ms: 2.200817
   type: 'test'
   ...
 # Subtest: getImageDetails returns base64 payload for ipfs URLs
-ok 21 - getImageDetails returns base64 payload for ipfs URLs
+ok 40 - getImageDetails returns base64 payload for ipfs URLs
   ---
-  duration_ms: 0.523406
+  duration_ms: 0.704572
   type: 'test'
   ...
 # Subtest: getImageDetails retries with next gateway on failure
-ok 22 - getImageDetails retries with next gateway on failure
+ok 41 - getImageDetails retries with next gateway on failure
   ---
-  duration_ms: 0.369057
+  duration_ms: 0.480735
   type: 'test'
   ...
 # Subtest: getImageDetails throws when all gateways fail
-ok 23 - getImageDetails throws when all gateways fail
+ok 42 - getImageDetails throws when all gateways fail
   ---
-  duration_ms: 0.743094
+  duration_ms: 0.996975
   type: 'test'
   ...
-1..23
-# tests 23
+1..42
+# tests 42
 # suites 0
-# pass 23
+# pass 42
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 102.275638
+# duration_ms 129.827948
 
 === RAW_OUTPUT_COVERAGE_C8 ===
 
-> @koralabs/handle-svg@3.0.16 pretest
+> @koralabs/handle-svg@3.0.19 pretest
 > npm run build
 
 
-> @koralabs/handle-svg@3.0.16 build
+> @koralabs/handle-svg@3.0.19 build
 > tsc
 
 
-> @koralabs/handle-svg@3.0.16 test
+> @koralabs/handle-svg@3.0.19 test
 > node --test tests/*.test.cjs
 
 TAP version 13
 # Subtest: getFontArrayBuffer returns decompressed array buffer for woff2 resources
 ok 1 - getFontArrayBuffer returns decompressed array buffer for woff2 resources
   ---
-  duration_ms: 2.465743
+  duration_ms: 3.307587
   type: 'test'
   ...
 # Subtest: getFontArrayBuffer decompresses woff2 URLs even when content type is generic
 ok 2 - getFontArrayBuffer decompresses woff2 URLs even when content type is generic
   ---
-  duration_ms: 0.386489
+  duration_ms: 0.682971
   type: 'test'
   ...
 # Subtest: getFontArrayBuffer returns original buffer when no decompression is needed
 ok 3 - getFontArrayBuffer returns original buffer when no decompression is needed
   ---
-  duration_ms: 0.325125
+  duration_ms: 0.421484
   type: 'test'
   ...
 # Subtest: getFontArrayBuffer returns original buffer when content type is missing
 ok 4 - getFontArrayBuffer returns original buffer when content type is missing
   ---
-  duration_ms: 1.309829
+  duration_ms: 1.897802
+  type: 'test'
+  ...
+# Subtest: buildBackgroundImage THROWS when a provided bg_image fails on every gateway
+ok 5 - buildBackgroundImage THROWS when a provided bg_image fails on every gateway
+  ---
+  duration_ms: 6.990383
+  type: 'test'
+  ...
+# Subtest: buildPfpImage THROWS when a provided pfp_image fails on every gateway
+ok 6 - buildPfpImage THROWS when a provided pfp_image fails on every gateway
+  ---
+  duration_ms: 1.080471
+  type: 'test'
+  ...
+# Subtest: no bg_image / pfp_image provided -> empty layer, no throw
+ok 7 - no bg_image / pfp_image provided -> empty layer, no throw
+  ---
+  duration_ms: 1.417929
+  type: 'test'
+  ...
+# Subtest: getImageDetails advances to the next IPFS gateway when one throws (not just on !ok)
+ok 8 - getImageDetails advances to the next IPFS gateway when one throws (not just on !ok)
+  ---
+  duration_ms: 0.88115
+  type: 'test'
+  ...
+# Subtest: getImageDetails falls back to nftcdnUrl after every IPFS gateway misses
+ok 9 - getImageDetails falls back to nftcdnUrl after every IPFS gateway misses
+  ---
+  duration_ms: 0.805771
+  type: 'test'
+  ...
+# Subtest: getImageDetails still throws when gateways miss and NO nftcdnUrl is given (unchanged behavior)
+ok 10 - getImageDetails still throws when gateways miss and NO nftcdnUrl is given (unchanged behavior)
+  ---
+  duration_ms: 0.544595
+  type: 'test'
+  ...
+# Subtest: buildBackgroundImage RECOVERS via bg_image_nftcdn_url when gateways miss
+ok 11 - buildBackgroundImage RECOVERS via bg_image_nftcdn_url when gateways miss
+  ---
+  duration_ms: 1.019268
+  type: 'test'
+  ...
+# Subtest: timedFetch aborts a hanging gateway fetch after the timeout
+ok 12 - timedFetch aborts a hanging gateway fetch after the timeout
+  ---
+  duration_ms: 52.40314
+  type: 'test'
+  ...
+# Subtest: buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss
+ok 13 - buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss
+  ---
+  duration_ms: 1.411168
   type: 'test'
   ...
 # Subtest: HandleSvg builds background, ribbon, border, and contrast-safe logo fragments
-ok 5 - HandleSvg builds background, ribbon, border, and contrast-safe logo fragments
+ok 14 - HandleSvg builds background, ribbon, border, and contrast-safe logo fragments
   ---
-  duration_ms: 3.311468
+  duration_ms: 1.955911
   type: 'test'
   ...
 # Subtest: HandleSvg builds pfp markup with border, zoom, and bounded offsets
-ok 6 - HandleSvg builds pfp markup with border, zoom, and bounded offsets
+ok 15 - HandleSvg builds pfp markup with border, zoom, and bounded offsets
   ---
-  duration_ms: 0.913792
+  duration_ms: 0.729187
   type: 'test'
   ...
 # Subtest: HandleSvg builds QR image fragments for raster and embedded SVG assets
-ok 7 - HandleSvg builds QR image fragments for raster and embedded SVG assets
+ok 16 - HandleSvg builds QR image fragments for raster and embedded SVG assets
   ---
-  duration_ms: 1.269635
+  duration_ms: 1.21897
+  type: 'test'
+  ...
+# Subtest: HandleSvg returns an empty QR image fragment when no asset is provided
+ok 17 - HandleSvg returns an empty QR image fragment when no asset is provided
+  ---
+  duration_ms: 0.162812
   type: 'test'
   ...
 # Subtest: HandleSvg derives QR styling options and positioned view properties
-ok 8 - HandleSvg derives QR styling options and positioned view properties
+ok 18 - HandleSvg derives QR styling options and positioned view properties
   ---
-  duration_ms: 0.414704
+  duration_ms: 0.438766
+  type: 'test'
+  ...
+# Subtest: HandleSvg builds QR code markup with background, positioning, and embedded image
+ok 19 - HandleSvg builds QR code markup with background, positioning, and embedded image
+  ---
+  duration_ms: 0.757651
+  type: 'test'
+  ...
+# Subtest: HandleSvg skips QR image failures but still renders QR code markup
+ok 20 - HandleSvg skips QR image failures but still renders QR code markup
+  ---
+  duration_ms: 0.479623
   type: 'test'
   ...
 # Subtest: HandleSvg builds handle-name shadow fallback and validates shadow bounds
-ok 9 - HandleSvg builds handle-name shadow fallback and validates shadow bounds
+ok 21 - HandleSvg builds handle-name shadow fallback and validates shadow bounds
   ---
-  duration_ms: 0.962773
+  duration_ms: 0.851725
   type: 'test'
   ...
 # Subtest: HandleSvg builds socials with icon and text fragments
-ok 10 - HandleSvg builds socials with icon and text fragments
+ok 22 - HandleSvg builds socials with icon and text fragments
   ---
-  duration_ms: 0.745899
+  duration_ms: 0.750166
+  type: 'test'
+  ...
+# Subtest: HandleSvg renders social icons with contrast fallback against solid backgrounds
+ok 23 - HandleSvg renders social icons with contrast fallback against solid backgrounds
+  ---
+  duration_ms: 0.199851
+  type: 'test'
+  ...
+# Subtest: HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rarity fragments
+ok 24 - HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rarity fragments
+  ---
+  duration_ms: 0.60183
+  type: 'test'
+  ...
+# Subtest: HandleSvg builds centered logo-only handle name markup
+ok 25 - HandleSvg builds centered logo-only handle name markup
+  ---
+  duration_ms: 0.460057
+  type: 'test'
+  ...
+# Subtest: HandleSvg wraps logo-only handle markup in a transparent SVG shell
+ok 26 - HandleSvg wraps logo-only handle markup in a transparent SVG shell
+  ---
+  duration_ms: 0.235888
   type: 'test'
   ...
 # Subtest: HandleSvg full build composes child fragments and honors disabled dollar sign
-ok 11 - HandleSvg full build composes child fragments and honors disabled dollar sign
+ok 27 - HandleSvg full build composes child fragments and honors disabled dollar sign
   ---
-  duration_ms: 0.433056
+  duration_ms: 0.407579
   type: 'test'
   ...
 # Subtest: library index exposes default HandleSvg and utility exports
-ok 12 - library index exposes default HandleSvg and utility exports
+ok 28 - library index exposes default HandleSvg and utility exports
   ---
-  duration_ms: 0.946844
+  duration_ms: 0.911898
+  type: 'test'
+  ...
+# Subtest: getRarityHandleSegment returns the root for a subhandle, the handle otherwise
+ok 29 - getRarityHandleSegment returns the root for a subhandle, the handle otherwise
+  ---
+  duration_ms: 0.971929
+  type: 'test'
+  ...
+# Subtest: subhandle rarity color matches its root handle, not the combined length (handle.me\#872)
+ok 30 - subhandle rarity color matches its root handle, not the combined length (handle.me\#872)
+  ---
+  duration_ms: 0.2793
+  type: 'test'
+  ...
+# Subtest: root-handle rarity is unchanged
+ok 31 - root-handle rarity is unchanged
+  ---
+  duration_ms: 0.124251
   type: 'test'
   ...
 # Subtest: getSocialIcon resolves known provider branches
-ok 13 - getSocialIcon resolves known provider branches
+ok 32 - getSocialIcon resolves known provider branches
   ---
-  duration_ms: 1.358881
+  duration_ms: 1.277339
   type: 'test'
   ...
 # Subtest: getSocialIcon falls back to website icon when no provider matches
-ok 14 - getSocialIcon falls back to website icon when no provider matches
+ok 33 - getSocialIcon falls back to website icon when no provider matches
   ---
-  duration_ms: 0.205313
+  duration_ms: 0.143878
   type: 'test'
   ...
 # Subtest: utils index rarity helpers cover all rarity branches
-ok 15 - utils index rarity helpers cover all rarity branches
+ok 34 - utils index rarity helpers cover all rarity branches
   ---
-  duration_ms: 1.012214
+  duration_ms: 1.023144
   type: 'test'
   ...
 # Subtest: utils index supports color and font helpers
-ok 16 - utils index supports color and font helpers
+ok 35 - utils index supports color and font helpers
   ---
-  duration_ms: 0.286293
+  duration_ms: 0.266616
   type: 'test'
   ...
 # Subtest: checkContrast handles default threshold and alpha inputs
-ok 17 - checkContrast handles default threshold and alpha inputs
+ok 36 - checkContrast handles default threshold and alpha inputs
   ---
-  duration_ms: 1.183795
+  duration_ms: 1.042852
   type: 'test'
   ...
 # Subtest: getMaxOffset handles explicit zoom and fallback zoom
-ok 18 - getMaxOffset handles explicit zoom and fallback zoom
+ok 37 - getMaxOffset handles explicit zoom and fallback zoom
   ---
-  duration_ms: 0.15071
+  duration_ms: 0.147866
   type: 'test'
   ...
 # Subtest: buildFallbackUrl appends pinata token only for pinata gateway
-ok 19 - buildFallbackUrl appends pinata token only for pinata gateway
+ok 38 - buildFallbackUrl appends pinata token only for pinata gateway
   ---
-  duration_ms: 0.652846
+  duration_ms: 0.792515
   type: 'test'
   ...
 # Subtest: getImageDetails returns metadata without base64 for direct URLs
-ok 20 - getImageDetails returns metadata without base64 for direct URLs
+ok 39 - getImageDetails returns metadata without base64 for direct URLs
   ---
-  duration_ms: 1.215384
+  duration_ms: 1.717707
   type: 'test'
   ...
 # Subtest: getImageDetails returns base64 payload for ipfs URLs
-ok 21 - getImageDetails returns base64 payload for ipfs URLs
+ok 40 - getImageDetails returns base64 payload for ipfs URLs
   ---
-  duration_ms: 0.416595
+  duration_ms: 0.572095
   type: 'test'
   ...
 # Subtest: getImageDetails retries with next gateway on failure
-ok 22 - getImageDetails retries with next gateway on failure
+ok 41 - getImageDetails retries with next gateway on failure
   ---
-  duration_ms: 0.387561
+  duration_ms: 0.554953
   type: 'test'
   ...
 # Subtest: getImageDetails throws when all gateways fail
-ok 23 - getImageDetails throws when all gateways fail
+ok 42 - getImageDetails throws when all gateways fail
   ---
-  duration_ms: 0.772759
+  duration_ms: 1.008929
   type: 'test'
   ...
-1..23
-# tests 23
+1..42
+# tests 42
 # suites 0
-# pass 23
+# pass 42
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 129.873789
+# duration_ms 159.155352
 ------------------------|---------|----------|---------|---------|-------------------
-File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 ------------------------|---------|----------|---------|---------|-------------------
-All files               |   99.42 |    92.85 |   93.54 |   99.42 |                   
- lib                    |    91.3 |    69.23 |     100 |    91.3 |                   
-  index.js              |    91.3 |    69.23 |     100 |    91.3 | 10-11             
- lib/utils              |     100 |    95.03 |   92.85 |     100 |                   
-  checkContrast.js      |     100 |      100 |     100 |     100 |                   
-  constants.js          |     100 |       50 |     100 |     100 | 7                 
-  getFontArrayBuffer.js |     100 |       90 |   85.71 |     100 | 3,5               
-  getMaxOffset.js       |     100 |      100 |     100 |     100 |                   
-  getSocialIcon.js      |     100 |      100 |     100 |     100 |                   
-  imageHelpers.js       |     100 |    85.71 |   88.88 |     100 | 3,8,12,46         
-  index.js              |     100 |      100 |     100 |     100 |                   
+All files               |   98.52 |    91.62 |   97.14 |   98.52 |
+ lib                    |    91.3 |    69.23 |     100 |    91.3 |
+  index.js              |    91.3 |    69.23 |     100 |    91.3 | 10-11
+ lib/utils              |   98.95 |    93.37 |   96.87 |   98.95 |
+  checkContrast.js      |     100 |      100 |     100 |     100 |
+  constants.js          |     100 |    33.33 |     100 |     100 | 6-7
+  getFontArrayBuffer.js |     100 |       90 |   85.71 |     100 | 3,5
+  getMaxOffset.js       |     100 |      100 |     100 |     100 |
+  getSocialIcon.js      |     100 |      100 |     100 |     100 |
+  imageHelpers.js       |   95.91 |       88 |     100 |   95.91 | 69-70,88-89
+  index.js              |     100 |    97.43 |     100 |     100 | 23
 ------------------------|---------|----------|---------|---------|-------------------
