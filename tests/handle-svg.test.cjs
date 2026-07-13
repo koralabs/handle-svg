@@ -356,6 +356,209 @@ test('HandleSvg builds centered logo-only handle name markup', async () => {
     assert.equal(svg.includes('scale(2.3157894736842106)'), true);
 });
 
+
+test('HandleSvg builds a fixed font with Ubuntu Mono glyph fallbacks', async () => {
+    const renderer = createRenderer();
+    const originalFetch = global.fetch;
+    const calls = [];
+    const decompressedSizes = [];
+    const parsedBuffers = [];
+    const fixedBuffer = new ArrayBuffer(16);
+    let fixedFontOptions;
+
+    const createFont = (label, missingChars = new Set()) => ({
+        unitsPerEm: 1000,
+        ascender: 800,
+        descender: -200,
+        glyphs: { get: (index) => ({ label, index }) },
+        charToGlyphIndex: (char) => (missingChars.has(char) ? 0 : char.charCodeAt(0)),
+        charToGlyph: (char) => ({ label, char }),
+        getPath: () => ({ getBoundingBox: () => ({ x1: 1, y1: -10, x2: 50, y2: 20 }) })
+    });
+    const ubuntuMono = createFont('ubuntu');
+    const customFont = createFont('custom', new Set(['A']));
+    const fixedFont = createFont('fixed');
+    const opentype = {
+        Font: class MockFont {
+            constructor(options) {
+                fixedFontOptions = options;
+            }
+            toArrayBuffer() {
+                return fixedBuffer;
+            }
+        },
+        parse(buffer) {
+            parsedBuffers.push(buffer.byteLength);
+            if (buffer.byteLength === 8) return ubuntuMono;
+            if (buffer.byteLength === 4) return customFont;
+            return fixedFont;
+        }
+    };
+
+    global.fetch = async (fontLink) => {
+        calls.push(fontLink);
+        const byteLength = fontLink.includes('custom.woff2') ? 4 : 8;
+        return {
+            headers: { get: () => 'font/woff2' },
+            arrayBuffer: async () => new Uint8Array(byteLength).buffer
+        };
+    };
+
+    try {
+        const result = await renderer.loadParsedFont(
+            'Custom,https://example.com/custom.woff2',
+            async (src) => {
+                decompressedSizes.push(src.byteLength);
+                return new Uint8Array(src.byteLength);
+            },
+            'hi',
+            64,
+            opentype
+        );
+
+        assert.deepEqual(calls, [
+            'https://fonts.gstatic.com/s/ubuntumono/v15/KFO-CneDtsqEr0keqCMhbC-BL9H1tY0.woff2',
+            'https://example.com/custom.woff2'
+        ]);
+        assert.deepEqual(decompressedSizes, [8, 4]);
+        assert.deepEqual(parsedBuffers, [8, 4, 16]);
+        assert.equal(result.parsedFont, fixedFont);
+        assert.equal(result.ubuntuMono, ubuntuMono);
+        assert.deepEqual(result.boundingBox, { x1: 1, y1: -10, x2: 50, y2: 20 });
+        assert.equal(fixedFontOptions.unitsPerEm, 1000);
+        assert.equal(fixedFontOptions.glyphs.some((glyph) => glyph.label === 'ubuntu' && glyph.char === 'A'), true);
+        assert.equal(fixedFontOptions.glyphs.some((glyph) => glyph.label === 'custom' && glyph.char === 'B'), true);
+    } finally {
+        global.fetch = originalFetch;
+    }
+});
+
+test('HandleSvg falls back to Ubuntu Mono when custom font loading throws', async () => {
+    const renderer = createRenderer();
+    const originalFetch = global.fetch;
+    const calls = [];
+    const parsedBuffers = [];
+    const fixedBuffer = new ArrayBuffer(16);
+    const ubuntuMono = {
+        unitsPerEm: 1000,
+        ascender: 800,
+        descender: -200,
+        glyphs: { get: (index) => ({ index }) },
+        charToGlyphIndex: (char) => char.charCodeAt(0),
+        charToGlyph: (char) => ({ char }),
+        getPath: () => ({ getBoundingBox: () => ({ x1: 0, y1: -32, x2: 96, y2: 32 }) })
+    };
+    const opentype = {
+        Font: class MockFont {
+            toArrayBuffer() {
+                return fixedBuffer;
+            }
+        },
+        parse(buffer) {
+            parsedBuffers.push(buffer.byteLength);
+            return ubuntuMono;
+        }
+    };
+
+    global.fetch = async (fontLink) => {
+        calls.push(fontLink);
+        if (fontLink.includes('broken.ttf')) {
+            throw new Error('font unavailable');
+        }
+        return {
+            headers: { get: () => 'font/woff2' },
+            arrayBuffer: async () => new Uint8Array(8).buffer
+        };
+    };
+
+    try {
+        const result = await renderer.loadParsedFont(
+            'https://example.com/broken.ttf',
+            async (src) => new Uint8Array(src.byteLength),
+            'abc',
+            32,
+            opentype
+        );
+
+        assert.deepEqual(calls, [
+            'https://fonts.gstatic.com/s/ubuntumono/v15/KFO-CneDtsqEr0keqCMhbC-BL9H1tY0.woff2',
+            'https://example.com/broken.ttf'
+        ]);
+        assert.deepEqual(parsedBuffers, [8, 16]);
+        assert.equal(result.parsedFont, ubuntuMono);
+        assert.equal(result.ubuntuMono, ubuntuMono);
+        assert.deepEqual(result.boundingBox, { x1: 0, y1: -32, x2: 96, y2: 32 });
+    } finally {
+        global.fetch = originalFetch;
+    }
+});
+
+test('HandleSvg builds QR defaults and guards missing QR links', () => {
+    const emptyRenderer = createRenderer();
+    assert.equal(emptyRenderer.buildQrCodeOptions(), undefined);
+
+    const renderer = createRenderer({
+        size: 2048,
+        options: {
+            qr_link: 'https://handle.me/$handle',
+            qr_dot: 'dots,0x112233',
+            qr_inner_eye: 'rounded,0x445566',
+            qr_outer_eye: 'rounded,0x778899'
+        }
+    });
+
+    const options = renderer.buildQrCodeOptions();
+
+    assert.equal(options.width, 430);
+    assert.equal(options.height, 430);
+    assert.equal(options.data, 'https://handle.me/$handle');
+    assert.deepEqual(options.dotsOptions, { color: '0x112233', type: 'dots' });
+    assert.deepEqual(options.cornersSquareOptions, { color: '0x778899', type: 'extra-rounded' });
+    assert.deepEqual(options.cornersDotOptions, { color: '0x445566', type: 'rounded' });
+    assert.deepEqual(options.backgroundOptions, { color: '#FFFFFF00' });
+});
+
+test('HandleSvg initializes QR styling and derives real QR height from SVG eyes', () => {
+    const renderer = createRenderer();
+    class MockQRCodeStyling {
+        constructor(options) {
+            this.options = options;
+            this._svg = {
+                _element: {
+                    children: [
+                        {},
+                        {},
+                        {},
+                        { attributes: { getNamedItem: (name) => (name === 'x' ? { value: '10' } : null) } },
+                        {},
+                        {},
+                        {},
+                        {
+                            attributes: {
+                                getNamedItem: (name) => ({ y: { value: '210' }, height: { value: '60' } })[name]
+                            }
+                        }
+                    ]
+                }
+            };
+        }
+    }
+
+    const { qrCode, realQrHeight } = renderer.initQrCodeStyling(MockQRCodeStyling, { width: 1 });
+
+    assert.equal(qrCode.options.width, 1);
+    assert.equal(realQrHeight, 260);
+});
+
+test('HandleSvg keeps a zero-sized QR viewBox when QR eye dimensions are unavailable', () => {
+    const renderer = createRenderer();
+    const { realQrHeight } = renderer.initQrCodeStyling(class MockQRCodeStyling {}, {});
+    const props = renderer.buildQrCodeViewProperties(realQrHeight);
+
+    assert.equal(realQrHeight, 0);
+    assert.equal(props.svgViewBox, '107.5 107.5 0 0');
+});
+
 test('HandleSvg wraps logo-only handle markup in a transparent SVG shell', async () => {
     const renderer = createRenderer({ size: 1200 });
     renderer.buildLogoAndHandleName = async () => '<logo-name />';
