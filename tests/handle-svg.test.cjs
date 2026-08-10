@@ -570,6 +570,52 @@ test('HandleSvg wraps logo-only handle markup in a transparent SVG shell', async
     assert.equal(svg.includes('<logo-name />'), true);
 });
 
+
+test('HandleSvg returns empty optional fragments when inputs are absent', async () => {
+    let renderer = createRenderer({ options: {} });
+    assert.equal(renderer.buildTextRibbon(), '');
+    assert.equal(renderer.buildBackgroundBorder(), '');
+    assert.equal(renderer.buildDollarSign().includes('fill="#888888"'), false);
+
+    renderer = createRenderer({ options: {} });
+    assert.equal(await renderer.buildOG(async () => new Uint8Array(), {}), '');
+    assert.equal(await renderer.buildQRCode(null, class MockQRCodeStyling {}), '');
+});
+
+test('HandleSvg builds pfp markup without configured image as null', () => {
+    const renderer = createRenderer({ options: {} });
+
+    assert.equal(renderer._buildPfpImageHtmlString('data:image/png;base64,AQID'), null);
+});
+
+test('HandleSvg keeps readable colors when backgrounds do not require fallback', async () => {
+    const logoRenderer = createRenderer({
+        options: {
+            bg_color: '0x000000'
+        }
+    });
+    const logo = logoRenderer.buildLogoHandle();
+    assert.equal(logo.includes('id="S" fill="#0cd15b"'), true);
+    assert.equal(logo.includes('id="handle" fill="#ffffff"'), true);
+
+    const handleRenderer = createRenderer({
+        size: 2048,
+        handle: 'contrast',
+        options: {
+            bg_color: '0x000000',
+            font_color: '0xffffff',
+            font_shadow_color: '0x222222',
+            font_shadow_size: [2, 4, 12]
+        }
+    });
+    handleRenderer.loadParsedFont = async () => mockFontResult({ x1: 0, y1: -40, x2: 300, y2: 100 });
+
+    const svg = await handleRenderer.buildHandleName(async () => new Uint8Array(), {});
+    assert.equal(svg.includes('flood-color="#222222"'), true);
+    assert.equal(svg.includes('stdDeviation="12"'), true);
+    assert.equal(svg.includes('data-fill="#ffffff"'), true);
+});
+
 test('HandleSvg full build composes child fragments and honors disabled dollar sign', async () => {
     const renderer = createRenderer({ disableDollarSymbol: true });
     renderer.buildBackgroundImage = async () => '<bg-image />';
