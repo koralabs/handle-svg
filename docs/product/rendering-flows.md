@@ -15,7 +15,8 @@
 ## Image Fetch Flow
 1. If URL is `ipfs://`, map it through current gateway.
 2. Fetch image.
-3. If fetch fails and more gateways remain, retry next gateway.
+3. If fetch fails or times out and more gateways remain (within the shared 12s gateway budget), retry next gateway.
+   After the last gateway, try the caller's signed NFTCDN URL (8s). bg and pfp are fetched concurrently.
 4. Return either:
   - direct URL + content type (`useBase64=false`), or
   - base64 payload + content type (`useBase64=true`).
