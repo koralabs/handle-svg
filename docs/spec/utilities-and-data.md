@@ -36,6 +36,6 @@
 - Input: image URL, `useBase64` flag, optional gateway index.
 - Behavior:
   - resolve IPFS URL through gateway list,
-  - fetch and retry on failure,
+  - fetch and retry on failure within the shared gateway budget, then NFTCDN (see spec.md "Error and Fallback Behavior"),
   - return `{ imageUrl, contentType, base64 }`,
   - throw on terminal failure.

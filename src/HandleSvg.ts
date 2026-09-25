@@ -743,13 +743,16 @@ export default class HandleSvg {
     // Build the full handle svg (with all the elements)
     async build(decompress: any, jsdom: any, QRCodeStyling: any, opentype: any, xml2json?: any, json2xml?: any) {
         const { size, disableDollarSymbol } = this._params;
+        // Fetch bg and pfp concurrently: each may spend up to IMAGE_FETCH_BUDGET_MS walking gateways
+        // then NFTCDN, and in sequence the two budgets would outlast the renderer's 30s timeout.
+        const [backgroundImage, pfpImage] = await Promise.all([this.buildBackgroundImage(), this.buildPfpImage()]);
 
         return `
             <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
                 ${this.buildBackground()}
                 ${this.buildDefaultBackground()}
-                ${await this.buildBackgroundImage()}
-                ${await this.buildPfpImage()}
+                ${backgroundImage}
+                ${pfpImage}
                 ${this.buildTextRibbon()}
                 ${this.buildBackgroundBorder()}
                 ${this.buildLogoHandle()}

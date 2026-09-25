@@ -30,8 +30,13 @@
 - Font parsing:
   - if custom font fetch/parse fails, fallback to Ubuntu Mono.
 - Image fetching:
-  - retry across configured IPFS gateways.
-  - throw when all gateways fail.
+  - retry across configured IPFS gateways (Filebase, then Pinata), then the caller's signed NFTCDN URL.
+  - time budget per image: the gateway walk shares `IPFS_GATEWAY_BUDGET_MS` (12s, split across the
+    gateways not yet tried), NFTCDN gets `NFTCDN_FETCH_TIMEOUT_MS` (8s); each timeout covers headers
+    and body. `build()` fetches bg and pfp concurrently, so images cost at most `IMAGE_FETCH_BUDGET_MS`
+    (20s) of render.handle.me's 30s function timeout.
+  - a gateway answering 429/503 with `Retry-After` is skipped by every render in the process until then.
+  - throw when all tiers fail.
 - PFP positioning:
   - throw if provided offsets exceed zoom-derived bounds.
 - Contrast:

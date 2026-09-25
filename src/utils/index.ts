@@ -76,4 +76,4 @@ export { getSocialIcon } from './getSocialIcon';
 
 export { getMaxOffset } from './getMaxOffset';
 
-export { getImageDetails } from './imageHelpers';
+export { getImageDetails, IMAGE_FETCH_BUDGET_MS } from './imageHelpers';
