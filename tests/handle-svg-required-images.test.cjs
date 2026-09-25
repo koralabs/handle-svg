@@ -118,3 +118,25 @@ test('buildPfpImage RECOVERS via pfp_image_nftcdn_url when gateways miss', async
     const out = await svg.buildPfpImage();
     assert.ok(out && out.length > 0, 'pfp should render from the NFTCDN recovery, not throw');
 });
+
+// Invariant: the gateway walk uses only Kora's configured gateways, then the caller's NFTCDN URL;
+// it never calls a public gateway. Failure mode (#2113 follow-up): after Filebase and Pinata missed,
+// the renderer called https://ipfs.io, which answers server traffic with 429 (Retry-After 900), so
+// preprod builds failed "Error processing image" with "Failed to fetch image from https://ipfs.io".
+// Negative control: restoring 'https://ipfs.io' to ALL_IPFS_GATEWAYS fails the host assertion.
+test('getImageDetails walks only Kora gateways, then NFTCDN — never a public gateway', async () => {
+    const hosts = [];
+    const fetchByHost = async (url) => {
+        hosts.push(new URL(url).host);
+        if (url.startsWith('https://asset1')) return { ok: true, headers: { get: () => 'image/png' }, arrayBuffer: async () => Buffer.from('png') };
+        return { ok: false, status: 429, headers: { get: (h) => (h.toLowerCase() === 'retry-after' ? '900' : null) } };
+    };
+    const { getImageDetails } = withMockedCrossFetch(fetchByHost, imageHelpersPath);
+    const r = await getImageDetails({ imageUrl: 'ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG', useBase64: true, nftcdnUrl: 'https://asset1abc.handles.nftcdn.io/image?tk=x' });
+    assert.equal(r.contentType, 'image/png');
+    assert.deepEqual(hosts, ['public-handles.myfilebase.com', 'public-handles.mypinata.cloud', 'asset1abc.handles.nftcdn.io']);
+    // Edge: without an NFTCDN URL the miss surfaces as the last Kora gateway's failure.
+    hosts.length = 0;
+    await assert.rejects(getImageDetails({ imageUrl: 'ipfs://cid', useBase64: true }), /Failed to fetch image from https:\/\/public-handles\.mypinata\.cloud\/ipfs\/cid/);
+    assert.ok(!hosts.includes('ipfs.io'), `no public gateway was called (${hosts.join(', ')})`);
+});
