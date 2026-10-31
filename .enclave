@@ -1,0 +1,11 @@
+# handle-svg: exact repo-root-relative paths, one per line. These files decide what a Handle's image shows and how the package is published.
+.enclave
+CANONICAL_CONTRACT.md
+src/HandleSvg.ts
+src/utils/index.ts
+src/utils/imageHelpers.ts
+src/utils/constants.ts
+src/utils/getMaxOffset.ts
+src/utils/checkContrast.ts
+package.json
+.github/workflows/deploy.yml
