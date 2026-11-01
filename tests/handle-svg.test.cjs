@@ -52,6 +52,11 @@ test('HandleSvg builds background, ribbon, border, and contrast-safe logo fragme
     const logo = renderer.buildLogoHandle();
     assert.equal(logo.includes('x="80" y="80"'), true);
     assert.equal(logo.includes('id="handle" fill="#888888"'), true);
+
+    // the logo's green dollar sign is swapped out when the solid background is that same green
+    const greenLogo = createRenderer({ options: { bg_color: '0x0cd15b' } }).buildLogoHandle();
+    assert.equal(greenLogo.includes('id="S" fill="#888888"'), true);
+    assert.equal(greenLogo.includes('id="handle" fill="#ffffff"'), true);
 });
 
 test('HandleSvg builds pfp markup with border, zoom, and bounded offsets', () => {
@@ -366,6 +371,10 @@ test('HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rari
     const dollar = renderer.buildDollarSign();
     assert.equal(dollar.includes('fill="#593292"'), true);
     assert.equal(dollar.includes('x="1668" y="80"'), true);
+
+    // a solid background the same colour as the rarity dollar sign swaps it for the default contrast colour
+    renderer = createRenderer({ size: 2048, handle: 'aa', options: { bg_color: '0x593292' } });
+    assert.equal(renderer.buildDollarSign().includes('fill="#888888"'), true);
 
     renderer = createRenderer({
         size: 2048,
