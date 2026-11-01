@@ -24,6 +24,8 @@ export default class HandleSvg {
     private _https: any;
     private _bgImageNftcdnUrl?: string;
     private _pfpImageNftcdnUrl?: string;
+    private _textBackdropColor?: string;
+    private _textReadabilityAdjusted = false;
 
     constructor(inputs: IHandleSvg, https?: any) {
         this._options = inputs.options;
@@ -36,6 +38,12 @@ export default class HandleSvg {
         this._https = https;
         this._bgImageNftcdnUrl = inputs.bg_image_nftcdn_url;
         this._pfpImageNftcdnUrl = inputs.pfp_image_nftcdn_url;
+        this._textBackdropColor = inputs.text_backdrop_color;
+    }
+
+    // True when the last buildHandleName had to add a contrast shadow so the handle stays readable.
+    get textReadabilityAdjusted() {
+        return this._textReadabilityAdjusted;
     }
 
     buildLogoHandle() {
@@ -400,32 +408,26 @@ export default class HandleSvg {
             throw new Error('font shadow vertical offset must be between -20 and 20');
         if (fontShadowBlur > 20 || fontShadowBlur < 0) throw new Error('font shadow blur must be between 0 and 20');
 
-        if ((text_ribbon_colors?.length ?? 0) > 0) {
-            const ribbonColor = text_ribbon_colors?.[0] as HexString;
-            if (!checkContrast(hexToColorHex(ribbonColor), fontFill)) {
-                if (
-                    !(
-                        fontShadowBlur >= 10 &&
-                        fontShadowFill &&
-                        checkContrast(hexToColorHex(ribbonColor), hexToColorHex(fontShadowFill))
-                    )
-                ) {
-                    fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                    font_shadow_size = [0, 0, 10];
-                }
-            }
-        } else if (!bg_image && bg_color) {
-            if (!checkContrast(hexToColorHex(bg_color), fontFill)) {
-                if (
-                    !(
-                        fontShadowBlur >= 10 &&
-                        fontShadowFill &&
-                        checkContrast(hexToColorHex(bg_color), hexToColorHex(fontShadowFill))
-                    )
-                ) {
-                    fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                    font_shadow_size = [0, 0, 10];
-                }
+        // The colour actually beneath the text: the ribbon, else the caller-sampled pixels under a
+        // background image, else the flat background colour.
+        const backdrop =
+            (text_ribbon_colors?.length ?? 0) > 0
+                ? (text_ribbon_colors?.[0] as string)
+                : bg_image
+                  ? this._textBackdropColor
+                  : bg_color;
+        this._textReadabilityAdjusted = false;
+        if (backdrop && !checkContrast(hexToColorHex(backdrop as HexString), fontFill)) {
+            if (
+                !(
+                    fontShadowBlur >= 10 &&
+                    fontShadowFill &&
+                    checkContrast(hexToColorHex(backdrop as HexString), hexToColorHex(fontShadowFill))
+                )
+            ) {
+                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                font_shadow_size = [0, 0, 10];
+                this._textReadabilityAdjusted = true;
             }
         }
 
