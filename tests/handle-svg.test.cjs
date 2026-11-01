@@ -8,7 +8,8 @@ const createRenderer = (overrides = {}) =>
         size: overrides.size ?? 1024,
         handle: overrides.handle ?? 'handle',
         disableDollarSymbol: overrides.disableDollarSymbol,
-        options: overrides.options ?? {}
+        options: overrides.options ?? {},
+        text_backdrop_color: overrides.text_backdrop_color
     });
 
 const mockFontResult = (bbox = { x1: 0, y1: -20, x2: 100, y2: 30 }) => ({
@@ -253,6 +254,31 @@ test('HandleSvg builds handle-name shadow fallback and validates shadow bounds',
         () => invalidRenderer.buildHandleName(async () => new Uint8Array(), {}),
         /font shadow horizontal offset must be between -20 and 20/
     );
+});
+
+test('HandleSvg checks contrast against the sampled backdrop under a background image', async () => {
+    const build = async (text_backdrop_color) => {
+        const renderer = createRenderer({
+            size: 2048,
+            handle: 'white',
+            text_backdrop_color,
+            options: { bg_image: 'ipfs://bg', font_color: '0xffffff' }
+        });
+        renderer.loadParsedFont = async () => mockFontResult({ x1: 0, y1: -40, x2: 300, y2: 100 });
+        const svg = await renderer.buildHandleName(async () => new Uint8Array(), {});
+        return { svg, adjusted: renderer.textReadabilityAdjusted };
+    };
+
+    const light = await build('#f5f5f5');
+    assert.equal(light.svg.includes('flood-color="#888888"'), true);
+    assert.equal(light.adjusted, true);
+
+    const dark = await build('#101010');
+    assert.equal(dark.svg.includes('flood-color="#888888"'), false);
+    assert.equal(dark.adjusted, false);
+
+    // no sampled backdrop: nothing to judge, so no adjustment (previous behaviour)
+    assert.equal((await build(undefined)).adjusted, false);
 });
 
 test('HandleSvg builds socials with icon and text fragments', async () => {
