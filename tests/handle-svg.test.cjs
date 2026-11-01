@@ -281,6 +281,30 @@ test('HandleSvg checks contrast against the sampled backdrop under a background 
     assert.equal((await build(undefined)).adjusted, false);
 });
 
+test('build samples the layers under the text band and judges contrast against that colour', async () => {
+    const renderer = createRenderer({ size: 2048, handle: 'white', options: { bg_image: 'ipfs://bg', font_color: '0xffffff' } });
+    renderer.buildBackgroundImage = async () => '<image id="bg" />';
+    renderer.buildPfpImage = async () => '';
+    renderer.buildOG = async () => '';
+    renderer.buildQRCode = async () => '';
+    renderer.buildSocialsSvg = async () => '';
+    renderer.loadParsedFont = async () => mockFontResult({ x1: 0, y1: -40, x2: 300, y2: 100 });
+    const seen = [];
+    const sampler = (color) => async (layersSvg, band) => {
+        seen.push({ layersSvg, band });
+        return color;
+    };
+
+    const light = await renderer.build(async () => new Uint8Array(), null, null, {}, undefined, undefined, await sampler('#f5f5f5'));
+    assert.equal(renderer.textReadabilityAdjusted, true);
+    assert.equal(light.includes('flood-color="#888888"'), true);
+    assert.equal(seen[0].layersSvg.includes('<image id="bg" />'), true);
+    assert.deepEqual(seen[0].band, { x: 0, y: 876, width: 2048, height: 314 });
+
+    await renderer.build(async () => new Uint8Array(), null, null, {}, undefined, undefined, await sampler('#101010'));
+    assert.equal(renderer.textReadabilityAdjusted, false);
+});
+
 test('HandleSvg builds socials with icon and text fragments', async () => {
     const renderer = createRenderer({
         size: 2048,
