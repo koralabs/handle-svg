@@ -24,6 +24,8 @@ export default class HandleSvg {
     private _https: any;
     private _bgImageNftcdnUrl?: string;
     private _pfpImageNftcdnUrl?: string;
+    private _textBackdropColor?: string;
+    private _textReadabilityAdjusted = false;
 
     constructor(inputs: IHandleSvg, https?: any) {
         this._options = inputs.options;
@@ -36,6 +38,12 @@ export default class HandleSvg {
         this._https = https;
         this._bgImageNftcdnUrl = inputs.bg_image_nftcdn_url;
         this._pfpImageNftcdnUrl = inputs.pfp_image_nftcdn_url;
+        this._textBackdropColor = inputs.text_backdrop_color;
+    }
+
+    // True when the last buildHandleName had to add a contrast shadow so the handle stays readable.
+    get textReadabilityAdjusted() {
+        return this._textReadabilityAdjusted;
     }
 
     buildLogoHandle() {
@@ -400,32 +408,26 @@ export default class HandleSvg {
             throw new Error('font shadow vertical offset must be between -20 and 20');
         if (fontShadowBlur > 20 || fontShadowBlur < 0) throw new Error('font shadow blur must be between 0 and 20');
 
-        if ((text_ribbon_colors?.length ?? 0) > 0) {
-            const ribbonColor = text_ribbon_colors?.[0] as HexString;
-            if (!checkContrast(hexToColorHex(ribbonColor), fontFill)) {
-                if (
-                    !(
-                        fontShadowBlur >= 10 &&
-                        fontShadowFill &&
-                        checkContrast(hexToColorHex(ribbonColor), hexToColorHex(fontShadowFill))
-                    )
-                ) {
-                    fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                    font_shadow_size = [0, 0, 10];
-                }
-            }
-        } else if (!bg_image && bg_color) {
-            if (!checkContrast(hexToColorHex(bg_color), fontFill)) {
-                if (
-                    !(
-                        fontShadowBlur >= 10 &&
-                        fontShadowFill &&
-                        checkContrast(hexToColorHex(bg_color), hexToColorHex(fontShadowFill))
-                    )
-                ) {
-                    fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
-                    font_shadow_size = [0, 0, 10];
-                }
+        // The colour actually beneath the text: the ribbon, else the caller-sampled pixels under a
+        // background image, else the flat background colour.
+        const backdrop =
+            (text_ribbon_colors?.length ?? 0) > 0
+                ? (text_ribbon_colors?.[0] as string)
+                : bg_image
+                  ? this._textBackdropColor
+                  : bg_color;
+        this._textReadabilityAdjusted = false;
+        if (backdrop && !checkContrast(hexToColorHex(backdrop as HexString), fontFill)) {
+            if (
+                !(
+                    fontShadowBlur >= 10 &&
+                    fontShadowFill &&
+                    checkContrast(hexToColorHex(backdrop as HexString), hexToColorHex(fontShadowFill))
+                )
+            ) {
+                fontShadowFill = `0x${this._defaultContrastColor.replace('#', '')}`;
+                font_shadow_size = [0, 0, 10];
+                this._textReadabilityAdjusted = true;
             }
         }
 
@@ -741,11 +743,35 @@ export default class HandleSvg {
     }
 
     // Build the full handle svg (with all the elements)
-    async build(decompress: any, jsdom: any, QRCodeStyling: any, opentype: any, xml2json?: any, json2xml?: any) {
+    // The band the handle name is drawn in (same geometry as the text ribbon).
+    getTextBand() {
+        const { size } = this._params;
+        const height = size * (314 / this._baseSize);
+        const y = size / 2 - height / 2 + size * (9 / this._baseSize);
+        return { x: 0, y: Math.round(y), width: size, height: Math.round(height) };
+    }
+
+    // sampleBackdrop rasterizes the layers beneath the text and returns the average colour (hex) of
+    // the text band; it is only called when a bg image (no ribbon) is what sits behind the text.
+    async build(
+        decompress: any,
+        jsdom: any,
+        QRCodeStyling: any,
+        opentype: any,
+        xml2json?: any,
+        json2xml?: any,
+        sampleBackdrop?: (layersSvg: string, band: { x: number; y: number; width: number; height: number }) => Promise<string>
+    ) {
         const { size, disableDollarSymbol } = this._params;
+        const { bg_image, text_ribbon_colors } = this._options;
         // Fetch bg and pfp concurrently: each may spend up to IMAGE_FETCH_BUDGET_MS walking gateways
         // then NFTCDN, and in sequence the two budgets would outlast the renderer's 30s timeout.
         const [backgroundImage, pfpImage] = await Promise.all([this.buildBackgroundImage(), this.buildPfpImage()]);
+
+        if (sampleBackdrop && bg_image && (text_ribbon_colors?.length ?? 0) === 0) {
+            const layersSvg = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">${this.buildBackground()}${this.buildDefaultBackground()}${backgroundImage}${pfpImage}</svg>`;
+            this._textBackdropColor = await sampleBackdrop(layersSvg, this.getTextBand());
+        }
 
         return `
             <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">

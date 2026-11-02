@@ -8,7 +8,8 @@ const createRenderer = (overrides = {}) =>
         size: overrides.size ?? 1024,
         handle: overrides.handle ?? 'handle',
         disableDollarSymbol: overrides.disableDollarSymbol,
-        options: overrides.options ?? {}
+        options: overrides.options ?? {},
+        text_backdrop_color: overrides.text_backdrop_color
     });
 
 const mockFontResult = (bbox = { x1: 0, y1: -20, x2: 100, y2: 30 }) => ({
@@ -51,6 +52,11 @@ test('HandleSvg builds background, ribbon, border, and contrast-safe logo fragme
     const logo = renderer.buildLogoHandle();
     assert.equal(logo.includes('x="80" y="80"'), true);
     assert.equal(logo.includes('id="handle" fill="#888888"'), true);
+
+    // the logo's green dollar sign is swapped out when the solid background is that same green
+    const greenLogo = createRenderer({ options: { bg_color: '0x0cd15b' } }).buildLogoHandle();
+    assert.equal(greenLogo.includes('id="S" fill="#888888"'), true);
+    assert.equal(greenLogo.includes('id="handle" fill="#ffffff"'), true);
 });
 
 test('HandleSvg builds pfp markup with border, zoom, and bounded offsets', () => {
@@ -255,6 +261,55 @@ test('HandleSvg builds handle-name shadow fallback and validates shadow bounds',
     );
 });
 
+test('HandleSvg checks contrast against the sampled backdrop under a background image', async () => {
+    const build = async (text_backdrop_color) => {
+        const renderer = createRenderer({
+            size: 2048,
+            handle: 'white',
+            text_backdrop_color,
+            options: { bg_image: 'ipfs://bg', font_color: '0xffffff' }
+        });
+        renderer.loadParsedFont = async () => mockFontResult({ x1: 0, y1: -40, x2: 300, y2: 100 });
+        const svg = await renderer.buildHandleName(async () => new Uint8Array(), {});
+        return { svg, adjusted: renderer.textReadabilityAdjusted };
+    };
+
+    const light = await build('#f5f5f5');
+    assert.equal(light.svg.includes('flood-color="#888888"'), true);
+    assert.equal(light.adjusted, true);
+
+    const dark = await build('#101010');
+    assert.equal(dark.svg.includes('flood-color="#888888"'), false);
+    assert.equal(dark.adjusted, false);
+
+    // no sampled backdrop: nothing to judge, so no adjustment (previous behaviour)
+    assert.equal((await build(undefined)).adjusted, false);
+});
+
+test('build samples the layers under the text band and judges contrast against that colour', async () => {
+    const renderer = createRenderer({ size: 2048, handle: 'white', options: { bg_image: 'ipfs://bg', font_color: '0xffffff' } });
+    renderer.buildBackgroundImage = async () => '<image id="bg" />';
+    renderer.buildPfpImage = async () => '';
+    renderer.buildOG = async () => '';
+    renderer.buildQRCode = async () => '';
+    renderer.buildSocialsSvg = async () => '';
+    renderer.loadParsedFont = async () => mockFontResult({ x1: 0, y1: -40, x2: 300, y2: 100 });
+    const seen = [];
+    const sampler = (color) => async (layersSvg, band) => {
+        seen.push({ layersSvg, band });
+        return color;
+    };
+
+    const light = await renderer.build(async () => new Uint8Array(), null, null, {}, undefined, undefined, await sampler('#f5f5f5'));
+    assert.equal(renderer.textReadabilityAdjusted, true);
+    assert.equal(light.includes('flood-color="#888888"'), true);
+    assert.equal(seen[0].layersSvg.includes('<image id="bg" />'), true);
+    assert.deepEqual(seen[0].band, { x: 0, y: 876, width: 2048, height: 314 });
+
+    await renderer.build(async () => new Uint8Array(), null, null, {}, undefined, undefined, await sampler('#101010'));
+    assert.equal(renderer.textReadabilityAdjusted, false);
+});
+
 test('HandleSvg builds socials with icon and text fragments', async () => {
     const renderer = createRenderer({
         size: 2048,
@@ -316,6 +371,10 @@ test('HandleSvg covers direct image sizing, ribbon fallback, OG, and dollar rari
     const dollar = renderer.buildDollarSign();
     assert.equal(dollar.includes('fill="#593292"'), true);
     assert.equal(dollar.includes('x="1668" y="80"'), true);
+
+    // a solid background the same colour as the rarity dollar sign swaps it for the default contrast colour
+    renderer = createRenderer({ size: 2048, handle: 'aa', options: { bg_color: '0x593292' } });
+    assert.equal(renderer.buildDollarSign().includes('fill="#888888"'), true);
 
     renderer = createRenderer({
         size: 2048,

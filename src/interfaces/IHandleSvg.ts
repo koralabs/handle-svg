@@ -9,5 +9,7 @@ export interface IHandleSvg {
     // the asset's IPFS pin has lapsed. Signing needs the NFTCDN gateway secret, so it stays
     // server-side in the caller (e.g. render.handle.me); handle-svg only consumes the pre-built URL.
     bg_image_nftcdn_url?: string;
+    // Average colour of the composed pixels beneath the handle text (hex), sampled by the caller.
+    text_backdrop_color?: string;
     pfp_image_nftcdn_url?: string;
 }

@@ -10,3 +10,7 @@
 - [Spec Index](./spec/index.md)
 - [Technical Spec](./spec/spec.md)
 - [Utilities and Data](./spec/utilities-and-data.md)
+
+
+## Policy
+- [Canonical contract](../CANONICAL_CONTRACT.md) and [enclave](../.enclave): what must never be violated and which files need operator review.
