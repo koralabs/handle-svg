@@ -28,7 +28,7 @@ export default class HandleSvg {
     private _textReadabilityAdjusted = false;
 
     constructor(inputs: IHandleSvg, https?: any) {
-        this._options = inputs.options;
+        this._options = inputs.options ?? {};
         this._params = {
             size: inputs.size,
             handle: inputs.handle,
