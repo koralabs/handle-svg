@@ -1,6 +1,6 @@
 {
   "name": "@koralabs/handle-svg",
-  "version": "3.0.26",
+  "version": "3.0.27",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
@@ -31,7 +31,7 @@
   ],
   "homepage": "https://github.com/koralabs/handle-svg#readme",
   "dependencies": {
-    "@koralabs/kora-labs-common": "^2.5.4",
+    "@koralabs/kora-labs-common": "^6.21.6",
     "cross-fetch": "^4.0.0"
   },
   "devDependencies": {
